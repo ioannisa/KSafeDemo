@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import eu.anifantakis.lib.kvault.KVault
 import eu.anifantakis.lib.kvault.invoke
 import eu.eu.anifantakis.lib.kvault.compose.mutableStateOf
+import kotlinx.serialization.Serializable
 
 class LibCounterViewModel(
     kvault: KVault
@@ -49,5 +50,34 @@ class LibCounterViewModel(
         count3++
         count4++
         count5++
+    }
+
+
+
+    // More complex example
+    @Serializable
+    data class AuthInfo(
+        val accessToken: String = "",
+        val refreshToken: String = "",
+        val expiresIn: Long = 0L
+    )
+
+    // Encrypted DataStore
+    var authInfo by kvault(AuthInfo())
+
+    init {
+//        authInfo = AuthInfo(
+//            accessToken = "token123",
+//            refreshToken = "refresh123",
+//            expiresIn = 3600L
+//        )
+
+        // Access as if it was a normal variable
+        // It retrieves the encrypted shared preference
+        println(authInfo)
+
+        // Deleting data
+        // if you try to access the delegate again it will return default value
+        //kvault.deleteDirect("authInfo")
     }
 }
