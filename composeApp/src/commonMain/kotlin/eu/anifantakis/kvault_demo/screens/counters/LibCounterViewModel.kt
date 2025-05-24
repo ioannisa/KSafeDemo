@@ -63,14 +63,18 @@ class LibCounterViewModel(
     )
 
     // Encrypted DataStore
-    var authInfo by kvault(AuthInfo())
+    var authInfo by kvault(
+        defaultValue = AuthInfo(),
+        key = "authInfo",
+        encrypted = true
+    )
 
     init {
-//        authInfo = AuthInfo(
-//            accessToken = "token123",
-//            refreshToken = "refresh123",
-//            expiresIn = 3600L
-//        )
+        authInfo = AuthInfo(
+            accessToken = "token123",
+            refreshToken = "refresh123",
+            expiresIn = 3600L
+        )
 
         // Access as if it was a normal variable
         // It retrieves the encrypted shared preference

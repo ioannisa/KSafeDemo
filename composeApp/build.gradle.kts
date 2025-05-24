@@ -56,8 +56,8 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.core)
 
-            implementation("eu.anifantakis:kvault:1.0.0-beta01.6")
-            implementation("eu.anifantakis:kvault-compose:1.0.0-beta01.6")
+            implementation("eu.anifantakis:kvault:1.1.0")
+            implementation("eu.anifantakis:kvault-compose:1.1.0")
 
         }
         iosMain.dependencies {
