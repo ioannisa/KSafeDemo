@@ -50,6 +50,7 @@ class LibCounterViewModel(
         count3++
         count4++
         count5++
+        authInfo = authInfo.copy(refreshToken = "refresh123_$count5")
     }
 
 
@@ -64,21 +65,21 @@ class LibCounterViewModel(
 
     // Encrypted DataStore
     var authInfo by kvault(
-        defaultValue = AuthInfo(),
+        defaultValue = AuthInfo(
+            accessToken = "token123",
+            refreshToken = "refresh123",
+            expiresIn = 3600L
+        ),
         key = "authInfo",
         encrypted = true
     )
 
     init {
-        authInfo = AuthInfo(
-            accessToken = "token123",
-            refreshToken = "refresh123",
-            expiresIn = 3600L
-        )
+        // after pressing "increment" some times, restart app and see how refreshToken has changed
+        println("AuthInfo: $authInfo")
 
         // Access as if it was a normal variable
         // It retrieves the encrypted shared preference
-        println(authInfo)
 
         // Deleting data
         // if you try to access the delegate again it will return default value
