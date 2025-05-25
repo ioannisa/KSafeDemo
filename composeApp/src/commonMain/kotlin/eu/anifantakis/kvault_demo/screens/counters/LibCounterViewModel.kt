@@ -4,13 +4,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import eu.anifantakis.lib.kvault.KVault
 import eu.anifantakis.lib.kvault.invoke
 import eu.eu.anifantakis.lib.kvault.compose.mutableStateOf
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 class LibCounterViewModel(
-    kvault: KVault
+    val kvault: KVault
 ) : ViewModel() {
 
     // just a normal mutableStateOf - no persistence
@@ -32,7 +34,8 @@ class LibCounterViewModel(
     )
         private set
 
-    // KVault without compose
+    // KVault without compose (regular variables, not states)
+    // see console for output
     var count4 by kvault(10)
     var count5 by kvault(20)
 
@@ -50,12 +53,30 @@ class LibCounterViewModel(
         count3++
         count4++
         count5++
-        authInfo = authInfo.copy(refreshToken = "refresh123_$count5")
+
+        authInfo = authInfo.copy(
+            expiresIn = authInfo.expiresIn + 1,
+            accessToken = "token123_${authInfo.expiresIn + 1}",
+            refreshToken = "refresh123_${authInfo.expiresIn + 1}"
+        )
+    }
+
+    fun clear() {
+        // use deleteDirect to delete outside coroutines
+        kvault.deleteDirect("count1") // count 1 is normal mutableStateOf (not kvault) deleting an non-existent key doesn't break the app
+        kvault.deleteDirect("count2")
+
+        // or use delete for coroutines usage
+        viewModelScope.launch {
+            kvault.delete("counter3Key")
+            kvault.delete("count4")
+            kvault.delete("count5")
+            kvault.delete("authInfo")
+        }
     }
 
 
-
-    // More complex example
+    // More complex example with data class and Serialization
     @Serializable
     data class AuthInfo(
         val accessToken: String = "",
@@ -63,8 +84,8 @@ class LibCounterViewModel(
         val expiresIn: Long = 0L
     )
 
-    // Encrypted DataStore
-    var authInfo by kvault(
+    // initialize the data class as a state so we watch for changes on the screen directly
+    var authInfo by kvault.mutableStateOf(
         defaultValue = AuthInfo(
             accessToken = "token123",
             refreshToken = "refresh123",
@@ -73,16 +94,4 @@ class LibCounterViewModel(
         key = "authInfo",
         encrypted = true
     )
-
-    init {
-        // after pressing "increment" some times, restart app and see how refreshToken has changed
-        println("AuthInfo: $authInfo")
-
-        // Access as if it was a normal variable
-        // It retrieves the encrypted shared preference
-
-        // Deleting data
-        // if you try to access the delegate again it will return default value
-        //kvault.deleteDirect("authInfo")
-    }
 }

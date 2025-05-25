@@ -9,12 +9,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,25 +35,58 @@ fun LibCounterScreen(counterViewModel: LibCounterViewModel = koinViewModel()) {
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        var showDialog by remember { mutableStateOf(false) }
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
 
             Text(text = "mutableStateOf", fontSize = 18.sp)
-            LabelCard(label = "Counter 1:", content = "${counterViewModel.count1}")
+            LabelCard(label = "Counter 1:", lines = listOf(counterViewModel.count1.toString()))
 
             Text(text = "mutableStateOf - KVault - Encrypted", fontSize = 18.sp)
-            LabelCard(label = "Counter 2:", content = "${counterViewModel.count2}")
+            LabelCard(label = "Counter 2:", lines = listOf(counterViewModel.count2.toString()))
 
             Text(text = "mutableStateOf - KVault - Not Encrypted", fontSize = 18.sp)
-            LabelCard(label = "Counter 3:", content = "${counterViewModel.count3}")
+            LabelCard(label = "Counter 3:", lines = listOf(counterViewModel.count3.toString()))
+
+            Text(text = "mutableStateOf - KVault - Encrypted", fontSize = 18.sp)
+            LabelCard(label = "data class AuthInfo", lines =
+                listOf(
+                    "accessToken: ${counterViewModel.authInfo.accessToken}",
+                    "refreshToken: ${counterViewModel.authInfo.refreshToken}",
+                    "expiresIn: ${counterViewModel.authInfo.expiresIn}"
+                ),
+            )
 
             Spacer(modifier = Modifier.padding(16.dp))
 
             Button(onClick = { counterViewModel.increment() }) {
                 Text(text = "Increment", fontSize = 24.sp)
             }
+
+            Button(onClick = { counterViewModel.clear(); showDialog = true }) {
+                Text(text = "Delete Keys", fontSize = 24.sp)
+            }
+        }
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Restart the app") },
+                text = { Text("Just deleting the keys doesn't update the UI. Restart the app to see the changes.") },
+                confirmButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
@@ -54,7 +94,7 @@ fun LibCounterScreen(counterViewModel: LibCounterViewModel = koinViewModel()) {
 @Composable
 fun LabelCard(
     label: String,
-    content: String,
+    lines: List<String>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -68,7 +108,7 @@ fun LabelCard(
                 color = Color.White,
                 shape = RoundedCornerShape(12.dp)
             )
-            .padding(16.dp)
+            .padding(8.dp)
             .padding(horizontal = 48.dp)
     ) {
         Text(
@@ -77,10 +117,12 @@ fun LabelCard(
             color = Color.Gray,
             modifier = Modifier.padding(bottom = 4.dp)
         )
-        Text(
-            text = content,
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold
-        )
+        lines.forEach {
+            Text(
+                text = it,
+                fontSize = if (lines.count() == 1) 48.sp else 20.sp,
+                fontWeight = if (lines.count() == 1) FontWeight.Bold else FontWeight.Normal
+            )
+        }
     }
 }
