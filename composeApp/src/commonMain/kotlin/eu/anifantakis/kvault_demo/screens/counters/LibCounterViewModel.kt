@@ -56,8 +56,8 @@ class LibCounterViewModel(
 
         authInfo = authInfo.copy(
             expiresIn = authInfo.expiresIn + 1,
-            accessToken = "token123_${authInfo.expiresIn + 1}",
-            refreshToken = "refresh123_${authInfo.expiresIn + 1}"
+            accessToken = "abc_${authInfo.expiresIn + 1}",
+            refreshToken = "def_${authInfo.expiresIn + 1}"
         )
     }
 
@@ -87,8 +87,8 @@ class LibCounterViewModel(
     // initialize the data class as a state so we watch for changes on the screen directly
     var authInfo by kvault.mutableStateOf(
         defaultValue = AuthInfo(
-            accessToken = "token123",
-            refreshToken = "refresh123",
+            accessToken = "abc",
+            refreshToken = "def",
             expiresIn = 3600L
         ),
         key = "authInfo",
