@@ -54,8 +54,8 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.core)
 
-            implementation("eu.anifantakis:ksafe:1.0.0-alpha01")
-            implementation("eu.anifantakis:ksafe-compose:1.0.0-alpha01")
+            implementation("eu.anifantakis:ksafe:1.0.0")
+            implementation("eu.anifantakis:ksafe-compose:1.0.0")
 
         }
         iosMain.dependencies {
