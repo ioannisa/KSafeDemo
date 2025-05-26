@@ -1,4 +1,4 @@
-package eu.anifantakis.kvault_demo
+package eu.anifantakis.ksafe_demo
 
 import androidx.compose.ui.window.ComposeUIViewController
 

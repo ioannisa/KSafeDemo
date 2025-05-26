@@ -1,4 +1,4 @@
-rootProject.name = "KVaultDemo"
+rootProject.name = "KSafeDemo"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

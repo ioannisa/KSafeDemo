@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.implementation
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -56,8 +54,8 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.core)
 
-            implementation("eu.anifantakis:kvault:1.1.0")
-            implementation("eu.anifantakis:kvault-compose:1.1.0")
+            implementation("eu.anifantakis:ksafe:1.0.0-alpha01")
+            implementation("eu.anifantakis:ksafe-compose:1.0.0-alpha01")
 
         }
         iosMain.dependencies {
@@ -70,11 +68,11 @@ kotlin {
 }
 
 android {
-    namespace = "eu.anifantakis.kvault_demo"
+    namespace = "eu.anifantakis.ksafe_demo"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "eu.anifantakis.kvault_demo"
+        applicationId = "eu.anifantakis.ksafe_demo"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

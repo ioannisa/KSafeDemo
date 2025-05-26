@@ -1,4 +1,4 @@
-package eu.anifantakis.kvault_demo.screens.counters
+package eu.anifantakis.ksafe_demo.screens.counters
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,7 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,13 +44,13 @@ fun LibCounterScreen(counterViewModel: LibCounterViewModel = koinViewModel()) {
             Text(text = "mutableStateOf", fontSize = 18.sp)
             LabelCard(label = "Counter 1:", lines = listOf(counterViewModel.count1.toString()))
 
-            Text(text = "mutableStateOf - KVault - Encrypted", fontSize = 18.sp)
+            Text(text = "mutableStateOf - KSafe - Encrypted", fontSize = 18.sp)
             LabelCard(label = "Counter 2:", lines = listOf(counterViewModel.count2.toString()))
 
-            Text(text = "mutableStateOf - KVault - Not Encrypted", fontSize = 18.sp)
+            Text(text = "mutableStateOf - KSafe - Not Encrypted", fontSize = 18.sp)
             LabelCard(label = "Counter 3:", lines = listOf(counterViewModel.count3.toString()))
 
-            Text(text = "mutableStateOf - KVault - Encrypted", fontSize = 18.sp)
+            Text(text = "mutableStateOf - KSafe - Encrypted", fontSize = 18.sp)
             LabelCard(label = "data class AuthInfo", lines =
                 listOf(
                     "accessToken: ${counterViewModel.authInfo.accessToken}",
