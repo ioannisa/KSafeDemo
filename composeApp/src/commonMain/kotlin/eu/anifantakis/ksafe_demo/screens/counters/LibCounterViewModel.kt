@@ -34,25 +34,37 @@ class LibCounterViewModel(
     )
         private set
 
+
     // KSafe without compose (regular variables, not states)
     // see console for output
     var count4 by ksafe(10)
     var count5 by ksafe(20)
 
+    // encrypted string
+    var count6 by ksafe("30")
+    // unencrypted string
+    var count7 by ksafe("40", encrypted = false)
+
     init {
         println("count 4 at startup: $count4")
         println("count 5 at startup: $count5")
+        println("count 6 at startup: $count6")
+        println("count 7 at startup: $count7")
     }
 
     fun increment() {
         println("count 4 before increment: $count4")
         println("count 5 before increment: $count5")
+        println("count 6 before increment: $count6")
+        println("count 7 before increment: $count7")
 
         count1++
         count2++
         count3++
         count4++
         count5++
+        count6 = (count6.toInt()+1).toString()
+        count7 = (count7.toInt()+1).toString()
 
         authInfo = authInfo.copy(
             expiresIn = authInfo.expiresIn + 1,
@@ -71,6 +83,8 @@ class LibCounterViewModel(
             ksafe.delete("counter3Key")
             ksafe.delete("count4")
             ksafe.delete("count5")
+            ksafe.delete("count6")
+            ksafe.delete("count7")
             ksafe.delete("authInfo")
         }
     }
