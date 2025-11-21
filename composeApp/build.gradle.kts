@@ -56,8 +56,8 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.core)
 
-            implementation("eu.anifantakis:ksafe:1.2.0-alpha01")
-            implementation("eu.anifantakis:ksafe-compose:1.2.0-alpha01")
+            implementation("eu.anifantakis:ksafe:1.2.0-alpha02")
+            implementation("eu.anifantakis:ksafe-compose:1.2.0-alpha02")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

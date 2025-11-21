@@ -50,6 +50,8 @@ class LibCounterViewModel(
         println("count 5 at startup: $count5")
         println("count 6 at startup: $count6")
         println("count 7 at startup: $count7")
+
+        checkFlows()
     }
 
     fun increment() {
@@ -64,7 +66,7 @@ class LibCounterViewModel(
         count4++
         count5++
         count6 = (count6.toInt()+1).toString()
-        count7 = (count7.toInt()+1).toString()
+        ksafe.putDirect("count7", count7.toInt() + 1)
 
         authInfo = authInfo.copy(
             expiresIn = authInfo.expiresIn + 1,
@@ -108,4 +110,37 @@ class LibCounterViewModel(
         key = "authInfo",
         encrypted = true
     )
+
+    private fun checkFlows() {
+        val accessTokenKey = "access-token"
+
+        viewModelScope.launch {
+            launch {
+                ksafe.getFlow<String?>(
+                    key = accessTokenKey,
+                    defaultValue = null,
+                    encrypted = true,
+                ).collect { value ->
+                    println("KSafe flow - Current value: $value")
+                }
+            }
+
+            // add value to flow
+            ksafe.put(
+                key = accessTokenKey,
+                value = "some-value-1",
+                encrypted = true,
+            )
+
+            // add another value to flow
+            ksafe.put(
+                key = accessTokenKey,
+                value = "some-value-2",
+                encrypted = true,
+            )
+
+            // delete value from flow
+            ksafe.delete(key = accessTokenKey)
+        }
+    }
 }
