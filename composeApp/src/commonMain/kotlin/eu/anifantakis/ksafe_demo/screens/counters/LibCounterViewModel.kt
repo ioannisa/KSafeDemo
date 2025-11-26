@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.anifantakis.lib.ksafe.KSafe
 import eu.anifantakis.lib.ksafe.invoke
-import eu.eu.anifantakis.lib.ksafe.compose.mutableStateOf
+import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
