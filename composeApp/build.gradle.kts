@@ -36,6 +36,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.google.material)
 
             // DI
             implementation(libs.koin.android)
@@ -56,8 +57,8 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.core)
 
-            implementation("eu.anifantakis:ksafe:1.2.0")
-            implementation("eu.anifantakis:ksafe-compose:1.2.0")
+            implementation("eu.anifantakis:ksafe:1.3.0")
+            implementation("eu.anifantakis:ksafe-compose:1.3.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

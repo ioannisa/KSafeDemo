@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.KSafeDemo" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Your customizations -->
+    </style>
+</resources>

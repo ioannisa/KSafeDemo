@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import eu.anifantakis.lib.ksafe.BiometricAuthorizationDuration
 import eu.anifantakis.lib.ksafe.KSafe
 import eu.anifantakis.lib.ksafe.invoke
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
@@ -45,6 +46,8 @@ class LibCounterViewModel(
     // unencrypted string
     var count7 by ksafe("40", encrypted = false)
 
+    var bioCount by ksafe.mutableStateOf(0)
+
     init {
         println("count 4 at startup: $count4")
         println("count 5 at startup: $count5")
@@ -52,6 +55,26 @@ class LibCounterViewModel(
         println("count 7 at startup: $count7")
 
         checkFlows()
+    }
+
+    // Unique scope for this screen - auth is only valid while this ViewModel exists
+    private val screenScope = "counter-screen-${hashCode()}"
+
+    fun bioCounterIncrement() {
+        // BiometricAuthorizationDuration(6_000L, screenScope) means:
+        // - Once authenticated, no new prompt for 6 seconds
+        // - Scoped to this screen instance (new ViewModel = re-authenticate)
+        ksafe.verifyBiometricDirect(
+            reason = "Authenticate to save",
+            authorizationDuration = BiometricAuthorizationDuration(
+                duration = 6_000L,
+                scope = viewModelScope.hashCode().toString()
+            )
+        ) { success ->
+            if (success) {
+                bioCount++
+            }
+        }
     }
 
     fun increment() {

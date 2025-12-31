@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -61,12 +62,20 @@ fun LibCounterScreen(counterViewModel: LibCounterViewModel = koinViewModel()) {
 
             Spacer(modifier = Modifier.padding(16.dp))
 
-            Button(onClick = { counterViewModel.increment() }) {
-                Text(text = "Increment", fontSize = 24.sp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(onClick = { counterViewModel.increment() }) {
+                    Text(text = "+", fontSize = 24.sp)
+                }
+
+                Button(onClick = { showDialog = true }) {
+                    Text(text = "Clear", fontSize = 24.sp)
+                }
             }
 
-            Button(onClick = { counterViewModel.clear(); showDialog = true }) {
-                Text(text = "Delete Keys", fontSize = 24.sp)
+            Button(onClick = { counterViewModel.bioCounterIncrement() }) {
+                Text(text = "Biometric Count: ${counterViewModel.bioCount}", fontSize = 24.sp)
             }
         }
 
@@ -76,7 +85,10 @@ fun LibCounterScreen(counterViewModel: LibCounterViewModel = koinViewModel()) {
                 title = { Text("Restart the app") },
                 text = { Text("Just deleting the keys doesn't update the UI. Restart the app to see the changes.") },
                 confirmButton = {
-                    TextButton(onClick = { showDialog = false }) {
+                    TextButton(onClick = {
+                        counterViewModel.clear()
+                        showDialog = false
+                    }) {
                         Text("OK")
                     }
                 },
