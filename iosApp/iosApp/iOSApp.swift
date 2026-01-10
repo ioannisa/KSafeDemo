@@ -10,6 +10,8 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea(.keyboard)
         }
     }
 }

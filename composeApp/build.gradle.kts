@@ -57,8 +57,11 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.core)
 
-            implementation("eu.anifantakis:ksafe:1.3.0")
-            implementation("eu.anifantakis:ksafe-compose:1.3.0")
+            // Immutable collections for better compose stability
+            implementation(libs.kotlinx.collections.immutable)
+
+            implementation("eu.anifantakis:ksafe:1.4.0")
+            implementation("eu.anifantakis:ksafe-compose:1.4.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

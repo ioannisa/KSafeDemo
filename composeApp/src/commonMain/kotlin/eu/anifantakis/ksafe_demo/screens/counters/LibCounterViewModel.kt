@@ -1,5 +1,7 @@
 package eu.anifantakis.ksafe_demo.screens.counters
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,6 +14,15 @@ import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
+@Immutable
+@Serializable
+data class AuthInfo(
+    val accessToken: String = "",
+    val refreshToken: String = "",
+    val expiresIn: Long = 0L
+)
+
+@Stable
 class LibCounterViewModel(
     val ksafe: KSafe
 ) : ViewModel() {
@@ -48,6 +59,17 @@ class LibCounterViewModel(
 
     var bioCount by ksafe.mutableStateOf(0)
 
+    // initialize the data class as a state so we watch for changes on the screen directly
+    var authInfo by ksafe.mutableStateOf(
+        defaultValue = AuthInfo(
+            accessToken = "abc",
+            refreshToken = "def",
+            expiresIn = 3600L
+        ),
+        key = "authInfo",
+        encrypted = true
+    )
+
     init {
         println("count 4 at startup: $count4")
         println("count 5 at startup: $count5")
@@ -56,9 +78,6 @@ class LibCounterViewModel(
 
         checkFlows()
     }
-
-    // Unique scope for this screen - auth is only valid while this ViewModel exists
-    private val screenScope = "counter-screen-${hashCode()}"
 
     fun bioCounterIncrement() {
         // BiometricAuthorizationDuration(6_000L, screenScope) means:
@@ -88,7 +107,7 @@ class LibCounterViewModel(
         count3++
         count4++
         count5++
-        count6 = (count6.toInt()+1).toString()
+        count6 = (count6.toInt() + 1).toString()
         ksafe.putDirect("count7", count7.toInt() + 1)
 
         authInfo = authInfo.copy(
@@ -113,26 +132,6 @@ class LibCounterViewModel(
             ksafe.delete("authInfo")
         }
     }
-
-
-    // More complex example with data class and Serialization
-    @Serializable
-    data class AuthInfo(
-        val accessToken: String = "",
-        val refreshToken: String = "",
-        val expiresIn: Long = 0L
-    )
-
-    // initialize the data class as a state so we watch for changes on the screen directly
-    var authInfo by ksafe.mutableStateOf(
-        defaultValue = AuthInfo(
-            accessToken = "abc",
-            refreshToken = "def",
-            expiresIn = 3600L
-        ),
-        key = "authInfo",
-        encrypted = true
-    )
 
     private fun checkFlows() {
         val accessTokenKey = "access-token"
