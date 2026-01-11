@@ -10,7 +10,7 @@ A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https:/
 
 | Storage Screen | Security Screen |
 |:--------------:|:---------------:|
-| ![Storage](screenshots/storage.png) | ![Security](screenshots/security.png) |
+| <img width="270" alt="image" src="https://github.com/user-attachments/assets/94a27132-6842-413e-aa8f-d6b8bfa87b61" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/968c0156-c97d-4ca4-8f4b-77614048f870" /> |
 
 ---
 
