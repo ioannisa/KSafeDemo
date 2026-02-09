@@ -17,7 +17,7 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
-        mavenLocal() // First check local for development versions
+        // add mavenLocal() here first if you want to prioritize local artifacts during development
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -26,6 +26,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        mavenLocal()
     }
 }
 

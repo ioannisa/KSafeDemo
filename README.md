@@ -1,6 +1,6 @@
 # KSafe Demo
 
-A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https://github.com/ioannisa/ksafe) - a secure encrypted storage library with biometric authentication and runtime security detection.
+A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https://github.com/ioannisa/ksafe) - a secure encrypted storage library with biometric authentication, runtime security detection, and device lock-state protection.
 
 **Platforms:** Android, iOS, Desktop (JVM)
 
@@ -26,13 +26,18 @@ This demo application serves as a practical guide to understanding and implement
 
 ### 2. Biometric Authentication
 - **Cross-Platform Support**: Face ID, Touch ID, and Fingerprint authentication
-- **Authorization Duration**: Caching authentication for a specified time period
+- **Authorization Duration**: Caching authentication for a specified time period with visible countdown
 - **Scoped Authentication**: Binding auth validity to ViewModel lifecycle
 
 ### 3. Security Policy (New in 1.4.0)
 - **Runtime Security Detection**: Root/Jailbreak, Debugger, Debug Build, Emulator
 - **Configurable Actions**: IGNORE, WARN, or BLOCK for each security check
 - **Security Callbacks**: Custom handling when violations are detected
+
+### 4. Device Lock-State Protection (New in 1.5.0)
+- **`requireUnlockedDevice`**: Encrypted data is only accessible when the device is unlocked
+- **Interactive Lock Test**: 15-second countdown to lock your device, then verifies encrypted reads are blocked
+- **Platform Background Tasks**: iOS uses `beginBackgroundTaskWithExpirationHandler` to keep the test running while the screen is off
 
 ---
 
@@ -44,11 +49,12 @@ Demonstrates various ways to persist data with KSafe:
 
 | Feature | Description |
 |---------|-------------|
-| **Counter 1** | Regular Compose `mutableStateOf` - no persistence (baseline comparison) |
+| **Counter 1** | Regular Compose `mutableStateOf` - no persistence (resets on restart) |
 | **Counter 2** | `ksafe.mutableStateOf` - encrypted persistent state |
-| **Counter 3** | `ksafe.mutableStateOf` with `encrypted = false` |
-| **AuthInfo** | Serializable data class with encrypted persistence |
-| **Biometric Count** | Counter protected by biometric authentication with 6-second authorization cache |
+| **Counter 3** | `ksafe.mutableStateOf` with `encrypted = false` - unencrypted persistent state |
+| **AuthInfo** | `@Serializable` data class with encrypted persistence |
+| **Biometric Count** | Counter protected by biometric authentication with authorization duration countdown |
+| **Lock Test** | Interactive test to verify `requireUnlockedDevice` blocks access when the device is locked |
 
 ### Security Screen
 
@@ -126,22 +132,28 @@ var authInfo by ksafe.mutableStateOf(
 ### Biometric Authentication with Duration Cache
 
 ```kotlin
+private val bioAuthDurationSeconds = 6
+
 fun bioCounterIncrement() {
     ksafe.verifyBiometricDirect(
         reason = "Authenticate to save",
         authorizationDuration = BiometricAuthorizationDuration(
-            duration = 6_000L,  // 6 seconds cache
-            scope = viewModelScope.hashCode().toString()  // Scoped to this ViewModel
+            duration = bioAuthDurationSeconds * 1000L,
+            scope = viewModelScope.hashCode().toString()
         )
     ) { success ->
         if (success) {
             bioCount++
+            // Start visible countdown only on fresh auth
+            if (bioAuthRemaining == 0) {
+                startBioAuthTimer()
+            }
         }
     }
 }
 ```
 
-### Security Policy Configuration (Modules.android.kt)
+### Device Lock-State Protection (Modules.android.kt)
 
 ```kotlin
 actual val platformModule: Module
@@ -149,11 +161,12 @@ actual val platformModule: Module
         single<KSafe> {
             KSafe(
                 context = androidApplication(),
+                config = KSafeConfig(requireUnlockedDevice = true),
                 securityPolicy = KSafeSecurityPolicy.Strict.copy(
+                    debuggerAttached = SecurityAction.WARN,
                     debugBuild = SecurityAction.WARN,
                     emulator = SecurityAction.WARN,
                     onViolation = { violation ->
-                        // Log or handle security violations
                         SecurityViolationsHolder.addViolation(violation)
                     }
                 )
@@ -195,6 +208,25 @@ KSafe 1.4.0 introduces configurable security policies:
 | `IGNORE` | No detection performed |
 | `WARN` | Detection runs, callback invoked, app continues |
 | `BLOCK` | Detection runs, callback invoked, throws `SecurityViolationException` |
+
+---
+
+## Lock-State Policy Test
+
+The demo includes an interactive test for the `requireUnlockedDevice` feature:
+
+1. Tap **"Test Lock Feature"** - a test value is pre-stored while the device is unlocked
+2. A 15-second countdown begins - lock your device during this time
+3. After the countdown, the app attempts to read the encrypted value from the Keychain/Keystore
+4. Results:
+   - **"READ BLOCKED"** - The feature works correctly; the Keychain/Keystore denied access while locked
+   - **"READ SUCCEEDED"** - If running from Xcode with the debugger, this is expected (see below)
+
+**Important (iOS):** Xcode's debugger prevents iOS data protection from fully engaging. For accurate results:
+1. Build & run the app on your device from Xcode
+2. Press **Stop** in Xcode to disconnect the debugger
+3. Launch the app from the **Home Screen**
+4. Run the lock test
 
 ---
 
@@ -250,6 +282,8 @@ composeApp/src/
 │   ├── di/
 │   │   ├── Modules.kt                   # Shared DI module
 │   │   └── SecurityViolationsHolder.kt  # Security violations state
+│   ├── util/
+│   │   └── BackgroundTask.kt            # expect for platform background tasks
 │   └── screens/
 │       ├── counters/
 │       │   ├── LibCounterScreen.kt      # Storage demo UI
@@ -261,16 +295,19 @@ composeApp/src/
 ├── androidMain/kotlin/eu/anifantakis/ksafe_demo/
 │   ├── MainActivity.kt
 │   ├── biometric/BiometricAuthenticator.android.kt
-│   └── di/Modules.android.kt            # KSafe with SecurityPolicy
+│   ├── util/BackgroundTask.android.kt    # No-op (Android doesn't suspend)
+│   └── di/Modules.android.kt            # KSafe with requireUnlockedDevice
 │
 ├── iosMain/kotlin/eu/anifantakis/ksafe_demo/
 │   ├── MainViewController.kt
 │   ├── biometric/BiometricAuthenticator.ios.kt
+│   ├── util/BackgroundTask.ios.kt        # beginBackgroundTask for lock test
 │   └── di/Modules.ios.kt
 │
 └── jvmMain/kotlin/eu/anifantakis/ksafe_demo/
     ├── main.kt
     ├── biometric/BiometricAuthenticator.jvm.kt
+    ├── util/BackgroundTask.jvm.kt        # No-op
     └── di/Modules.jvm.kt
 ```
 
@@ -299,14 +336,12 @@ Open `iosApp/iosApp.xcodeproj` in Xcode and run.
 ```kotlin
 // build.gradle.kts
 commonMain.dependencies {
-    implementation("eu.anifantakis:ksafe:1.4.0")
-    implementation("eu.anifantakis:ksafe-compose:1.4.0")
-}
-
-androidMain.dependencies {
-    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("eu.anifantakis:ksafe:1.5.0")
+    implementation("eu.anifantakis:ksafe-compose:1.5.0")
 }
 ```
+
+> Biometric support (`androidx.biometric`) is included transitively through KSafe — no explicit dependency needed.
 
 ---
 
@@ -316,7 +351,8 @@ androidMain.dependencies {
 2. **Compose Integration**: `mutableStateOf` works exactly like Compose's native state
 3. **Cross-Platform**: Same API across Android, iOS, and Desktop
 4. **Security-First**: Runtime security detection helps protect sensitive data
-5. **Biometric Ready**: Built-in support for biometric authentication with caching
+5. **Biometric Ready**: Built-in support for biometric authentication with duration caching
+6. **Lock-State Protection**: `requireUnlockedDevice` ensures encrypted data is inaccessible when the device is locked
 
 ---
 
