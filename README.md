@@ -2,7 +2,7 @@
 
 A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https://github.com/ioannisa/ksafe) - a secure encrypted storage library with biometric authentication, runtime security detection, and device lock-state protection.
 
-**Platforms:** Android, iOS, Desktop (JVM)
+**Platforms:** Android, iOS, Desktop (JVM), Browser (WASM/JS)
 
 ---
 
@@ -34,7 +34,13 @@ This demo application serves as a practical guide to understanding and implement
 - **Configurable Actions**: IGNORE, WARN, or BLOCK for each security check
 - **Security Callbacks**: Custom handling when violations are detected
 
-### 4. Device Lock-State Protection (New in 1.5.0)
+### 4. WASM/JS Browser Support (New in 1.6.0)
+- **Browser localStorage**: Encrypted key-value storage in the browser via WebCrypto AES-256-GCM
+- **Async Cache Initialization**: `awaitCacheReady()` gates rendering until WebCrypto decryption completes
+- **Same API**: All KSafe features (property delegation, Compose state, StateFlow) work identically in the browser
+- **Compose for Web**: Full `mutableStateOf` persistence via `ksafe-compose` WASM target
+
+### 5. Device Lock-State Protection (New in 1.5.0)
 - **`requireUnlockedDevice`**: Encrypted data is only accessible when the device is unlocked
 - **Interactive Lock Test**: 15-second countdown to lock your device, then verifies encrypted reads are blocked
 - **Platform Background Tasks**: iOS uses `beginBackgroundTaskWithExpirationHandler` to keep the test running while the screen is off
@@ -175,6 +181,49 @@ actual val platformModule: Module
     }
 ```
 
+### WASM/JS Platform Setup (Modules.wasmJs.kt)
+
+```kotlin
+actual val platformModule: Module
+    get() = module {
+        single<KSafe> {
+            KSafe(
+                fileName = "wasmdata",
+                securityPolicy = KSafeSecurityPolicy.WarnOnly.copy(
+                    onViolation = { violation ->
+                        SecurityViolationsHolder.addViolation(violation)
+                    }
+                )
+            )
+        }
+    }
+```
+
+### WASM Entry Point (main.kt)
+
+```kotlin
+fun main() {
+    val body = document.body ?: return
+    ComposeViewport(body) {
+        KoinMultiplatformApplication(config = createKoinConfiguration()) {
+            var cacheReady by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                val ksafe: KSafe = getKoin().get()
+                ksafe.awaitCacheReady()
+                cacheReady = true
+            }
+
+            if (cacheReady) {
+                AppContent()
+            }
+        }
+    }
+}
+```
+
+> **Note:** On WASM, Koin must be initialized before `awaitCacheReady()` can retrieve the KSafe instance. The `AppContent()` composable (extracted from `App()`) renders only after the async WebCrypto initialization completes.
+
 ### Flow-based Reactive Updates
 
 ```kotlin
@@ -304,11 +353,16 @@ composeApp/src/
 │   ├── util/BackgroundTask.ios.kt        # beginBackgroundTask for lock test
 │   └── di/Modules.ios.kt
 │
-└── jvmMain/kotlin/eu/anifantakis/ksafe_demo/
-    ├── main.kt
-    ├── biometric/BiometricAuthenticator.jvm.kt
-    ├── util/BackgroundTask.jvm.kt        # No-op
-    └── di/Modules.jvm.kt
+├── jvmMain/kotlin/eu/anifantakis/ksafe_demo/
+│   ├── main.kt
+│   ├── biometric/BiometricAuthenticator.jvm.kt
+│   ├── util/BackgroundTask.jvm.kt        # No-op
+│   └── di/Modules.jvm.kt
+│
+└── wasmJsMain/kotlin/eu/anifantakis/ksafe_demo/
+    ├── main.kt                            # ComposeViewport + awaitCacheReady
+    ├── util/BackgroundTask.wasmJs.kt      # No-op
+    └── di/Modules.wasmJs.kt              # KSafe with localStorage + WebCrypto
 ```
 
 ---
@@ -329,6 +383,12 @@ composeApp/src/
 ### iOS
 Open `iosApp/iosApp.xcodeproj` in Xcode and run.
 
+### Browser (WASM/JS)
+```bash
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+```
+Then open `http://localhost:8080/` in your browser.
+
 ---
 
 ## Dependencies
@@ -336,8 +396,8 @@ Open `iosApp/iosApp.xcodeproj` in Xcode and run.
 ```kotlin
 // build.gradle.kts
 commonMain.dependencies {
-    implementation("eu.anifantakis:ksafe:1.5.0")
-    implementation("eu.anifantakis:ksafe-compose:1.5.0")
+    implementation("eu.anifantakis:ksafe:1.6.0")
+    implementation("eu.anifantakis:ksafe-compose:1.6.0")
 }
 ```
 
@@ -349,7 +409,7 @@ commonMain.dependencies {
 
 1. **Seamless Encryption**: KSafe makes encrypted storage as simple as regular storage
 2. **Compose Integration**: `mutableStateOf` works exactly like Compose's native state
-3. **Cross-Platform**: Same API across Android, iOS, and Desktop
+3. **Cross-Platform**: Same API across Android, iOS, Desktop, and Browser
 4. **Security-First**: Runtime security detection helps protect sensitive data
 5. **Biometric Ready**: Built-in support for biometric authentication with duration caching
 6. **Lock-State Protection**: `requireUnlockedDevice` ensures encrypted data is inaccessible when the device is locked
