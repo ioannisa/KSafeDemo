@@ -157,7 +157,7 @@ class LibCounterViewModel(
 
     fun clear() {
         // use deleteDirect to delete outside coroutines
-        ksafe.deleteDirect("count1") // count 1 is normal mutableStateOf (not ksafe) deleting an non-existent key doesn't break the app
+        ksafe.deleteDirect("count1") // count 1 is normal mutableStateOf (not ksafe) deleting a non-existent key doesn't break the app
         ksafe.deleteDirect("count2")
 
         // or use delete for coroutines usage

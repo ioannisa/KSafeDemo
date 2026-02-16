@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -31,6 +32,12 @@ kotlin {
     
     jvm()
 
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        binaries.executable()
+    }
+
     sourceSets {
         
         androidMain.dependencies {
@@ -60,8 +67,8 @@ kotlin {
             // Immutable collections for better compose stability
             implementation(libs.kotlinx.collections.immutable)
 
-            implementation("eu.anifantakis:ksafe:1.5.0")
-            implementation("eu.anifantakis:ksafe-compose:1.5.0")
+            implementation("eu.anifantakis:ksafe:1.6.0")
+            implementation("eu.anifantakis:ksafe-compose:1.6.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -70,6 +77,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
         }
+        val wasmJsMain by getting
     }
 }
 
