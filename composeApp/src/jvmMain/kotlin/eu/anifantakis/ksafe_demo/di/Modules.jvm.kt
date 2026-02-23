@@ -11,7 +11,7 @@ actual val platformModule: Module
         single<KSafe> {
             KSafe(
                 fileName = "desktopdata",
-                config = KSafeConfig(requireUnlockedDevice = false),
+                config = KSafeConfig(requireUnlockedDevice = true),
                 securityPolicy = KSafeSecurityPolicy.WarnOnly.copy(
                     onViolation = { violation ->
                         SecurityViolationsHolder.addViolation(violation)
