@@ -11,7 +11,7 @@ actual val platformModule: Module
     get() = module {
         single<KSafe> {
             KSafe(
-                config = KSafeConfig(requireUnlockedDevice = true),
+                config = KSafeConfig(requireUnlockedDevice = false),
                 securityPolicy = KSafeSecurityPolicy.Strict.copy( // If in jailbroken device will crash (use WarnOnly to run in jailbroken iPhones)
                     debuggerAttached = SecurityAction.WARN,   // Change to BLOCK and if debugger attached, app will crash
                     debugBuild = SecurityAction.WARN, // Change to BLOCK in debug and app will crash

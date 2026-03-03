@@ -13,7 +13,12 @@ import eu.anifantakis.lib.ksafe.invoke
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import eu.anifantakis.ksafe_demo.di.SecurityViolationsHolder
 import eu.anifantakis.ksafe_demo.util.withPlatformBackgroundTask
+import eu.anifantakis.lib.ksafe.KSafeEncryptedProtection
+import eu.anifantakis.lib.ksafe.KSafeKeyInfo
+import eu.anifantakis.lib.ksafe.KSafeWriteMode
 import eu.anifantakis.lib.ksafe.SecurityViolation
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -37,16 +42,16 @@ class LibCounterViewModel(
 
     // mutableStateOf via KSafe - with persistence
     // if key is unspecified, property name becomes the key
-    // if encrypted is unspecified, it defaults to true
+    // if encrypted is unspecified, it defaults to protection = KSafeProtection.DEFAULT
     var count2 by ksafe.mutableStateOf(2000)
         private set
 
     // mutableStateOf via KSafe - with persistence
-    // key here is "counter3Key" and encrypted is false
+    // key here is "counter3Key" and protection = KSafeProtection.NONE
     var count3 by ksafe.mutableStateOf(
         defaultValue = 3000,
         key = "counter3Key",
-        encrypted = false
+        mode = KSafeWriteMode.Plain
     )
         private set
 
@@ -59,9 +64,12 @@ class LibCounterViewModel(
     // encrypted string
     var count6 by ksafe("30")
     // unencrypted string
-    var count7 by ksafe("40", encrypted = false)
+    var count7 by ksafe("40", mode = KSafeWriteMode.Plain)
 
     var bioCount by ksafe.mutableStateOf(0)
+
+    // Hardware-secured vault token (StrongBox on Android, Secure Enclave on iOS)
+    var secureToken by ksafe.mutableStateOf("", mode = KSafeWriteMode.Encrypted(protection = KSafeEncryptedProtection.HARDWARE_ISOLATED))
 
     // initialize the data class as a state so we watch for changes on the screen directly
     var authInfo by ksafe.mutableStateOf(
@@ -71,8 +79,22 @@ class LibCounterViewModel(
             expiresIn = 3600L
         ),
         key = "authInfo",
-        encrypted = true
+        mode = KSafeWriteMode.Encrypted()
     )
+
+    // --- Key Info Tracking ---
+
+    private val trackedKeys = listOf(
+        "count2", "counter3Key", "count4", "count5",
+        "count6", "count7", "bioCount", "secureToken", "authInfo"
+    )
+
+    var keyInfoMap by mutableStateOf<Map<String, KSafeKeyInfo?>>(emptyMap())
+        private set
+
+    private fun refreshKeyInfo() {
+        keyInfoMap = trackedKeys.associateWith { ksafe.getKeyInfo(it) }
+    }
 
     // --- Biometric Auth Window ---
     private val bioAuthDurationSeconds = 6
@@ -105,15 +127,19 @@ class LibCounterViewModel(
         private set
 
     init {
+        ksafe.deviceKeyStorages.forEach { println("Available key storage: $it") }
+
         println("count 4 at startup: $count4")
         println("count 5 at startup: $count5")
         println("count 6 at startup: $count6")
         println("count 7 at startup: $count7")
 
         checkFlows()
+        refreshKeyInfo()
     }
 
     fun bioCounterIncrement() {
+        println("DEBUG: bioCounterIncrement() called")
         // BiometricAuthorizationDuration(6_000L, screenScope) means:
         // - Once authenticated, no new prompt for 6 seconds
         // - Scoped to this screen instance (new ViewModel = re-authenticate)
@@ -124,8 +150,10 @@ class LibCounterViewModel(
                 scope = viewModelScope.hashCode().toString()
             )
         ) { success ->
+            println("DEBUG: verifyBiometricDirect callback, success=$success")
             if (success) {
                 bioCount++
+                refreshKeyInfo()
                 // Only start the timer on fresh auth, not cached hits
                 if (bioAuthRemaining == 0) {
                     startBioAuthTimer()
@@ -146,13 +174,29 @@ class LibCounterViewModel(
         count4++
         count5++
         count6 = (count6.toInt() + 1).toString()
-        ksafe.putDirect("count7", count7.toInt() + 1)
+
+        // For count7, we demonstrate an alternative way to update the value without using the delegated property.
+        // count7 is declared as String, so we convert it to Int, increment, and convert back to String.
+        ksafe.putDirect("count7", (count7.toInt() + 1).toString(), mode = KSafeWriteMode.Plain)
 
         authInfo = authInfo.copy(
             expiresIn = authInfo.expiresIn + 1,
             accessToken = "abc_${authInfo.expiresIn + 1}",
             refreshToken = "def_${authInfo.expiresIn + 1}"
         )
+
+        refreshKeyInfo()
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun generateNewToken() {
+        secureToken = Uuid.random().toString()
+        refreshKeyInfo()
+    }
+
+    fun clearVault() {
+        secureToken = ""
+        refreshKeyInfo()
     }
 
     fun clear() {
@@ -184,6 +228,8 @@ class LibCounterViewModel(
             refreshToken = "def",
             expiresIn = 3600L
         )
+        secureToken = ""
+        refreshKeyInfo()
     }
 
     /**
@@ -219,7 +265,7 @@ class LibCounterViewModel(
                     ksafe.put(
                         key = testKey,
                         value = "pre-stored-while-unlocked",
-                        encrypted = true,
+                        mode = KSafeWriteMode.Encrypted(requireUnlockedDevice = true)
                     )
                 } catch (e: Exception) {
                     lockTestResult = "SETUP FAILED.\n\nCould not store test value: ${e.message}"
@@ -241,19 +287,18 @@ class LibCounterViewModel(
                     val readBack: String = ksafe.get(
                         key = testKey,
                         defaultValue = "",
-                        encrypted = true,
                     )
 
                     if (readBack == "pre-stored-while-unlocked") {
                         val debuggerNote = if (hasDebugger) {
                             "\n\nA debugger / debug build was detected. " +
-                            "Xcode's debugger prevents iOS data protection from engaging — " +
-                            "the Keychain stays unlocked while the debugger is connected.\n\n" +
-                            "To test accurately:\n" +
-                            "1. Build & run the app on your device\n" +
-                            "2. Press Stop in Xcode\n" +
-                            "3. Launch the app from the Home Screen\n" +
-                            "4. Run this test again"
+                                    "Xcode's debugger prevents iOS data protection from engaging — " +
+                                    "the Keychain stays unlocked while the debugger is connected.\n\n" +
+                                    "To test accurately:\n" +
+                                    "1. Build & run the app on your device\n" +
+                                    "2. Press Stop in Xcode\n" +
+                                    "3. Launch the app from the Home Screen\n" +
+                                    "4. Run this test again"
                         } else {
                             ""
                         }
@@ -289,7 +334,6 @@ class LibCounterViewModel(
                 ksafe.getFlow<String?>(
                     key = accessTokenKey,
                     defaultValue = null,
-                    encrypted = true,
                 ).collect { value ->
                     println("KSafe flow - Current value: $value")
                 }
@@ -299,14 +343,14 @@ class LibCounterViewModel(
             ksafe.put(
                 key = accessTokenKey,
                 value = "some-value-1",
-                encrypted = true,
+                mode = KSafeWriteMode.Encrypted()
             )
 
             // add another value to flow
             ksafe.put(
                 key = accessTokenKey,
                 value = "some-value-2",
-                encrypted = true,
+                mode = KSafeWriteMode.Encrypted()
             )
 
             // delete value from flow

@@ -49,12 +49,15 @@ fun LibCounterScreen(
         bioCount = counterViewModel.bioCount,
         bioAuthRemaining = counterViewModel.bioAuthRemaining,
         authInfo = counterViewModel.authInfo,
+        secureToken = counterViewModel.secureToken,
         lockTestCountdown = counterViewModel.lockTestCountdown,
         lockTestResult = counterViewModel.lockTestResult,
         isLockTestRunning = counterViewModel.isLockTestRunning,
         onIncrement = counterViewModel::increment,
         onClear = counterViewModel::clear,
         onBioIncrement = counterViewModel::bioCounterIncrement,
+        onGenerateToken = counterViewModel::generateNewToken,
+        onClearVault = counterViewModel::clearVault,
         onStartLockTest = counterViewModel::startLockTest,
         onDismissLockTestResult = counterViewModel::dismissLockTestResult
     )
@@ -68,12 +71,15 @@ fun LibCounterScreenContent(
     bioCount: Int,
     bioAuthRemaining: Int,
     authInfo: AuthInfo,
+    secureToken: String,
     lockTestCountdown: Int,
     lockTestResult: String?,
     isLockTestRunning: Boolean,
     onIncrement: () -> Unit,
     onClear: () -> Unit,
     onBioIncrement: () -> Unit,
+    onGenerateToken: () -> Unit,
+    onClearVault: () -> Unit,
     onStartLockTest: () -> Unit,
     onDismissLockTestResult: () -> Unit
 ) {
@@ -152,9 +158,6 @@ fun LibCounterScreenContent(
                 )
             )
 
-            Spacer(modifier = Modifier.padding(4.dp))
-
-            // --- Action buttons ---
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -168,6 +171,39 @@ fun LibCounterScreenContent(
                     Text(text = "Bio: $bioCount", fontSize = 20.sp)
                 }
             }
+
+            Spacer(modifier = Modifier.padding(2.dp))
+
+            // --- Hardware-Secured Vault ---
+            Text(
+                text = "Hardware-Secured Vault (StrongBox / Secure Enclave)",
+                fontSize = 13.sp,
+                color = Color.Gray
+            )
+            LabelCard(
+                label = "Vault Token",
+                lines = persistentListOf(
+                    if (secureToken.isNotEmpty()) secureToken else "No token stored"
+                )
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(onClick = onGenerateToken) {
+                    Text(text = "Generate Token", fontSize = 14.sp)
+                }
+                Button(onClick = onClearVault) {
+                    Text(text = "Clear Vault", fontSize = 14.sp)
+                }
+            }
+
+
+
+            // --- Action buttons ---
+            Spacer(modifier = Modifier.padding(4.dp))
+
+
 
             if (bioAuthRemaining > 0) {
                 Text(
@@ -302,12 +338,15 @@ fun PreviewLibCounterScreen() {
         bioCount = 5,
         bioAuthRemaining = 0,
         authInfo = AuthInfo("abc_token", "ref_token", 9999),
+        secureToken = "550e8400-e29b-41d4-a716-446655440000",
         lockTestCountdown = -1,
         lockTestResult = null,
         isLockTestRunning = false,
         onIncrement = {},
         onClear = {},
         onBioIncrement = {},
+        onGenerateToken = {},
+        onClearVault = {},
         onStartLockTest = {},
         onDismissLockTestResult = {}
     )
