@@ -67,8 +67,8 @@ kotlin {
             // Immutable collections for better compose stability
             implementation(libs.kotlinx.collections.immutable)
 
-            implementation("eu.anifantakis:ksafe:1.7.0")
-            implementation("eu.anifantakis:ksafe-compose:1.7.0")
+            implementation("eu.anifantakis:ksafe:1.7.1")
+            implementation("eu.anifantakis:ksafe-compose:1.7.1")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

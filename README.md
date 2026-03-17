@@ -8,9 +8,9 @@ A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https:/
 
 ## Screenshots
 
-| Storage Screen | Security Screen |
-|:--------------:|:---------------:|
-| <img width="270" alt="image" src="https://github.com/user-attachments/assets/4de5a40c-6335-4fbe-9f59-0b8bdcde8ff4" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/968c0156-c97d-4ca4-8f4b-77614048f870" /> |
+| Storage Screen | Custom JSON Screen | Security Screen |
+|:--------------:|:------------------:|:---------------:|
+| <img width="270" alt="image" src="https://github.com/user-attachments/assets/4de5a40c-6335-4fbe-9f59-0b8bdcde8ff4" /> | *(screenshot pending)* | <img width="270" alt="image" src="https://github.com/user-attachments/assets/968c0156-c97d-4ca4-8f4b-77614048f870" /> |
 
 ---
 
@@ -34,13 +34,19 @@ This demo application serves as a practical guide to understanding and implement
 - **Configurable Actions**: IGNORE, WARN, or BLOCK for each security check
 - **Security Callbacks**: Custom handling when violations are detected
 
-### 4. WASM/JS Browser Support (New in 1.6.0)
+### 4. Custom JSON Serialization (New in 1.7.1)
+- **@Contextual Types**: Storing data classes with third-party types you don't own (e.g., `UUID`, `Instant`)
+- **Custom SerializersModule**: Registering custom serializers once at the KSafe instance level
+- **Both Modes**: Works with encrypted and plain-text storage
+- **Code Snippets**: The screen itself displays the setup code for reference
+
+### 5. WASM/JS Browser Support (New in 1.6.0)
 - **Browser localStorage**: Encrypted key-value storage in the browser via WebCrypto AES-256-GCM
 - **Async Cache Initialization**: `awaitCacheReady()` gates rendering until WebCrypto decryption completes
 - **Same API**: All KSafe features (property delegation, Compose state, StateFlow) work identically in the browser
 - **Compose for Web**: Full `mutableStateOf` persistence via `ksafe-compose` WASM target
 
-### 5. Device Lock-State Protection (New in 1.5.0)
+### 6. Device Lock-State Protection (New in 1.5.0)
 - **`requireUnlockedDevice`**: Encrypted data is only accessible when the device is unlocked
 - **Interactive Lock Test**: 15-second countdown to lock your device, then verifies encrypted reads are blocked
 - **Platform Background Tasks**: iOS uses `beginBackgroundTaskWithExpirationHandler` to keep the test running while the screen is off
@@ -61,6 +67,17 @@ Demonstrates various ways to persist data with KSafe:
 | **AuthInfo** | `@Serializable` data class with encrypted persistence |
 | **Biometric Count** | Counter protected by biometric authentication with authorization duration countdown |
 | **Lock Test** | Interactive test to verify `requireUnlockedDevice` blocks access when the device is locked |
+
+### Custom JSON Screen
+
+Demonstrates storing data classes that contain `@Contextual` types — types you don't own and can't annotate with `@Serializable`:
+
+| Feature | Description |
+|---------|-------------|
+| **Two custom types** | `Timestamp` (Long) and `HexColor` (String) — stand-ins for types like `Instant` and `Color` |
+| **Two @Contextual fields** | `UserProfile` with `@Contextual val createdAt` and `@Contextual val favoriteColor` |
+| **Encrypted + Plain** | Same data stored in both modes to show it works everywhere |
+| **Step-by-step code** | The screen itself displays the 4-step setup as inline code snippets |
 
 ### Security Screen
 
@@ -158,6 +175,54 @@ fun bioCounterIncrement() {
     }
 }
 ```
+
+### Custom JSON Serialization (CustomJsonViewModel.kt)
+
+```kotlin
+// 1. Define custom serializers for types you don't own
+object TimestampSerializer : KSerializer<Timestamp> {
+    override val descriptor = PrimitiveSerialDescriptor("Timestamp", PrimitiveKind.LONG)
+    override fun serialize(encoder: Encoder, value: Timestamp) = encoder.encodeLong(value.epochMillis)
+    override fun deserialize(decoder: Decoder) = Timestamp(decoder.decodeLong())
+}
+
+object HexColorSerializer : KSerializer<HexColor> {
+    override val descriptor = PrimitiveSerialDescriptor("HexColor", PrimitiveKind.STRING)
+    override fun serialize(encoder: Encoder, value: HexColor) = encoder.encodeString(value.hex)
+    override fun deserialize(decoder: Decoder) = HexColor(decoder.decodeString())
+}
+
+// 2. Register all serializers in one place
+val customJson = Json {
+    ignoreUnknownKeys = true
+    serializersModule = SerializersModule {
+        contextual(TimestampSerializer)
+        contextual(HexColorSerializer)
+        // add as many as you need
+    }
+}
+
+// 3. Pass it via KSafeConfig — one setup, used everywhere
+val ksafe = KSafe(
+    config = KSafeConfig(json = customJson)
+)
+
+// 4. Use @Contextual types directly — no extra work at the call site
+@Serializable
+data class UserProfile(
+    val name: String,
+    @Contextual val createdAt: Timestamp,
+    @Contextual val favoriteColor: HexColor
+)
+
+var profile by ksafe.mutableStateOf(
+    defaultValue = defaultProfile,
+    key = "custom_json_profile",
+    mode = KSafeWriteMode.Encrypted()
+)
+```
+
+> **Note:** `kotlinx-serialization-json` is provided as a transitive dependency by KSafe — no need to add it manually.
 
 ### Device Lock-State Protection (Modules.android.kt)
 
@@ -337,6 +402,9 @@ composeApp/src/
 │       ├── counters/
 │       │   ├── LibCounterScreen.kt      # Storage demo UI
 │       │   └── LibCounterViewModel.kt   # Storage demo logic
+│       ├── customjson/
+│       │   ├── CustomJsonScreen.kt      # Custom JSON demo UI
+│       │   └── CustomJsonViewModel.kt   # @Contextual types + custom SerializersModule
 │       └── security/
 │           ├── SecurityScreen.kt        # Security status UI
 │           └── SecurityViewModel.kt     # Security status logic
@@ -396,12 +464,12 @@ Then open `http://localhost:8080/` in your browser.
 ```kotlin
 // build.gradle.kts
 commonMain.dependencies {
-    implementation("eu.anifantakis:ksafe:1.6.0")
-    implementation("eu.anifantakis:ksafe-compose:1.6.0")
+    implementation("eu.anifantakis:ksafe:1.7.1")
+    implementation("eu.anifantakis:ksafe-compose:1.7.1")
 }
 ```
 
-> Biometric support (`androidx.biometric`) is included transitively through KSafe — no explicit dependency needed.
+> `kotlinx-serialization-json` and biometric support (`androidx.biometric`) are included transitively through KSafe — no explicit dependencies needed.
 
 ---
 
@@ -413,6 +481,7 @@ commonMain.dependencies {
 4. **Security-First**: Runtime security detection helps protect sensitive data
 5. **Biometric Ready**: Built-in support for biometric authentication with duration caching
 6. **Lock-State Protection**: `requireUnlockedDevice` ensures encrypted data is inaccessible when the device is locked
+7. **Custom JSON**: Support for `@Contextual` types via custom `SerializersModule` — store any type
 
 ---
 

@@ -13,6 +13,7 @@ import eu.anifantakis.ksafe_demo.di.createKoinConfiguration
 import eu.anifantakis.ksafe_demo.di.platformModule
 import eu.anifantakis.ksafe_demo.di.sharedModule
 import eu.anifantakis.ksafe_demo.screens.counters.LibCounterScreen
+import eu.anifantakis.ksafe_demo.screens.customjson.CustomJsonScreen
 import eu.anifantakis.ksafe_demo.screens.security.SecurityScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinMultiplatformApplication
@@ -20,6 +21,7 @@ import org.koin.core.annotation.KoinExperimentalAPI
 
 enum class Screen(val title: String) {
     Storage("Storage"),
+    CustomJson("Custom JSON"),
     Security("Security")
 }
 
@@ -60,6 +62,7 @@ fun AppContent() {
         ) {
             when (currentScreen) {
                 Screen.Storage -> LibCounterScreen()
+                Screen.CustomJson -> CustomJsonScreen()
                 Screen.Security -> SecurityScreen()
             }
         }
