@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ApplicationExtension
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -41,7 +42,7 @@ kotlin {
     sourceSets {
         
         androidMain.dependencies {
-            implementation(compose.preview)
+            implementation(libs.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.google.material)
 
@@ -50,12 +51,12 @@ kotlin {
             implementation(libs.koin.androidx.compose)
         }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material3)
+            implementation(libs.ui)
+            implementation(libs.components.resources)
+            implementation(libs.ui.tooling.preview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
@@ -67,8 +68,8 @@ kotlin {
             // Immutable collections for better compose stability
             implementation(libs.kotlinx.collections.immutable)
 
-            implementation("eu.anifantakis:ksafe:1.7.1")
-            implementation("eu.anifantakis:ksafe-compose:1.7.1")
+            implementation("eu.anifantakis:ksafe:1.8.0")
+            implementation("eu.anifantakis:ksafe-compose:1.8.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -81,7 +82,7 @@ kotlin {
     }
 }
 
-android {
+configure<ApplicationExtension> {
     namespace = "eu.anifantakis.ksafe_demo"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
@@ -109,7 +110,7 @@ android {
 }
 
 dependencies {
-    debugImplementation(compose.uiTooling)
+    debugImplementation(libs.ui.tooling)
 }
 
 compose.desktop {

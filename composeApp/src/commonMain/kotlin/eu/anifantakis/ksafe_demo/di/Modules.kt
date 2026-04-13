@@ -2,6 +2,7 @@ package eu.anifantakis.ksafe_demo.di
 
 import eu.anifantakis.ksafe_demo.screens.counters.LibCounterViewModel
 import eu.anifantakis.ksafe_demo.screens.customjson.CustomJsonViewModel
+import eu.anifantakis.ksafe_demo.screens.flows.FlowDelegatesViewModel
 import eu.anifantakis.ksafe_demo.screens.security.SecurityViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
@@ -16,6 +17,7 @@ val customJsonKSafe = named("customJsonKSafe")
 
 val sharedModule = module {
     viewModelOf(::LibCounterViewModel)
+    viewModelOf(::FlowDelegatesViewModel)
 
     // SecurityViewModel - initialized with violations from the holder
     viewModelOf(::SecurityViewModel)

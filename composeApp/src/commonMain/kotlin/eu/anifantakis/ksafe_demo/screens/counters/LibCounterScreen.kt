@@ -30,12 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -54,6 +53,7 @@ fun LibCounterScreen(
         lockTestResult = counterViewModel.lockTestResult,
         isLockTestRunning = counterViewModel.isLockTestRunning,
         onIncrement = counterViewModel::increment,
+        onRefreshCount2 = counterViewModel::refreshCount2,
         onClear = counterViewModel::clear,
         onBioIncrement = counterViewModel::bioCounterIncrement,
         onGenerateToken = counterViewModel::generateNewToken,
@@ -76,6 +76,7 @@ fun LibCounterScreenContent(
     lockTestResult: String?,
     isLockTestRunning: Boolean,
     onIncrement: () -> Unit,
+    onRefreshCount2: () -> Unit,
     onClear: () -> Unit,
     onBioIncrement: () -> Unit,
     onGenerateToken: () -> Unit,
@@ -129,7 +130,7 @@ fun LibCounterScreenContent(
             ) {
                 CompactCard(
                     label = "Counter 2",
-                    sublabel = "encrypted",
+                    sublabel = "encrypted — observed on Flows tab",
                     value = count2.toString(),
                     modifier = Modifier.weight(1f)
                 )
@@ -139,6 +140,19 @@ fun LibCounterScreenContent(
                     value = count3.toString(),
                     modifier = Modifier.weight(1f)
                 )
+            }
+            Text(
+                text = "Counter 2 is also observed on the Flows tab. Tap \"+\" here, then check Flows — the synced value updates in real-time.",
+                fontSize = 11.sp,
+                color = Color(0xFF1565C0)
+            )
+            Text(
+                text = "If the Flows tab wrote to Counter 2, tap Refresh to see the latest value (no scope = manual refresh needed).",
+                fontSize = 11.sp,
+                color = Color.Gray
+            )
+            Button(onClick = onRefreshCount2) {
+                Text("Refresh Counter 2", fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.padding(2.dp))
@@ -343,6 +357,7 @@ fun PreviewLibCounterScreen() {
         lockTestResult = null,
         isLockTestRunning = false,
         onIncrement = {},
+        onRefreshCount2 = {},
         onClear = {},
         onBioIncrement = {},
         onGenerateToken = {},

@@ -40,11 +40,19 @@ class LibCounterViewModel(
     var count1 by mutableStateOf(1000)
         private set
 
-    // mutableStateOf via KSafe - with persistence
+    // mutableStateOf via KSafe - with persistence (NO scope — won't see external writes)
     // if key is unspecified, property name becomes the key
     // if encrypted is unspecified, it defaults to protection = KSafeProtection.DEFAULT
+    // Note: The Flows tab also writes to "count2". Without scope, we need manual refresh.
     var count2 by ksafe.mutableStateOf(2000)
         private set
+
+    /** Manual refresh — re-reads "count2" from KSafe cache.
+     *  Needed because count2 uses mutableStateOf without scope,
+     *  so it won't see writes from the Flows screen automatically. */
+    fun refreshCount2() {
+        count2 = ksafe.getDirect("count2", 2000)
+    }
 
     // mutableStateOf via KSafe - with persistence
     // key here is "counter3Key" and protection = KSafeProtection.NONE

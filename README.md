@@ -8,9 +8,9 @@ A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https:/
 
 ## Screenshots
 
-| Storage Screen | Custom JSON Screen | Security Screen |
-|:--------------:|:------------------:|:---------------:|
-| <img width="270" alt="image" src="https://github.com/user-attachments/assets/4de5a40c-6335-4fbe-9f59-0b8bdcde8ff4" /> | *(screenshot pending)* | <img width="270" alt="image" src="https://github.com/user-attachments/assets/968c0156-c97d-4ca4-8f4b-77614048f870" /> |
+| Storage Screen | Flows Screen | Custom JSON Screen | Security Screen |
+|:--------------:|:------------:|:------------------:|:---------------:|
+| <img width="270" alt="image" src="https://github.com/user-attachments/assets/4de5a40c-6335-4fbe-9f59-0b8bdcde8ff4" /> | *(screenshot pending)* | *(screenshot pending)* | <img width="270" alt="image" src="https://github.com/user-attachments/assets/968c0156-c97d-4ca4-8f4b-77614048f870" /> |
 
 ---
 
@@ -24,29 +24,35 @@ This demo application serves as a practical guide to understanding and implement
 - **Encryption Options**: Both encrypted (default) and unencrypted storage modes
 - **Complex Data Types**: Storing `@Serializable` data classes with automatic serialization
 
-### 2. Biometric Authentication
+### 2. Flow Delegates (New in 1.8.0)
+- **`asStateFlow()`**: Read-only hot StateFlow delegate — key derived from property name
+- **`asMutableStateFlow()`**: Read/write MutableStateFlow — drop-in replacement for the standard `MutableStateFlow` pattern, with automatic persistence
+- **`mutableStateOf(scope=)`**: Existing Compose state enhanced with flow observation for cross-screen reactivity
+- **Data class state**: `_settings` / `settings` pattern using `asMutableStateFlow()` with `.update{}`
+
+### 3. Biometric Authentication
 - **Cross-Platform Support**: Face ID, Touch ID, and Fingerprint authentication
 - **Authorization Duration**: Caching authentication for a specified time period with visible countdown
 - **Scoped Authentication**: Binding auth validity to ViewModel lifecycle
 
-### 3. Security Policy (New in 1.4.0)
+### 4. Security Policy (New in 1.4.0)
 - **Runtime Security Detection**: Root/Jailbreak, Debugger, Debug Build, Emulator
 - **Configurable Actions**: IGNORE, WARN, or BLOCK for each security check
 - **Security Callbacks**: Custom handling when violations are detected
 
-### 4. Custom JSON Serialization (New in 1.7.1)
+### 5. Custom JSON Serialization (New in 1.7.1)
 - **@Contextual Types**: Storing data classes with third-party types you don't own (e.g., `UUID`, `Instant`)
 - **Custom SerializersModule**: Registering custom serializers once at the KSafe instance level
 - **Both Modes**: Works with encrypted and plain-text storage
 - **Code Snippets**: The screen itself displays the setup code for reference
 
-### 5. WASM/JS Browser Support (New in 1.6.0)
+### 6. WASM/JS Browser Support (New in 1.6.0)
 - **Browser localStorage**: Encrypted key-value storage in the browser via WebCrypto AES-256-GCM
 - **Async Cache Initialization**: `awaitCacheReady()` gates rendering until WebCrypto decryption completes
 - **Same API**: All KSafe features (property delegation, Compose state, StateFlow) work identically in the browser
 - **Compose for Web**: Full `mutableStateOf` persistence via `ksafe-compose` WASM target
 
-### 6. Device Lock-State Protection (New in 1.5.0)
+### 7. Device Lock-State Protection (New in 1.5.0)
 - **`requireUnlockedDevice`**: Encrypted data is only accessible when the device is unlocked
 - **Interactive Lock Test**: 15-second countdown to lock your device, then verifies encrypted reads are blocked
 - **Platform Background Tasks**: iOS uses `beginBackgroundTaskWithExpirationHandler` to keep the test running while the screen is off
@@ -62,11 +68,22 @@ Demonstrates various ways to persist data with KSafe:
 | Feature | Description |
 |---------|-------------|
 | **Counter 1** | Regular Compose `mutableStateOf` - no persistence (resets on restart) |
-| **Counter 2** | `ksafe.mutableStateOf` - encrypted persistent state |
-| **Counter 3** | `ksafe.mutableStateOf` with `encrypted = false` - unencrypted persistent state |
+| **Counter 2** | `ksafe.mutableStateOf` - encrypted persistent state. **Cross-screen demo**: this value is observed on the Flows tab in real-time via `mutableStateOf(scope=)` |
+| **Counter 3** | `ksafe.mutableStateOf` with `mode = KSafeWriteMode.Plain` - unencrypted persistent state |
 | **AuthInfo** | `@Serializable` data class with encrypted persistence |
 | **Biometric Count** | Counter protected by biometric authentication with authorization duration countdown |
 | **Lock Test** | Interactive test to verify `requireUnlockedDevice` blocks access when the device is locked |
+
+### Flows Screen (New in 1.8.0)
+
+Demonstrates the new flow delegate APIs introduced in KSafe 1.8.0:
+
+| Feature | Description |
+|---------|-------------|
+| **asMutableStateFlow (Movies)** | Drop-in replacement for standard `MutableStateFlow`. `MoviesListState` data class with loading/error/movies — `.update{}` persists the entire state atomically |
+| **asStateFlow (username)** | Read-only hot `StateFlow<String>` delegate — editable via `OutlinedTextField`, writes through `kSafe.put()` |
+| **asFlow (dark mode)** | Read-only cold `Flow<Boolean>` delegate — toggle via `Switch`, derived `themeLabel` via `.map{}.stateIn()` shows real flow transformation |
+| **Cross-screen sync** | Two cards observe the Storage screen's Counter 2 (key `"count2"`): one **without scope** (frozen at init value) and one **with scope** (updates in real-time when you tap "+" on the Storage tab). Proves the difference between isolated and synced `mutableStateOf` across separate ViewModels |
 
 ### Custom JSON Screen
 
@@ -111,7 +128,7 @@ class LibCounterViewModel(val ksafe: KSafe) : ViewModel() {
     var count3 by ksafe.mutableStateOf(
         defaultValue = 3000,
         key = "counter3Key",
-        encrypted = false
+        mode = KSafeWriteMode.Plain
     )
         private set
 }
@@ -128,7 +145,7 @@ var count5 by ksafe(20)
 var count6 by ksafe("30")
 
 // Unencrypted string
-var count7 by ksafe("40", encrypted = false)
+var count7 by ksafe("40", mode = KSafeWriteMode.Plain)
 ```
 
 ### Serializable Data Classes
@@ -148,7 +165,7 @@ var authInfo by ksafe.mutableStateOf(
         expiresIn = 3600L
     ),
     key = "authInfo",
-    encrypted = true
+    mode = KSafeWriteMode.Encrypted()
 )
 ```
 
@@ -289,17 +306,41 @@ fun main() {
 
 > **Note:** On WASM, Koin must be initialized before `awaitCacheReady()` can retrieve the KSafe instance. The `AppContent()` composable (extracted from `App()`) renders only after the async WebCrypto initialization completes.
 
-### Flow-based Reactive Updates
+### Flow Delegates (FlowDelegatesViewModel.kt)
 
 ```kotlin
-viewModelScope.launch {
-    ksafe.getFlow<String?>(
-        key = "access-token",
-        defaultValue = null,
-        encrypted = true
-    ).collect { value ->
-        println("Token changed: $value")
+class FlowDelegatesViewModel(private val ksafe: KSafe) : ViewModel() {
+
+    // 1. asMutableStateFlow — drop-in for standard MutableStateFlow pattern
+    private val _moviesState by ksafe.asMutableStateFlow(MoviesListState(), viewModelScope)
+    val moviesState: StateFlow<MoviesListState> get() = _moviesState
+
+    fun loadMovies() {
+        _moviesState.update { it.copy(loading = true) }  // persists atomically
+        viewModelScope.launch {
+            val movies = api.getMovies()
+            _moviesState.update { it.copy(loading = false, movies = movies) }
+        }
     }
+
+    // 2. asStateFlow & asFlow — read-only reactive observation
+    val username: StateFlow<String> by ksafe.asStateFlow("Guest", viewModelScope)
+    val darkMode: Flow<Boolean> by ksafe.asFlow(defaultValue = false)
+
+    // Cold flow transformed into derived state — real-world pattern
+    val themeLabel: StateFlow<String> = darkMode
+        .map { if (it) "Dark Mode" else "Light Mode" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Light Mode")
+
+    fun onNameChanged(name: String) {
+        viewModelScope.launch { ksafe.put("username", name) }
+    }
+
+    // 3. Cross-screen sync — observes Storage screen's "count2" key
+    //    Without scope: frozen at init value
+    //    With scope: updates in real-time when Storage screen writes
+    var storageCountIsolated by ksafe.mutableStateOf(2000, key = "count2")
+    var storageCountSynced by ksafe.mutableStateOf(2000, key = "count2", scope = viewModelScope)
 }
 ```
 
@@ -402,6 +443,9 @@ composeApp/src/
 │       ├── counters/
 │       │   ├── LibCounterScreen.kt      # Storage demo UI
 │       │   └── LibCounterViewModel.kt   # Storage demo logic
+│       ├── flows/
+│       │   ├── FlowDelegatesScreen.kt   # Flow delegates demo UI (1.8.0)
+│       │   └── FlowDelegatesViewModel.kt # asFlow, asStateFlow, asMutableStateFlow
 │       ├── customjson/
 │       │   ├── CustomJsonScreen.kt      # Custom JSON demo UI
 │       │   └── CustomJsonViewModel.kt   # @Contextual types + custom SerializersModule
@@ -464,8 +508,8 @@ Then open `http://localhost:8080/` in your browser.
 ```kotlin
 // build.gradle.kts
 commonMain.dependencies {
-    implementation("eu.anifantakis:ksafe:1.7.1")
-    implementation("eu.anifantakis:ksafe-compose:1.7.1")
+    implementation("eu.anifantakis:ksafe:1.8.0")
+    implementation("eu.anifantakis:ksafe-compose:1.8.0")
 }
 ```
 
@@ -477,11 +521,12 @@ commonMain.dependencies {
 
 1. **Seamless Encryption**: KSafe makes encrypted storage as simple as regular storage
 2. **Compose Integration**: `mutableStateOf` works exactly like Compose's native state
-3. **Cross-Platform**: Same API across Android, iOS, Desktop, and Browser
-4. **Security-First**: Runtime security detection helps protect sensitive data
-5. **Biometric Ready**: Built-in support for biometric authentication with duration caching
-6. **Lock-State Protection**: `requireUnlockedDevice` ensures encrypted data is inaccessible when the device is locked
-7. **Custom JSON**: Support for `@Contextual` types via custom `SerializersModule` — store any type
+3. **Flow Delegates**: `asStateFlow()` and `asMutableStateFlow()` — drop-in replacements for standard Kotlin flow patterns, with automatic persistence
+4. **Cross-Platform**: Same API across Android, iOS, Desktop, and Browser
+5. **Security-First**: Runtime security detection helps protect sensitive data
+6. **Biometric Ready**: Built-in support for biometric authentication with duration caching
+7. **Lock-State Protection**: `requireUnlockedDevice` ensures encrypted data is inaccessible when the device is locked
+8. **Custom JSON**: Support for `@Contextual` types via custom `SerializersModule` — store any type
 
 ---
 
