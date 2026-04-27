@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import eu.anifantakis.lib.ksafe.BiometricAuthorizationDuration
 import eu.anifantakis.lib.ksafe.KSafe
 import eu.anifantakis.lib.ksafe.invoke
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
@@ -17,6 +16,8 @@ import eu.anifantakis.lib.ksafe.KSafeEncryptedProtection
 import eu.anifantakis.lib.ksafe.KSafeKeyInfo
 import eu.anifantakis.lib.ksafe.KSafeWriteMode
 import eu.anifantakis.lib.ksafe.SecurityViolation
+import eu.anifantakis.lib.ksafe.biometrics.BiometricAuthorizationDuration
+import eu.anifantakis.lib.ksafe.biometrics.KSafeBiometrics
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.delay
@@ -151,7 +152,7 @@ class LibCounterViewModel(
         // BiometricAuthorizationDuration(6_000L, screenScope) means:
         // - Once authenticated, no new prompt for 6 seconds
         // - Scoped to this screen instance (new ViewModel = re-authenticate)
-        ksafe.verifyBiometricDirect(
+        KSafeBiometrics.verifyBiometricDirect(
             reason = "Authenticate to save",
             authorizationDuration = BiometricAuthorizationDuration(
                 duration = bioAuthDurationSeconds * 1000L,
