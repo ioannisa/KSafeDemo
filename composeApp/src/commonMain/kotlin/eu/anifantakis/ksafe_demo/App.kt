@@ -9,8 +9,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,10 +17,15 @@ import eu.anifantakis.ksafe_demo.screens.counters.LibCounterScreen
 import eu.anifantakis.ksafe_demo.screens.customjson.CustomJsonScreen
 import eu.anifantakis.ksafe_demo.screens.flows.FlowDelegatesScreen
 import eu.anifantakis.ksafe_demo.screens.security.SecurityScreen
+import eu.anifantakis.lib.ksafe.KSafe
+import eu.anifantakis.lib.ksafe.compose.rememberKSafeState
+import kotlinx.serialization.Serializable
 import org.koin.compose.KoinApplication
+import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.logger.Level
 
+@Serializable
 enum class Screen(val title: String) {
     Storage("Storage"),
     Flows("Flows"),
@@ -41,7 +44,12 @@ fun App() {
 
 @Composable
 fun AppContent() {
-    var currentScreen by remember { mutableStateOf(Screen.Storage) }
+    // Persisted across app restarts via KSafe — the bottom-tab selection
+    // survives process death without any boilerplate. Compare with the
+    // pre-rememberKSafeState version that used `remember { mutableStateOf(...) }`,
+    // which only survived recomposition.
+    val ksafe: KSafe = koinInject()
+    var currentScreen by ksafe.rememberKSafeState(Screen.Storage)
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

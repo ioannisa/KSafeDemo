@@ -68,9 +68,9 @@ kotlin {
             // Immutable collections for better compose stability
             implementation(libs.kotlinx.collections.immutable)
 
-            implementation("eu.anifantakis:ksafe:2.0.0-RC1")
-            implementation("eu.anifantakis:ksafe-compose:2.0.0-RC1")
-            implementation("eu.anifantakis:ksafe-biometrics:2.0.0-RC1")
+            implementation("eu.anifantakis:ksafe:2.0.0-RC2")
+            implementation("eu.anifantakis:ksafe-compose:2.0.0-RC2")
+            implementation("eu.anifantakis:ksafe-biometrics:2.0.0-RC2")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
