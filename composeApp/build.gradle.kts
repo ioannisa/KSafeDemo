@@ -30,7 +30,24 @@ kotlin {
             isStatic = true
         }
     }
-    
+
+    // Native macOS — produces a self-contained executable that exercises
+    // KSafe's macosArm64 / macosX64 targets (Keychain + CryptoKit) end-to-end.
+    // The JVM/Desktop target also runs on macOS, but uses the JDK-flavoured
+    // KSafe path. This native target is what proves the appleMain migration
+    // works in a real CMP app.
+    listOf(
+        macosX64(),
+        macosArm64(),
+    ).forEach { macTarget ->
+        macTarget.binaries.executable {
+            entryPoint = "eu.anifantakis.ksafe_demo.main"
+        }
+    }
+
+    // Wire up the appleMain intermediate source set (shared by iOS + macOS).
+    applyDefaultHierarchyTemplate()
+
     jvm()
 
     @OptIn(ExperimentalWasmDsl::class)
@@ -39,8 +56,13 @@ kotlin {
         binaries.executable()
     }
 
+    js {
+        browser()
+        binaries.executable()
+    }
+
     sourceSets {
-        
+
         androidMain.dependencies {
             implementation(libs.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
@@ -67,7 +89,7 @@ kotlin {
 
             // Immutable collections for better compose stability
             implementation(libs.kotlinx.collections.immutable)
-
+            
             implementation("eu.anifantakis:ksafe:2.0.0")
             implementation("eu.anifantakis:ksafe-compose:2.0.0")
             implementation("eu.anifantakis:ksafe-biometrics:2.0.0")
@@ -79,7 +101,6 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
         }
-        val wasmJsMain by getting
     }
 }
 

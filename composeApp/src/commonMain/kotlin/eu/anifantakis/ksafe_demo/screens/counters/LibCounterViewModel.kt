@@ -157,7 +157,8 @@ class LibCounterViewModel(
             authorizationDuration = BiometricAuthorizationDuration(
                 duration = bioAuthDurationSeconds * 1000L,
                 scope = viewModelScope.hashCode().toString()
-            )
+            ),
+            allowDeviceCredentialFallback = true // <-- if true (default), you can combine biometrics+fallback (for example fingerprints+pattern) but if its false, it will be biometrics only
         ) { success ->
             println("DEBUG: verifyBiometricDirect callback, success=$success")
             if (success) {

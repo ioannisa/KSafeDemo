@@ -2,7 +2,9 @@
 
 A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https://github.com/ioannisa/ksafe) - a secure encrypted storage library with biometric authentication, runtime security detection, and device lock-state protection.
 
-**Platforms:** Android, iOS, Desktop (JVM), Browser (WASM/JS)
+**Platforms:** Android, iOS, macOS (native), Desktop (JVM), Browser (WASM/JS)
+
+> The demo runs as a native binary on every supported KSafe target. macOS specifically has *two* paths in this demo — the JVM/Desktop binary (Compose Desktop, Skia + Swing) and the native `macosArm64`/`macosX64` binary (Compose Multiplatform native, Skia + AppKit). Both exercise KSafe end-to-end; the native binary additionally validates KSafe's `appleMain` Keychain + CryptoKit code path in a real Compose UI.
 
 ---
 
@@ -19,7 +21,8 @@ A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https:/
 This demo application serves as a practical guide to understanding and implementing KSafe in your own projects. It demonstrates:
 
 ### 1. Encrypted Persistent Storage
-- **Compose State Integration**: Using `ksafe.mutableStateOf()` for reactive, encrypted persistence
+- **Compose State Integration**: Using `ksafe.mutableStateOf()` for reactive, encrypted persistence (best for ViewModel-owned state)
+- **Composable-body Persistent State**: `ksafe.rememberKSafeState()` — `rememberSaveable`-style ergonomics that survive app restarts, not just configuration changes (used in `App.kt` to persist the bottom-tab selection across cold launches with one line)
 - **Property Delegation**: Using `by ksafe()` for non-Compose encrypted properties
 - **Encryption Options**: Both encrypted (default) and unencrypted storage modes
 - **Complex Data Types**: Storing `@Serializable` data classes with automatic serialization
@@ -56,6 +59,16 @@ This demo application serves as a practical guide to understanding and implement
 - **`requireUnlockedDevice`**: Encrypted data is only accessible when the device is unlocked
 - **Interactive Lock Test**: 15-second countdown to lock your device, then verifies encrypted reads are blocked
 - **Platform Background Tasks**: iOS uses `beginBackgroundTaskWithExpirationHandler` to keep the test running while the screen is off
+
+### 8. `rememberKSafeState` — composable-local persistent state (New in 2.0.0)
+- **`rememberSaveable`-style API for KSafe**: composable-body local state that survives app restarts (not just config changes)
+- **Auto-keying from property name**: `var idx by ksafe.rememberKSafeState(0)` stores under the key `"idx"` — explicit `key = "..."` available when you want it
+- **Used in `App.kt`**: the bottom-tab selection (`var currentScreen by ksafe.rememberKSafeState(Screen.Storage)`) persists across cold launches with no ViewModel involved — see [Code Examples → `rememberKSafeState`](#bottom-tab-persistence-with-rememberksafestate-appkt)
+
+### 9. Native macOS Target (New in 2.0.1)
+- **Native `macosArm64` / `macosX64` binary**: Compose Multiplatform on AppKit, Skia rendering, KSafe's `appleMain` Keychain + CryptoKit path. Same source as iOS — no UI rewrites
+- **Two macOS paths in one demo**: Compose **Desktop** on JVM (`./gradlew :composeApp:run`) uses KSafe's JDK crypto path; Compose **native macOS** (`./gradlew :composeApp:runDebugExecutableMacosArm64`) uses Keychain + Secure Enclave on Apple Silicon and T2-equipped Macs
+- **Validates the lib's macOS target end-to-end**: KSafe ships 118 unit tests for macOS, the demo proves the same code works inside a real Compose UI
 
 ---
 
@@ -133,6 +146,58 @@ class LibCounterViewModel(val ksafe: KSafe) : ViewModel() {
         private set
 }
 ```
+
+### Bottom-tab persistence with `rememberKSafeState` (App.kt)
+
+The demo's `App.kt` uses **`rememberKSafeState`** to persist the selected bottom-tab across cold app launches. Pre-2.0 this would have required a `MainViewModel` + Koin wiring + `koinViewModel()` injection + flow observation just to remember which tab the user had open. With `rememberKSafeState` it's one line:
+
+```kotlin
+@Composable
+fun AppContent() {
+    val ksafe: KSafe = koinInject()
+
+    // Persisted across app restarts via KSafe — the bottom-tab selection
+    // survives process death without any boilerplate. Compare with the
+    // pre-2.0 version that used `remember { mutableStateOf(Screen.Storage) }`,
+    // which only survived recomposition.
+    var currentScreen by ksafe.rememberKSafeState(Screen.Storage)
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                Screen.entries.forEach { screen ->
+                    NavigationBarItem(
+                        selected = currentScreen == screen,
+                        onClick = { currentScreen = screen },
+                        label = { Text(screen.title) },
+                        icon = { }
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            when (currentScreen) {
+                Screen.Storage -> LibCounterScreen()
+                Screen.Flows -> FlowDelegatesScreen()
+                Screen.CustomJson -> CustomJsonScreen()
+                Screen.Security -> SecurityScreen()
+            }
+        }
+    }
+}
+```
+
+**The split between `rememberKSafeState` and `mutableStateOf`:**
+
+| Use case | API |
+|---|---|
+| ViewModel-owned / cross-screen state, business logic | `var x by ksafe.mutableStateOf(default)` |
+| Composable-body local state (tab index, scroll, expanded sections, draft form input) | `var x by ksafe.rememberKSafeState(default)` |
+
+**Auto-keying:** the property name (`currentScreen`) is captured at `provideDelegate` time, so the storage key falls through automatically. Pass `key = "..."` when you want it explicit. Mode defaults to `KSafeWriteMode.Plain` — UI ephemera doesn't need encryption — pass `mode = KSafeWriteMode.Encrypted(...)` to opt in.
+
+**Try it yourself:** open the demo, navigate to the **Flows** tab (or any non-default), close the app, relaunch. The Flows tab is still selected.
 
 ### Property Delegation (Non-Compose)
 
@@ -385,44 +450,41 @@ The demo includes an interactive test for the `requireUnlockedDevice` feature:
 
 ---
 
-## Biometric Authentication Architecture
+## Biometric Authentication
 
-This demo implements cross-platform biometric authentication using the **expect/actual** pattern:
-
-```
-commonMain/
-└── biometric/
-    └── BiometricAuthenticator.kt      # Interface + expect function
-
-androidMain/
-└── biometric/
-    └── BiometricAuthenticator.android.kt  # BiometricPrompt
-
-iosMain/
-└── biometric/
-    └── BiometricAuthenticator.ios.kt      # LocalAuthentication (Face ID/Touch ID)
-
-jvmMain/
-└── biometric/
-    └── BiometricAuthenticator.jvm.kt      # Auto-authenticate (no hardware)
-```
-
-### Interface
+The demo uses the standalone **`:ksafe-biometrics`** module from the KSafe library directly — no per-platform `expect/actual` wrapper in the demo itself. The module ships its own platform actuals (`BiometricPrompt` on Android, `LAContext` on iOS / macOS, no-op auto-success on JVM and Web), so the demo's `LibCounterViewModel.kt` calls a single common API:
 
 ```kotlin
-interface BiometricAuthenticator {
-    fun isAvailable(): Boolean
-    fun authenticate(
-        title: String,
-        subtitle: String,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    )
-}
+import eu.anifantakis.lib.ksafe.biometrics.KSafeBiometrics
+import eu.anifantakis.lib.ksafe.biometrics.BiometricAuthorizationDuration
 
-@Composable
-expect fun rememberBiometricAuthenticator(): BiometricAuthenticator
+fun bioCounterIncrement() {
+    KSafeBiometrics.verifyBiometricDirect(
+        reason = "Authenticate to save",
+        authorizationDuration = BiometricAuthorizationDuration(
+            duration = bioAuthDurationSeconds * 1000L,
+            scope = viewModelScope.hashCode().toString(),
+        ),
+    ) { success ->
+        if (success) {
+            bioCount++
+            if (bioAuthRemaining == 0) startBioAuthTimer()
+        }
+    }
+}
 ```
+
+**Per-platform behaviour, all from the library:**
+
+| Platform | Hardware path |
+|---|---|
+| **Android** | `androidx.biometric` — Face / Fingerprint / Iris via `BiometricPrompt` |
+| **iOS** | `LocalAuthentication.LAContext` — Face ID / Touch ID; simulator returns `true` |
+| **macOS (native)** | `LocalAuthentication.LAContext` — Touch ID / Apple Watch unlock; hosts without a biometric sensor surface `LAErrorBiometryNotAvailable` and the callback receives `false` |
+| **JVM / Desktop** | No biometric hardware; auto-succeeds so the demo flow keeps working |
+| **WASM / JS** | No biometric API; auto-succeeds |
+
+The duration cache + scope behaviour (`BiometricAuthorizationDuration`) is identical everywhere — see the library's [BIOMETRICS.md](https://github.com/ioannisa/ksafe/blob/main/docs/BIOMETRICS.md) for the full API.
 
 ---
 
@@ -431,51 +493,55 @@ expect fun rememberBiometricAuthenticator(): BiometricAuthenticator
 ```
 composeApp/src/
 ├── commonMain/kotlin/eu/anifantakis/ksafe_demo/
-│   ├── App.kt                           # Navigation with bottom tabs
-│   ├── biometric/
-│   │   └── BiometricAuthenticator.kt    # expect interface
+│   ├── App.kt                              # bottom-tab nav; uses ksafe.rememberKSafeState
 │   ├── di/
-│   │   ├── Modules.kt                   # Shared DI module
-│   │   └── SecurityViolationsHolder.kt  # Security violations state
+│   │   ├── KoinConfiguration.kt
+│   │   ├── Modules.kt                      # shared DI (with `expect val platformModule`)
+│   │   └── SecurityViolationsHolder.kt
 │   ├── util/
-│   │   └── BackgroundTask.kt            # expect for platform background tasks
+│   │   └── BackgroundTask.kt               # expect for platform background tasks
 │   └── screens/
 │       ├── counters/
-│       │   ├── LibCounterScreen.kt      # Storage demo UI
-│       │   └── LibCounterViewModel.kt   # Storage demo logic
+│       │   ├── LibCounterScreen.kt         # Storage demo UI
+│       │   └── LibCounterViewModel.kt      # Storage demo logic + KSafeBiometrics calls
 │       ├── flows/
-│       │   ├── FlowDelegatesScreen.kt   # Flow delegates demo UI (1.8.0)
-│       │   └── FlowDelegatesViewModel.kt # asFlow, asStateFlow, asMutableStateFlow
+│       │   ├── FlowDelegatesScreen.kt      # Flow delegates demo UI (1.8.0)
+│       │   └── FlowDelegatesViewModel.kt   # asFlow / asStateFlow / asMutableStateFlow
 │       ├── customjson/
-│       │   ├── CustomJsonScreen.kt      # Custom JSON demo UI
-│       │   └── CustomJsonViewModel.kt   # @Contextual types + custom SerializersModule
+│       │   ├── CustomJsonScreen.kt
+│       │   └── CustomJsonViewModel.kt      # @Contextual types + custom SerializersModule
 │       └── security/
-│           ├── SecurityScreen.kt        # Security status UI
-│           └── SecurityViewModel.kt     # Security status logic
+│           ├── SecurityScreen.kt
+│           └── SecurityViewModel.kt
 │
 ├── androidMain/kotlin/eu/anifantakis/ksafe_demo/
 │   ├── MainActivity.kt
-│   ├── biometric/BiometricAuthenticator.android.kt
-│   ├── util/BackgroundTask.android.kt    # No-op (Android doesn't suspend)
-│   └── di/Modules.android.kt            # KSafe with requireUnlockedDevice
+│   ├── di/Modules.android.kt               # KSafe with requireUnlockedDevice
+│   └── util/BackgroundTask.android.kt      # No-op (Android doesn't suspend)
+│
+├── appleMain/kotlin/eu/anifantakis/ksafe_demo/        ← shared by iOS + macOS (NEW in 2.0.1)
+│   └── di/Modules.apple.kt                  # one DI module for both Apple targets
 │
 ├── iosMain/kotlin/eu/anifantakis/ksafe_demo/
-│   ├── MainViewController.kt
-│   ├── biometric/BiometricAuthenticator.ios.kt
-│   ├── util/BackgroundTask.ios.kt        # beginBackgroundTask for lock test
-│   └── di/Modules.ios.kt
+│   ├── MainViewController.kt                # ComposeUIViewController { App() }
+│   └── util/BackgroundTask.ios.kt           # UIApplication.beginBackgroundTask for lock test
+│
+├── macosMain/kotlin/eu/anifantakis/ksafe_demo/        ← native macOS (NEW in 2.0.1)
+│   ├── main.macos.kt                        # NSApplication + Window(...) { App() } + run loop
+│   └── util/BackgroundTask.macos.kt         # No-op (macOS doesn't suspend apps)
 │
 ├── jvmMain/kotlin/eu/anifantakis/ksafe_demo/
-│   ├── main.kt
-│   ├── biometric/BiometricAuthenticator.jvm.kt
-│   ├── util/BackgroundTask.jvm.kt        # No-op
-│   └── di/Modules.jvm.kt
+│   ├── main.kt                              # Compose Desktop application { Window { App() } }
+│   ├── di/Modules.jvm.kt
+│   └── util/BackgroundTask.jvm.kt           # No-op
 │
 └── wasmJsMain/kotlin/eu/anifantakis/ksafe_demo/
-    ├── main.kt                            # ComposeViewport + awaitCacheReady
-    ├── util/BackgroundTask.wasmJs.kt      # No-op
-    └── di/Modules.wasmJs.kt              # KSafe with localStorage + WebCrypto
+    ├── main.kt                              # ComposeViewport + awaitCacheReady
+    ├── di/Modules.wasmJs.kt                 # KSafe with localStorage + WebCrypto
+    └── util/BackgroundTask.wasmJs.kt        # No-op
 ```
+
+**Note on Apple source-set sharing:** the demo mirrors the lib's appleMain split — the platform-agnostic Koin module (which just builds a `KSafe` with the demo's security policy) lives in `appleMain/`, while UIKit-specific entry points (`MainViewController` using `UIViewController`, `BackgroundTask` using `UIApplication.beginBackgroundTask`) stay in `iosMain/` and AppKit-specific entry points (`NSApplication` bootstrap) live in `macosMain/`.
 
 ---
 
@@ -487,13 +553,27 @@ composeApp/src/
 ./gradlew :composeApp:installDebug
 ```
 
-### Desktop (JVM)
+### Desktop (JVM) — runs on macOS, Windows, Linux
 ```bash
 ./gradlew :composeApp:run
 ```
 
 ### iOS
 Open `iosApp/iosApp.xcodeproj` in Xcode and run.
+
+### macOS (native) — Apple Silicon
+```bash
+./gradlew :composeApp:runDebugExecutableMacosArm64        # debug
+./gradlew :composeApp:runReleaseExecutableMacosArm64      # release (smaller, faster)
+```
+
+For Intel Macs, swap `MacosArm64` → `MacosX64`. The compiled binary lands at `composeApp/build/bin/macosArm64/debugExecutable/composeApp.kexe` (~61 MB self-contained Mach-O).
+
+> **First-time setup:** Compose Multiplatform's native macOS targets are gated behind an experimental flag. The demo enables it automatically via `gradle.properties`:
+> ```properties
+> org.jetbrains.compose.experimental.macos.enabled=true
+> ```
+> JetBrains hasn't lifted this flag yet — the runtime works (Skia → AppKit), but hot reload, Compose previews, and component-library completeness are weaker than on JVM/Desktop. The Compose Desktop / JVM target remains the better daily-driver Mac path for UI iteration; the native target is what proves the lib's `appleMain` Keychain + CryptoKit code path works end-to-end.
 
 ### Browser (WASM/JS)
 ```bash
@@ -508,23 +588,26 @@ Then open `http://localhost:8080/` in your browser.
 ```kotlin
 // build.gradle.kts
 commonMain.dependencies {
-    implementation("eu.anifantakis:ksafe:1.8.0")
-    implementation("eu.anifantakis:ksafe-compose:1.8.0")
+    implementation("eu.anifantakis:ksafe:2.0.1-Beta01")
+    implementation("eu.anifantakis:ksafe-compose:2.0.1-Beta01")
+    implementation("eu.anifantakis:ksafe-biometrics:2.0.1-Beta01")
 }
 ```
 
-> `kotlinx-serialization-json` and biometric support (`androidx.biometric`) are included transitively through KSafe — no explicit dependencies needed.
+> `kotlinx-serialization-json` is provided transitively by `:ksafe` — no need to declare it. `:ksafe-biometrics` is the optional standalone biometric module (Android `BiometricPrompt`, iOS / macOS `LAContext`); pull it in only when an app actually wants biometric prompts.
+
+**Why 2.0.1-Beta01 and not 2.0.0:** 2.0.1 is the release that added native `macosArm64` / `macosX64` artifacts to all three modules. If your project doesn't target native macOS, 2.0.0 also works — the iOS / Android / JVM / Web paths are identical.
 
 ---
 
 ## Key Takeaways
 
 1. **Seamless Encryption**: KSafe makes encrypted storage as simple as regular storage
-2. **Compose Integration**: `mutableStateOf` works exactly like Compose's native state
+2. **Compose Integration**: `mutableStateOf` works exactly like Compose's native state for ViewModel state, and `rememberKSafeState` brings `rememberSaveable`-style ergonomics for composable-body local state — both with persistence across app restarts
 3. **Flow Delegates**: `asStateFlow()` and `asMutableStateFlow()` — drop-in replacements for standard Kotlin flow patterns, with automatic persistence
-4. **Cross-Platform**: Same API across Android, iOS, Desktop, and Browser
+4. **Cross-Platform**: Same API across Android, iOS, **native macOS**, JVM/Desktop, and Browser. Two macOS paths in one demo — JVM (Compose Desktop) and Kotlin/Native (Compose for AppKit) — both exercising KSafe end-to-end
 5. **Security-First**: Runtime security detection helps protect sensitive data
-6. **Biometric Ready**: Built-in support for biometric authentication with duration caching
+6. **Biometric Ready**: Built-in support for biometric authentication with duration caching, including macOS Touch ID / Apple Watch unlock via the `:ksafe-biometrics` module
 7. **Lock-State Protection**: `requireUnlockedDevice` ensures encrypted data is inaccessible when the device is locked
 8. **Custom JSON**: Support for `@Contextual` types via custom `SerializersModule` — store any type
 
