@@ -1,5 +1,5 @@
 [versions]
-agp = "9.1.0"
+agp = "9.2.0"
 android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "36"
@@ -8,7 +8,7 @@ google-material = "1.13.0"
 androidx-lifecycle = "2.10.0"
 composeHotReload = "1.0.0"
 composeMultiplatform = "1.10.3"
-kotlin = "2.3.20"
+kotlin = "2.3.21"
 kotlinx-coroutines = "1.10.2"
 
 koin = "4.2.1"
