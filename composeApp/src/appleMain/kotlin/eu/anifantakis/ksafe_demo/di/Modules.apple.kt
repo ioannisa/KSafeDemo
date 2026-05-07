@@ -39,7 +39,7 @@ actual val platformModule: Module
         // via KSafeConfig(json = ...). Introduced in KSafe 1.7.1.
         single<KSafe>(customJsonKSafe) {
             KSafe(
-                fileName = "ios_customjson",
+                fileName = "iosdata_customjson",
                 config = KSafeConfig(json = customJsonForKSafe)
             )
         }
