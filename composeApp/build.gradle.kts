@@ -146,3 +146,25 @@ compose.desktop {
         }
     }
 }
+
+// Ad-hoc code-sign the macOS native kexe after linking. Without a stable code
+// signature the system Keychain treats every launch as a new caller and prompts
+// for the login keychain password on each item — once signed, "Always Allow"
+// can stick across reruns of the same build. New builds may invalidate the ACL
+// when the cdhash changes; sign with a real Developer ID identity if you want
+// the allow decision to survive rebuilds.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink>().configureEach {
+    val targetName = binary.target.name
+    val isMacExecutable = binary.outputKind == org.jetbrains.kotlin.gradle.plugin.mpp.NativeOutputKind.EXECUTABLE &&
+        (targetName == "macosArm64" || targetName == "macosX64")
+    if (!isMacExecutable) return@configureEach
+
+    val outputFile = binary.outputFile
+    doLast {
+        val proc = ProcessBuilder("codesign", "--force", "--sign", "-", outputFile.absolutePath)
+            .inheritIO()
+            .start()
+        val rc = proc.waitFor()
+        if (rc != 0) error("codesign failed with exit code $rc for ${outputFile.absolutePath}")
+    }
+}
