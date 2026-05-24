@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.anifantakis.lib.ksafe.KSafeProtectionInfo
+import eu.anifantakis.lib.ksafe.KSafeProtectionLevel
 import eu.anifantakis.lib.ksafe.SecurityViolation
 import eu.anifantakis.lib.ksafe.compose.UiSecurityViolation
 import kotlinx.collections.immutable.ImmutableList
@@ -30,6 +32,7 @@ fun SecurityScreen(
     viewModel: SecurityViewModel = koinViewModel()
 ) {
     SecurityScreenContent(
+        protectionInfo = viewModel.protectionInfo,
         violations = viewModel.violations.toImmutableList(),
         violationDescriptionProvider = viewModel::getViolationDescription
     )
@@ -37,6 +40,7 @@ fun SecurityScreen(
 
 @Composable
 fun SecurityScreenContent(
+    protectionInfo: KSafeProtectionInfo,
     violations: ImmutableList<UiSecurityViolation>,
     violationDescriptionProvider: (SecurityViolation) -> String
 ) {
@@ -67,6 +71,19 @@ fun SecurityScreenContent(
             isSecure = isSecure,
             violationCount = violations.size
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Key-custody status (KSafe.protectionInfo)
+        Text(
+            text = "Key Protection",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+        KeyProtectionCard(info = protectionInfo)
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -133,7 +150,73 @@ fun SecurityScreenContent(
     }
 }
 
-// --- Helper Composables (Unchanged) ---
+// --- Helper Composables ---
+
+@Composable
+private fun KeyProtectionCard(info: KSafeProtectionInfo) {
+    val degraded = info.effectiveLevel < info.intendedLevel
+    val (containerColor, accentColor) = when (info.effectiveLevel) {
+        KSafeProtectionLevel.SOFTWARE          -> Color(0xFFFFEBEE) to Color(0xFFC62828)
+        KSafeProtectionLevel.SANDBOX_PROTECTED -> Color(0xFFE3F2FD) to Color(0xFF1565C0)
+        KSafeProtectionLevel.HARDWARE_BACKED   -> Color(0xFFE8F5E9) to Color(0xFF2E7D32)
+        KSafeProtectionLevel.HARDWARE_ISOLATED -> Color(0xFFE0F7FA) to Color(0xFF00695C)
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(accentColor)
+                )
+                Text(
+                    text = "  ${info.effectiveLevel.name}",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = accentColor
+                )
+                if (degraded) {
+                    Text(
+                        text = "  (degraded from ${info.intendedLevel.name})",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFC62828)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            ProtectionDetailRow("Intended", info.intendedLevel.name)
+            ProtectionDetailRow("Effective", info.effectiveLevel.name)
+            ProtectionDetailRow("Custody", info.custody)
+            if (info.notes.isNotEmpty()) {
+                ProtectionDetailRow("Notes", info.notes.joinToString(", "))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProtectionDetailRow(label: String, value: String) {
+    Row(modifier = Modifier.padding(vertical = 2.dp)) {
+        Text(
+            text = "$label: ",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray,
+        )
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            color = Color.DarkGray,
+        )
+    }
+}
+
+// --- Existing helpers ---
 
 @Composable
 private fun StatusBadge(isSecure: Boolean, violationCount: Int) {
@@ -234,10 +317,25 @@ private fun getViolationTitle(violation: SecurityViolation): String {
 
 // --- Preview Section ---
 
+private val previewProtectionInfo = KSafeProtectionInfo(
+    intendedLevel = KSafeProtectionLevel.HARDWARE_BACKED,
+    effectiveLevel = KSafeProtectionLevel.HARDWARE_BACKED,
+    custody = "Android Keystore (TEE)",
+    notes = emptyList(),
+)
+
+private val previewDegradedProtectionInfo = KSafeProtectionInfo(
+    intendedLevel = KSafeProtectionLevel.SANDBOX_PROTECTED,
+    effectiveLevel = KSafeProtectionLevel.SOFTWARE,
+    custody = "DataStore (software, plaintext — no OS protection)",
+    notes = listOf("jvm_os_vault_unavailable"),
+)
+
 @Preview(showBackground = true, name = "Secure State")
 @Composable
 fun PreviewSecurityScreenSecure() {
     SecurityScreenContent(
+        protectionInfo = previewProtectionInfo,
         violations = persistentListOf(),
         violationDescriptionProvider = { "Mock description for preview" }
     )
@@ -247,6 +345,7 @@ fun PreviewSecurityScreenSecure() {
 @Composable
 fun PreviewSecurityScreenViolated() {
     SecurityScreenContent(
+        protectionInfo = previewDegradedProtectionInfo,
         violations = persistentListOf(
             UiSecurityViolation(SecurityViolation.RootedDevice),
             UiSecurityViolation(SecurityViolation.Emulator)

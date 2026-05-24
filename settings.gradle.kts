@@ -17,7 +17,11 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
-        // add mavenLocal() here first if you want to prioritize local artifacts during development
+        // mavenLocal() first so locally-published KSafe snapshots
+        // (./gradlew :ksafe:publishToMavenLocal etc.) take precedence over
+        // the released artifacts on Maven Central. Comment this out and
+        // rely on mavenCentral() below for a clean against-released build.
+        mavenLocal()
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -26,7 +30,6 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
-        mavenLocal()
     }
 }
 

@@ -4,15 +4,26 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import eu.anifantakis.ksafe_demo.di.SecurityViolationsHolder
+import eu.anifantakis.lib.ksafe.KSafe
+import eu.anifantakis.lib.ksafe.KSafeProtectionInfo
 import eu.anifantakis.lib.ksafe.SecurityViolation
 import eu.anifantakis.lib.ksafe.compose.UiSecurityViolation
 
 /**
  * ViewModel for the Security screen.
- * Displays security violations detected during KSafe initialization.
+ * Displays security violations detected during KSafe initialization, plus
+ * the negotiated key-protection custody for the active KSafe instance.
  */
 @Stable
-class SecurityViewModel : ViewModel() {
+class SecurityViewModel(
+    ksafe: KSafe,
+) : ViewModel() {
+
+    /**
+     * The key-protection custody this KSafe instance negotiated at
+     * construction. Fixed for the instance's lifetime.
+     */
+    val protectionInfo: KSafeProtectionInfo = ksafe.protectionInfo
 
     /**
      * List of security violations detected.
