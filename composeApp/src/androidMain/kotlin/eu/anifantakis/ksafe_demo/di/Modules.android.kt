@@ -15,10 +15,11 @@ actual val platformModule: Module
             KSafe(
                 context = androidApplication(),
                 config = KSafeConfig(requireUnlockedDevice = false),
-                securityPolicy = KSafeSecurityPolicy.Strict.copy( // If in rooted device will crash (use WarnOnly to run in rooted phones)
+                securityPolicy = KSafeSecurityPolicy.WarnOnly.copy(
                     debuggerAttached = SecurityAction.WARN,   // Change to BLOCK and if debugger attached, app will crash
                     debugBuild = SecurityAction.WARN, // Change to BLOCK in debug and app will crash
                     emulator = SecurityAction.WARN,   // Change to BLOCK and if you run from emulator, app will crash
+                    rootedDevice = SecurityAction.WARN, // Change to BLOCK and if you run from rooted device, app will crash
                     onViolation = { violation ->
                         SecurityViolationsHolder.addViolation(violation)
                     }
