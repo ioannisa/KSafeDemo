@@ -81,7 +81,7 @@ fun LibCounterScreenContent(
     onBioIncrement: () -> Unit,
     onGenerateToken: () -> Unit,
     onClearVault: () -> Unit,
-    onStartLockTest: () -> Unit,
+    onStartLockTest: (Boolean) -> Unit,
     onDismissLockTestResult: () -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -249,8 +249,13 @@ fun LibCounterScreenContent(
                     color = if (lockTestCountdown > 0) Color.Red else Color.Gray
                 )
             } else {
-                Button(onClick = onStartLockTest) {
-                    Text(text = "Test Lock Feature", fontSize = 20.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { onStartLockTest(false) }) {
+                        Text(text = "Test Lock (Default)", fontSize = 14.sp)
+                    }
+                    Button(onClick = { onStartLockTest(true) }) {
+                        Text(text = "Test Lock (Hardware)", fontSize = 14.sp)
+                    }
                 }
             }
         }

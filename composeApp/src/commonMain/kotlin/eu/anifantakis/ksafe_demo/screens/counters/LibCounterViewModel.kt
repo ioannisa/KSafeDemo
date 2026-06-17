@@ -254,7 +254,7 @@ class LibCounterViewModel(
      * NOTE: Xcode's debugger prevents iOS data protection from engaging.
      * For accurate results, launch the app from the Home Screen (not Xcode).
      */
-    fun startLockTest() {
+    fun startLockTest(useHardwareIsolated: Boolean) {
         if (isLockTestRunning) return
 
         isLockTestRunning = true
@@ -268,14 +268,18 @@ class LibCounterViewModel(
             // Wrap in a platform background task so iOS doesn't suspend
             // the process while the screen is off
             withPlatformBackgroundTask("KSafeLockTest") {
-                val testKey = "__lock_test_token__"
+                val testKey = if (useHardwareIsolated) "__lock_test_token_hw__" else "__lock_test_token__"
+                val protectionLevel = if (useHardwareIsolated) KSafeEncryptedProtection.HARDWARE_ISOLATED else KSafeEncryptedProtection.DEFAULT
 
                 // Step 1: Pre-store a value while the device is unlocked
                 try {
                     ksafe.put(
                         key = testKey,
                         value = "pre-stored-while-unlocked",
-                        mode = KSafeWriteMode.Encrypted(requireUnlockedDevice = true)
+                        mode = KSafeWriteMode.Encrypted(
+                            protection = protectionLevel,
+                            requireUnlockedDevice = true
+                        )
                     )
                 } catch (e: Exception) {
                     lockTestResult = "SETUP FAILED.\n\nCould not store test value: ${e.message}"
@@ -291,6 +295,9 @@ class LibCounterViewModel(
                 lockTestCountdown = 0
 
                 // Step 3: Attempt to read the pre-stored encrypted value.
+                // The decrypt will hit the hardware Keystore/Keychain because
+                // requireUnlockedDevice = true items bypass in-memory caching.
+
                 // This requires fetching the decryption key from the Keychain,
                 // which should fail if the device is truly locked.
                 try {
