@@ -21,7 +21,6 @@ kotlin {
     }
     
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -37,7 +36,6 @@ kotlin {
     // KSafe path. This native target is what proves the appleMain migration
     // works in a real CMP app.
     listOf(
-        macosX64(),
         macosArm64(),
     ).forEach { macTarget ->
         macTarget.binaries.executable {
@@ -172,7 +170,7 @@ compose.desktop {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink>().configureEach {
     val targetName = binary.target.name
     val isMacExecutable = binary.outputKind == org.jetbrains.kotlin.gradle.plugin.mpp.NativeOutputKind.EXECUTABLE &&
-        (targetName == "macosArm64" || targetName == "macosX64")
+        targetName == "macosArm64"
     if (!isMacExecutable) return@configureEach
 
     val outputFile = binary.outputFile
