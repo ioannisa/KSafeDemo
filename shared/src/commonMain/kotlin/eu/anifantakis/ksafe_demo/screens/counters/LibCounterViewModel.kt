@@ -111,6 +111,16 @@ class LibCounterViewModel(
     var bioAuthRemaining by mutableStateOf(0)
         private set
 
+    /** One-shot message for the screen to surface in a snackbar. The screen calls
+     *  [consumeUserMessage] once it has been shown, so it doesn't re-appear on
+     *  recomposition or configuration change. */
+    var userMessage by mutableStateOf<String?>(null)
+        private set
+
+    fun consumeUserMessage() {
+        userMessage = null
+    }
+
     private var bioTimerJob: kotlinx.coroutines.Job? = null
 
     private fun startBioAuthTimer() {
@@ -149,24 +159,47 @@ class LibCounterViewModel(
 
     fun bioCounterIncrement() {
         println("DEBUG: bioCounterIncrement() called")
-        // BiometricAuthorizationDuration(6_000L, screenScope) means:
-        // - Once authenticated, no new prompt for 6 seconds
-        // - Scoped to this screen instance (new ViewModel = re-authenticate)
-        KSafeBiometrics.verifyBiometricDirect(
-            reason = "Authenticate to save",
-            authorizationDuration = BiometricAuthorizationDuration(
-                duration = bioAuthDurationSeconds * 1000L,
-                scope = viewModelScope.hashCode().toString()
-            ),
-            allowDeviceCredentialFallback = true // <-- if true (default), you can combine biometrics+fallback (for example fingerprints+pattern) but if its false, it will be biometrics only
-        ) { success ->
-            println("DEBUG: verifyBiometricDirect callback, success=$success")
-            if (success) {
-                bioCount++
-                refreshKeyInfo()
-                // Only start the timer on fresh auth, not cached hits
-                if (bioAuthRemaining == 0) {
-                    startBioAuthTimer()
+
+        // Ask FIRST whether a real prompt can even be shown. On a stock emulator — no
+        // enrolled fingerprint/face and no PIN, pattern or password — there is nothing to
+        // prompt with, so verifyBiometricDirect just reports success = false and the button
+        // looks broken. Probing up front lets us say *why* nothing happened instead.
+        //
+        // allowDeviceCredentialFallback must match the value passed to verifyBiometricDirect
+        // below, or the probe answers a different question than the one we go on to ask.
+        KSafeBiometrics.biometricsAvailableDirect(
+            allowDeviceCredentialFallback = true
+        ) { available ->
+            println("DEBUG: biometricsAvailableDirect callback, available=$available")
+
+            if (!available) {
+                userMessage = "Biometrics unavailable — no fingerprint, face, or device lock is set up"
+                return@biometricsAvailableDirect
+            }
+
+            // BiometricAuthorizationDuration(6_000L, screenScope) means:
+            // - Once authenticated, no new prompt for 6 seconds
+            // - Scoped to this screen instance (new ViewModel = re-authenticate)
+            KSafeBiometrics.verifyBiometricDirect(
+                reason = "Authenticate to save",
+                authorizationDuration = BiometricAuthorizationDuration(
+                    duration = bioAuthDurationSeconds * 1000L,
+                    scope = viewModelScope.hashCode().toString()
+                ),
+                allowDeviceCredentialFallback = true // <-- if true (default), you can combine biometrics+fallback (for example fingerprints+pattern) but if its false, it will be biometrics only
+            ) { success ->
+                println("DEBUG: verifyBiometricDirect callback, success=$success")
+                if (success) {
+                    bioCount++
+                    refreshKeyInfo()
+                    // Only start the timer on fresh auth, not cached hits
+                    if (bioAuthRemaining == 0) {
+                        startBioAuthTimer()
+                    }
+                } else {
+                    // Biometrics exist but the user cancelled or failed to match. Without
+                    // this the button is silent here too — the same complaint, different cause.
+                    userMessage = "Authentication failed or was cancelled"
                 }
             }
         }

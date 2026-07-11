@@ -19,9 +19,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +55,7 @@ fun LibCounterScreen(
         lockTestCountdown = counterViewModel.lockTestCountdown,
         lockTestResult = counterViewModel.lockTestResult,
         isLockTestRunning = counterViewModel.isLockTestRunning,
+        userMessage = counterViewModel.userMessage,
         onIncrement = counterViewModel::increment,
         onRefreshCount2 = counterViewModel::refreshCount2,
         onClear = counterViewModel::clear,
@@ -59,7 +63,8 @@ fun LibCounterScreen(
         onGenerateToken = counterViewModel::generateNewToken,
         onClearVault = counterViewModel::clearVault,
         onStartLockTest = counterViewModel::startLockTest,
-        onDismissLockTestResult = counterViewModel::dismissLockTestResult
+        onDismissLockTestResult = counterViewModel::dismissLockTestResult,
+        onUserMessageShown = counterViewModel::consumeUserMessage
     )
 }
 
@@ -75,6 +80,7 @@ fun LibCounterScreenContent(
     lockTestCountdown: Int,
     lockTestResult: String?,
     isLockTestRunning: Boolean,
+    userMessage: String?,
     onIncrement: () -> Unit,
     onRefreshCount2: () -> Unit,
     onClear: () -> Unit,
@@ -82,9 +88,19 @@ fun LibCounterScreenContent(
     onGenerateToken: () -> Unit,
     onClearVault: () -> Unit,
     onStartLockTest: (Boolean) -> Unit,
-    onDismissLockTestResult: () -> Unit
+    onDismissLockTestResult: () -> Unit,
+    onUserMessageShown: () -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Drain the one-shot message: show it, then tell the ViewModel it's been consumed so
+    // it can't fire again on the next recomposition.
+    LaunchedEffect(userMessage) {
+        val message = userMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        onUserMessageShown()
+    }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -293,6 +309,12 @@ fun LibCounterScreenContent(
                 }
             )
         }
+
+        // Sits above the scrolling Column, so it stays put wherever the user has scrolled to.
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -361,6 +383,7 @@ fun PreviewLibCounterScreen() {
         lockTestCountdown = -1,
         lockTestResult = null,
         isLockTestRunning = false,
+        userMessage = null,
         onIncrement = {},
         onRefreshCount2 = {},
         onClear = {},
@@ -368,6 +391,7 @@ fun PreviewLibCounterScreen() {
         onGenerateToken = {},
         onClearVault = {},
         onStartLockTest = {},
-        onDismissLockTestResult = {}
+        onDismissLockTestResult = {},
+        onUserMessageShown = {}
     )
 }
