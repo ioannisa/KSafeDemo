@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":composeApp:jsBrowserDevelopmentRun" />
+          <option value=":jsApp:jsBrowserDevelopmentRun" />
         </list>
       </option>
       <option name="vmOptions" />

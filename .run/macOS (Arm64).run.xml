@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":composeApp:runDebugExecutableMacosArm64" />
+          <option value=":macosApp:runDebugExecutableMacosArm64" />
         </list>
       </option>
       <option name="vmOptions" />

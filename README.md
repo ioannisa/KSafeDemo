@@ -67,7 +67,7 @@ This demo application serves as a practical guide to understanding and implement
 
 ### 9. Native macOS Target (New in 2.0.1)
 - **Native `macosArm64` / `macosX64` binary**: Compose Multiplatform on AppKit, Skia rendering, KSafe's `appleMain` Keychain + CryptoKit path. Same source as iOS — no UI rewrites
-- **Two macOS paths in one demo**: Compose **Desktop** on JVM (`./gradlew :composeApp:run`) uses KSafe's JDK crypto path; Compose **native macOS** (`./gradlew :composeApp:runDebugExecutableMacosArm64`) uses Keychain + Secure Enclave on Apple Silicon and T2-equipped Macs
+- **Two macOS paths in one demo**: Compose **Desktop** on JVM (`./gradlew :desktopApp:run`) uses KSafe's JDK crypto path; Compose **native macOS** (`./gradlew :macosApp:runDebugExecutableMacosArm64`) uses Keychain + Secure Enclave on Apple Silicon and T2-equipped Macs
 - **Validates the lib's macOS target end-to-end**: KSafe ships 118 unit tests for macOS, the demo proves the same code works inside a real Compose UI
 
 ---
@@ -490,8 +490,25 @@ The duration cache + scope behaviour (`BiometricAuthorizationDuration`) is ident
 
 ## Project Structure
 
+The project is split one module per platform entry point, around a single shared
+KMP library. AGP 9 forbids the Android application plugin and the Kotlin
+Multiplatform plugin in the same module, and the rest of the layout follows that
+same shape — every `*App` module is a thin launcher, and all the real code lives
+in `shared/`.
+
 ```
-composeApp/src/
+KSafeDemo/
+├── shared/          # KMP library — all UI, view models, DI, expect/actual
+├── androidApp/      # Android launcher      → com.android.application
+├── desktopApp/      # Compose Desktop (JVM) → main() + jlink config
+├── webApp/          # Compose for Web, WASM → main() + index.html
+├── jsApp/           # Compose for Web, JS   → main() + index.html
+├── macosApp/        # Native macOS          → NSApplication bootstrap + kexe
+└── iosApp/          # Xcode project, links :shared's ComposeApp.framework
+```
+
+```
+shared/src/
 ├── commonMain/kotlin/eu/anifantakis/ksafe_demo/
 │   ├── App.kt                              # bottom-tab nav; uses ksafe.rememberKSafeState
 │   ├── di/
@@ -515,7 +532,6 @@ composeApp/src/
 │           └── SecurityViewModel.kt
 │
 ├── androidMain/kotlin/eu/anifantakis/ksafe_demo/
-│   ├── MainActivity.kt
 │   ├── di/Modules.android.kt               # KSafe with requireUnlockedDevice
 │   └── util/BackgroundTask.android.kt      # No-op (Android doesn't suspend)
 │
@@ -523,25 +539,36 @@ composeApp/src/
 │   └── di/Modules.apple.kt                  # one DI module for both Apple targets
 │
 ├── iosMain/kotlin/eu/anifantakis/ksafe_demo/
-│   ├── MainViewController.kt                # ComposeUIViewController { App() }
+│   ├── MainViewController.kt                # ComposeUIViewController { App() } — Xcode calls this
 │   └── util/BackgroundTask.ios.kt           # UIApplication.beginBackgroundTask for lock test
 │
 ├── macosMain/kotlin/eu/anifantakis/ksafe_demo/        ← native macOS (NEW in 2.0.1)
-│   ├── main.macos.kt                        # NSApplication + Window(...) { App() } + run loop
 │   └── util/BackgroundTask.macos.kt         # No-op (macOS doesn't suspend apps)
 │
 ├── jvmMain/kotlin/eu/anifantakis/ksafe_demo/
-│   ├── main.kt                              # Compose Desktop application { Window { App() } }
 │   ├── di/Modules.jvm.kt
 │   └── util/BackgroundTask.jvm.kt           # No-op
 │
+├── jsMain/kotlin/eu/anifantakis/ksafe_demo/
+│   ├── di/Modules.js.kt                     # KSafe with localStorage + WebCrypto
+│   └── util/BackgroundTask.js.kt            # No-op
+│
 └── wasmJsMain/kotlin/eu/anifantakis/ksafe_demo/
-    ├── main.kt                              # ComposeViewport + awaitCacheReady
     ├── di/Modules.wasmJs.kt                 # KSafe with localStorage + WebCrypto
     └── util/BackgroundTask.wasmJs.kt        # No-op
 ```
 
-**Note on Apple source-set sharing:** the demo mirrors the lib's appleMain split — the platform-agnostic Koin module (which just builds a `KSafe` with the demo's security policy) lives in `appleMain/`, while UIKit-specific entry points (`MainViewController` using `UIViewController`, `BackgroundTask` using `UIApplication.beginBackgroundTask`) stay in `iosMain/` and AppKit-specific entry points (`NSApplication` bootstrap) live in `macosMain/`.
+Each launcher module holds only its `main()` (or `MainActivity`):
+
+```
+androidApp/src/main/                         # MainActivity.kt, AndroidManifest.xml, res/ (icons, theme)
+desktopApp/src/main/kotlin/.../main.kt       # Compose Desktop application { Window { App() } }
+webApp/src/wasmJsMain/kotlin/.../main.kt     # ComposeViewport + awaitCacheReady
+jsApp/src/jsMain/kotlin/.../main.kt          # ComposeViewport
+macosApp/src/macosMain/kotlin/.../main.macos.kt   # NSApplication + Window(...) { App() } + run loop
+```
+
+**Note on Apple source-set sharing:** the demo mirrors the lib's appleMain split — the platform-agnostic Koin module (which just builds a `KSafe` with the demo's security policy) lives in `appleMain/`, while the UIKit-specific entry point (`MainViewController` using `UIViewController`) and `BackgroundTask` (using `UIApplication.beginBackgroundTask`) stay in `iosMain/`. The iOS framework is still exported from `shared/` — Xcode links it as `ComposeApp` — whereas the AppKit `NSApplication` bootstrap is an executable entry point and so lives in its own `macosApp/` module.
 
 ---
 
@@ -549,25 +576,26 @@ composeApp/src/
 
 ### Android
 ```bash
-./gradlew :composeApp:assembleDebug
-./gradlew :composeApp:installDebug
+./gradlew :androidApp:assembleDebug
+./gradlew :androidApp:installDebug
 ```
 
 ### Desktop (JVM) — runs on macOS, Windows, Linux
 ```bash
-./gradlew :composeApp:run
+./gradlew :desktopApp:run
 ```
 
 ### iOS
-Open `iosApp/iosApp.xcodeproj` in Xcode and run.
+Open `iosApp/iosApp.xcodeproj` in Xcode and run. The Xcode build phase invokes
+`./gradlew :shared:embedAndSignAppleFrameworkForXcode`.
 
 ### macOS (native) — Apple Silicon
 ```bash
-./gradlew :composeApp:runDebugExecutableMacosArm64        # debug
-./gradlew :composeApp:runReleaseExecutableMacosArm64      # release (smaller, faster)
+./gradlew :macosApp:runDebugExecutableMacosArm64          # debug
+./gradlew :macosApp:runReleaseExecutableMacosArm64        # release (smaller, faster)
 ```
 
-For Intel Macs, swap `MacosArm64` → `MacosX64`. The compiled binary lands at `composeApp/build/bin/macosArm64/debugExecutable/composeApp.kexe` (~61 MB self-contained Mach-O).
+The compiled binary lands at `macosApp/build/bin/macosArm64/debugExecutable/macosApp.kexe` (~61 MB self-contained Mach-O). Only `macosArm64` is declared; Intel Macs need `macosX64()` added to both `macosApp/build.gradle.kts` and `shared/build.gradle.kts`.
 
 > **First-time setup:** Compose Multiplatform's native macOS targets are gated behind an experimental flag. The demo enables it automatically via `gradle.properties`:
 > ```properties
@@ -575,11 +603,16 @@ For Intel Macs, swap `MacosArm64` → `MacosX64`. The compiled binary lands at `
 > ```
 > JetBrains hasn't lifted this flag yet — the runtime works (Skia → AppKit), but hot reload, Compose previews, and component-library completeness are weaker than on JVM/Desktop. The Compose Desktop / JVM target remains the better daily-driver Mac path for UI iteration; the native target is what proves the lib's `appleMain` Keychain + CryptoKit code path works end-to-end.
 
-### Browser (WASM/JS)
+### Browser (WASM)
 ```bash
-./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+./gradlew :webApp:wasmJsBrowserDevelopmentRun
 ```
 Then open `http://localhost:8080/` in your browser.
+
+### Browser (legacy JS)
+```bash
+./gradlew :jsApp:jsBrowserDevelopmentRun
+```
 
 ---
 
