@@ -12,7 +12,7 @@ import androidx.compose.ui.window.application
 //    build.gradle.kts under `compose.desktop.application.nativeDistributions`.
 //
 // 2. To see whether the OS vault is actually active at runtime, open the
-//    Security screen (`screens/security/SecurityScreen.kt`) — it renders
+//    Security feature (`features/security/presentation/screens/security/SecurityScreen.kt`) — it renders
 //    `KSafe.protectionInfo`. Green card + custody = "macOS Keychain …" /
 //    "Windows DPAPI …" / "Linux Secret Service …" means the OS vault is
 //    healthy. Red card + note `jvm_os_vault_unavailable` means KSafe

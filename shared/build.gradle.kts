@@ -89,6 +89,8 @@ kotlin {
             implementation(libs.ui.tooling.preview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.jetbrains.navigation3.ui)
+            implementation(libs.jetbrains.lifecycle.viewmodel.navigation3)
 
             // DI
             implementation(libs.koin.compose)

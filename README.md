@@ -10,9 +10,9 @@ A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https:/
 
 ## Screenshots
 
-| Storage Screen | Flows Screen | Custom JSON Screen | Security Screen |
-|:--------------:|:------------:|:------------------:|:---------------:|
-| <img width="270" alt="image" src="https://github.com/user-attachments/assets/4de5a40c-6335-4fbe-9f59-0b8bdcde8ff4" /> | *(screenshot pending)* | *(screenshot pending)* | <img width="270" alt="image" src="https://github.com/user-attachments/assets/968c0156-c97d-4ca4-8f4b-77614048f870" /> |
+| Storage Screen | Flows Screen | Custom JSON Screen | Security Screen | Preferences Screen |
+|:--------------:|:------------:|:------------------:|:---------------:|:------------------:|
+| <img width="270" alt="image" src="https://github.com/user-attachments/assets/4de5a40c-6335-4fbe-9f59-0b8bdcde8ff4" /> | *(screenshot pending)* | *(screenshot pending)* | <img width="270" alt="image" src="https://github.com/user-attachments/assets/968c0156-c97d-4ca4-8f4b-77614048f870" /> | *(screenshot pending)* |
 
 ---
 
@@ -49,23 +49,31 @@ This demo application serves as a practical guide to understanding and implement
 - **Both Modes**: Works with encrypted and plain-text storage
 - **Code Snippets**: The screen itself displays the setup code for reference
 
-### 6. WASM/JS Browser Support (New in 1.6.0)
+### 6. Persistent Appearance Preference
+- **Day / Night / System**: Switch the entire shared Compose UI immediately
+- **System-aware**: `System` follows the operating-system dark appearance on every target
+- **KSafe Plain preference**: The non-sensitive setting lives in a dedicated KSafe preferences
+  store and survives cold launches
+- **Theme-safe components**: The `App*` façade keeps the demo's original light appearance and
+  provides equivalent dark semantic colors
+
+### 7. WASM/JS Browser Support (New in 1.6.0)
 - **Browser localStorage**: Encrypted key-value storage in the browser via WebCrypto AES-256-GCM
 - **Async Cache Initialization**: `awaitCacheReady()` gates rendering until WebCrypto decryption completes
 - **Same API**: All KSafe features (property delegation, Compose state, StateFlow) work identically in the browser
 - **Compose for Web**: Full `mutableStateOf` persistence via `ksafe-compose` WASM target
 
-### 7. Device Lock-State Protection (New in 1.5.0)
+### 8. Device Lock-State Protection (New in 1.5.0)
 - **`requireUnlockedDevice`**: Encrypted data is only accessible when the device is unlocked
 - **Interactive Lock Test**: 15-second countdown to lock your device, then verifies encrypted reads are blocked
 - **Platform Background Tasks**: iOS uses `beginBackgroundTaskWithExpirationHandler` to keep the test running while the screen is off
 
-### 8. `rememberKSafeState` — composable-local persistent state (New in 2.0.0)
+### 9. `rememberKSafeState` — composable-local persistent state (New in 2.0.0)
 - **`rememberSaveable`-style API for KSafe**: composable-body local state that survives app restarts (not just config changes)
 - **Auto-keying from property name**: `var idx by ksafe.rememberKSafeState(0)` stores under the key `"idx"` — explicit `key = "..."` available when you want it
-- **Used in `App.kt`**: the bottom-tab selection (`var currentScreen by ksafe.rememberKSafeState(Screen.Storage)`) persists across cold launches with no ViewModel involved — see [Code Examples → `rememberKSafeState`](#bottom-tab-persistence-with-rememberksafestate-appkt)
+- **Used in `App.kt`**: the bottom-tab route (`var currentRoute by ksafe.rememberKSafeState(AppRoute.Storage)`) persists across cold launches with no ViewModel involved — see [Code Examples → `rememberKSafeState`](#bottom-tab-persistence-with-rememberksafestate-appkt)
 
-### 9. Native macOS Target (New in 2.0.1)
+### 10. Native macOS Target (New in 2.0.1)
 - **Native `macosArm64` / `macosX64` binary**: Compose Multiplatform on AppKit, Skia rendering, KSafe's `appleMain` Keychain + CryptoKit path. Same source as iOS — no UI rewrites
 - **Two macOS paths in one demo**: Compose **Desktop** on JVM (`./gradlew :desktopApp:run`) uses KSafe's JDK crypto path; Compose **native macOS** (`./gradlew :macosApp:runDebugExecutableMacosArm64`) uses Keychain + Secure Enclave on Apple Silicon and T2-equipped Macs
 - **Validates the lib's macOS target end-to-end**: KSafe ships 118 unit tests for macOS, the demo proves the same code works inside a real Compose UI
@@ -120,30 +128,50 @@ Displays real-time security status of the device:
 | **Debug Build** | Detects if the app is running in debug mode |
 | **Emulator** | Detects if running on emulator/simulator |
 
+### Preferences Screen
+
+Selects and persists the app-wide appearance:
+
+| Mode | Behaviour |
+|------|-----------|
+| **Day** | Always uses the light palette |
+| **Night** | Always uses the dark palette |
+| **System** | Follows the current operating-system appearance |
+
 ---
 
 ## Code Examples from the Demo
 
-### Basic Encrypted State (LibCounterViewModel.kt)
+### Basic Encrypted State (StorageViewModel.kt)
 
 ```kotlin
-class LibCounterViewModel(val ksafe: KSafe) : ViewModel() {
+class StorageViewModel(
+    private val ksafe: KSafe,
+) : BaseGlobalViewModel() {
 
     // Regular Compose state - no persistence
-    var count1 by mutableStateOf(1000)
-        private set
+    private var count1 by mutableStateOf(1000)
 
     // KSafe encrypted state - persists across app restarts
-    var count2 by ksafe.mutableStateOf(2000)
-        private set
+    private var count2 by ksafe.mutableStateOf(2000)
 
     // KSafe unencrypted state with custom key
-    var count3 by ksafe.mutableStateOf(
+    private var count3 by ksafe.mutableStateOf(
         defaultValue = 3000,
         key = "counter3Key",
         mode = KSafeWriteMode.Plain
     )
-        private set
+
+    val state: State<StorageState> = derivedStateOf {
+        StorageState(count1 = count1, count2 = count2, count3 = count3)
+    }
+
+    fun onAction(intent: StorageIntent) {
+        when (intent) {
+            StorageIntent.Increment -> increment()
+            // ...
+        }
+    }
 }
 ```
 
@@ -158,33 +186,14 @@ fun AppContent() {
 
     // Persisted across app restarts via KSafe — the bottom-tab selection
     // survives process death without any boilerplate. Compare with the
-    // pre-2.0 version that used `remember { mutableStateOf(Screen.Storage) }`,
+    // pre-2.0 version that used `remember { mutableStateOf(AppRoute.Storage) }`,
     // which only survived recomposition.
-    var currentScreen by ksafe.rememberKSafeState(Screen.Storage)
+    var currentRoute: AppRoute by ksafe.rememberKSafeState(AppRoute.Storage)
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                Screen.entries.forEach { screen ->
-                    NavigationBarItem(
-                        selected = currentScreen == screen,
-                        onClick = { currentScreen = screen },
-                        label = { Text(screen.title) },
-                        icon = { }
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            when (currentScreen) {
-                Screen.Storage -> LibCounterScreen()
-                Screen.Flows -> FlowDelegatesScreen()
-                Screen.CustomJson -> CustomJsonScreen()
-                Screen.Security -> SecurityScreen()
-            }
-        }
-    }
+    NavigationRoot(
+        selectedRoute = currentRoute,
+        onRouteSelected = { currentRoute = it },
+    )
 }
 ```
 
@@ -195,7 +204,7 @@ fun AppContent() {
 | ViewModel-owned / cross-screen state, business logic | `var x by ksafe.mutableStateOf(default)` |
 | Composable-body local state (tab index, scroll, expanded sections, draft form input) | `var x by ksafe.rememberKSafeState(default)` |
 
-**Auto-keying:** the property name (`currentScreen`) is captured at `provideDelegate` time, so the storage key falls through automatically. Pass `key = "..."` when you want it explicit. Mode defaults to `KSafeWriteMode.Plain` — UI ephemera doesn't need encryption — pass `mode = KSafeWriteMode.Encrypted(...)` to opt in.
+**Auto-keying:** the property name (`currentRoute`) is captured at `provideDelegate` time, so the storage key falls through automatically. Pass `key = "..."` when you want it explicit. Mode defaults to `KSafeWriteMode.Plain` — UI ephemera doesn't need encryption — pass `mode = KSafeWriteMode.Encrypted(...)` to opt in.
 
 **Try it yourself:** open the demo, navigate to the **Flows** tab (or any non-default), close the app, relaunch. The Flows tab is still selected.
 
@@ -452,7 +461,7 @@ The demo includes an interactive test for the `requireUnlockedDevice` feature:
 
 ## Biometric Authentication
 
-The demo uses the standalone **`:ksafe-biometrics`** module from the KSafe library directly — no per-platform `expect/actual` wrapper in the demo itself. The module ships its own platform actuals (`BiometricPrompt` on Android, `LAContext` on iOS / macOS, no-op auto-success on JVM and Web), so the demo's `LibCounterViewModel.kt` calls a single common API:
+The demo uses the standalone **`:ksafe-biometrics`** module from the KSafe library directly — no per-platform `expect/actual` wrapper in the demo itself. The module ships its own platform actuals (`BiometricPrompt` on Android, `LAContext` on iOS / macOS, no-op auto-success on JVM and Web), so the demo's `StorageViewModel.kt` calls a single common API:
 
 ```kotlin
 import eu.anifantakis.lib.ksafe.biometrics.KSafeBiometrics
@@ -510,26 +519,34 @@ KSafeDemo/
 ```
 shared/src/
 ├── commonMain/kotlin/eu/anifantakis/ksafe_demo/
-│   ├── App.kt                              # bottom-tab nav; uses ksafe.rememberKSafeState
+│   ├── App.kt                              # Koin/theme/startup gate + persisted route
+│   ├── app/navigation/                     # Navigation3 routes, navigator and root
+│   ├── core/presentation/
+│   │   ├── design_system/                  # App* UI façade and theme tokens
+│   │   ├── global_state/                   # app-wide loading/snackbar state
+│   │   ├── helper/                         # StateFlow/effect Compose bridges
+│   │   └── scaffold/                       # shared application scaffold
 │   ├── di/
 │   │   ├── KoinConfiguration.kt
 │   │   ├── Modules.kt                      # shared DI (with `expect val platformModule`)
 │   │   └── SecurityViolationsHolder.kt
 │   ├── util/
-│   │   └── BackgroundTask.kt               # expect for platform background tasks
-│   └── screens/
-│       ├── counters/
-│       │   ├── LibCounterScreen.kt         # Storage demo UI
-│       │   └── LibCounterViewModel.kt      # Storage demo logic + KSafeBiometrics calls
-│       ├── flows/
-│       │   ├── FlowDelegatesScreen.kt      # Flow delegates demo UI (1.8.0)
-│       │   └── FlowDelegatesViewModel.kt   # asFlow / asStateFlow / asMutableStateFlow
-│       ├── customjson/
-│       │   ├── CustomJsonScreen.kt
-│       │   └── CustomJsonViewModel.kt      # @Contextual types + custom SerializersModule
-│       └── security/
-│           ├── SecurityScreen.kt
-│           └── SecurityViewModel.kt
+│   │   ├── BackgroundTask.kt               # expect for platform background tasks
+│   │   └── KSafeStartup.kt                 # expect cache-ready startup seam
+│   └── features/                           # package-per-feature boundary
+│       ├── storage/
+│       │   ├── domain/model/AuthInfo.kt
+│       │   └── presentation/screens/storage/   # Root + private Screen + MVI ViewModel
+│       ├── flows/presentation/screens/flow_delegates/
+│       ├── custom_json/
+│       │   ├── domain/model/UserProfile.kt
+│       │   ├── data/serialization/             # contextual serializers + Json config
+│       │   └── presentation/screens/custom_json/
+│       ├── security/presentation/screens/security/
+│       └── preferences/
+│           ├── domain/                         # ThemeMode + repository contract
+│           ├── data/repository/                # KSafe Plain implementation
+│           └── presentation/screens/preferences/
 │
 ├── androidMain/kotlin/eu/anifantakis/ksafe_demo/
 │   ├── di/Modules.android.kt               # KSafe with requireUnlockedDevice
@@ -621,9 +638,9 @@ Then open `http://localhost:8080/` in your browser.
 ```kotlin
 // build.gradle.kts
 commonMain.dependencies {
-    implementation("eu.anifantakis:ksafe:2.0.1-Beta01")
-    implementation("eu.anifantakis:ksafe-compose:2.0.1-Beta01")
-    implementation("eu.anifantakis:ksafe-biometrics:2.0.1-Beta01")
+    implementation("eu.anifantakis:ksafe:3.0.0")
+    implementation("eu.anifantakis:ksafe-compose:3.0.0")
+    implementation("eu.anifantakis:ksafe-biometrics:3.0.0")
 }
 ```
 
