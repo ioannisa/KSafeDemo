@@ -37,8 +37,8 @@ data class MoviesListState(
 data class FlowDelegatesState(
     val movies: MoviesListState = MoviesListState(),
     val username: String = "Guest",
-    val darkMode: Boolean = false,
-    val themeLabel: String = "Off Mode",
+    val toggleMode: Boolean = false,
+    val toggleLabel: String = "Off Mode",
     val storageCountIsolated: Int = 2000,
     val storageCountSynced: Int = 2000,
 )
@@ -47,7 +47,7 @@ sealed interface FlowDelegatesIntent {
     data object LoadMovies : FlowDelegatesIntent
     data object ClearMovies : FlowDelegatesIntent
     data class NameChanged(val name: String) : FlowDelegatesIntent
-    data object ToggleDarkMode : FlowDelegatesIntent
+    data object ToggleMode : FlowDelegatesIntent
     data object IncrementStorageCounter : FlowDelegatesIntent
     data object RefreshIsolated : FlowDelegatesIntent
     data object ClearAll : FlowDelegatesIntent
@@ -131,7 +131,7 @@ class FlowDelegatesViewModel(
     private val toggleMode: Flow<Boolean> by ksafe.asFlow(defaultValue = false)
 
     // Cold flow transformed into a derived StateFlow — real-world pattern
-    private val themeLabel: StateFlow<String> = toggleMode
+    private val toggleLabel: StateFlow<String> = toggleMode
         .map { isOn -> if (isOn) "On Mode" else "Off Mode" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Light Mode")
 
@@ -139,10 +139,10 @@ class FlowDelegatesViewModel(
         _username.update { name }
     }
 
-    private fun toggleDarkMode() {
+    private fun toggleMode() {
         viewModelScope.launch {
-            val current = ksafe.getDirect("darkMode", false)
-            ksafe.put("darkMode", !current)
+            val current = ksafe.getDirect("toggleMode", false)
+            ksafe.put("toggleMode", !current)
         }
     }
 
@@ -193,7 +193,7 @@ class FlowDelegatesViewModel(
         viewModelScope.launch {
             ksafe.delete("moviesState")
             ksafe.delete("username")
-            ksafe.delete("darkMode")
+            ksafe.delete("toggleMode")
             // Note: we don't delete "count2" here — that belongs to the Storage screen.
             // The cross-screen demo reads it, not owns it.
         }
@@ -204,17 +204,17 @@ class FlowDelegatesViewModel(
 
     private val moviesComposeState = moviesState.toComposeState(viewModelScope)
     private val usernameComposeState = username.toComposeState(viewModelScope)
-    private val darkModeState = toggleMode
+    private val toggleModeState = toggleMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
         .toComposeState(viewModelScope)
-    private val themeLabelComposeState = themeLabel.toComposeState(viewModelScope)
+    private val toggleLabelComposeState = toggleLabel.toComposeState(viewModelScope)
 
     val state: State<FlowDelegatesState> = derivedStateOf {
         FlowDelegatesState(
             movies = moviesComposeState.value,
             username = usernameComposeState.value,
-            darkMode = darkModeState.value,
-            themeLabel = themeLabelComposeState.value,
+            toggleMode = toggleModeState.value,
+            toggleLabel = toggleLabelComposeState.value,
             storageCountIsolated = storageCountIsolated,
             storageCountSynced = storageCountSynced,
         )
@@ -225,7 +225,7 @@ class FlowDelegatesViewModel(
             FlowDelegatesIntent.LoadMovies -> loadMovies()
             FlowDelegatesIntent.ClearMovies -> clearMovies()
             is FlowDelegatesIntent.NameChanged -> onNameChanged(intent.name)
-            FlowDelegatesIntent.ToggleDarkMode -> toggleDarkMode()
+            FlowDelegatesIntent.ToggleMode -> toggleMode()
             FlowDelegatesIntent.IncrementStorageCounter -> incrementFromFlowsScreen()
             FlowDelegatesIntent.RefreshIsolated -> refreshIsolated()
             FlowDelegatesIntent.ClearAll -> clearAll()

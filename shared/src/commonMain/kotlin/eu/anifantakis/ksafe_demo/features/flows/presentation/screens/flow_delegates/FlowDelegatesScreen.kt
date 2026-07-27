@@ -57,7 +57,7 @@ private fun FlowDelegatesScreen(
         verticalArrangement = Arrangement.spacedBy(UIConst.paddingCompact),
     ) {
         AppText(
-            text = "Flow Delegates (1.8.0)",
+            text = "Flow Delegates (1.8.0+)",
             style = AppTextStyle.SCREEN_TITLE,
             fontWeight = FontWeight.Bold,
         )
@@ -128,8 +128,8 @@ private fun FlowDelegatesScreen(
         SectionHeader("asFlow & two-way binding")
         CodeSnippet(
             "private val _username by kSafe.asMutableStateFlow(\"Guest\", scope)\n" +
-                "val darkMode: Flow<Boolean> by kSafe.asFlow(false)\n" +
-                "val themeLabel = darkMode.map { ... }.stateIn(...)",
+                "val toggleMode: Flow<Boolean> by kSafe.asFlow(false)\n" +
+                "val themeLabel = toggleMode.map { ... }.stateIn(...)",
         )
         AppTextField(
             value = state.username,
@@ -145,15 +145,15 @@ private fun FlowDelegatesScreen(
             Column {
                 AppText("Toggle Some Value (asFlow)", AppTextStyle.BODY)
                 AppText(
-                    text = "Derived: ${state.themeLabel}",
+                    text = "Derived: ${state.toggleLabel}",
                     style = AppTextStyle.CAPTION,
-                    color = AppColor.Success,
+                    color = if (state.toggleMode) AppColor.Success else AppColor.Error,
                     fontWeight = FontWeight.Bold,
                 )
             }
             AppSwitch(
-                checked = state.darkMode,
-                onCheckedChange = { onIntent(FlowDelegatesIntent.ToggleDarkMode) },
+                checked = state.toggleMode,
+                onCheckedChange = { onIntent(FlowDelegatesIntent.ToggleMode) },
             )
         }
 
