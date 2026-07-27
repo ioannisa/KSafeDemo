@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import eu.anifantakis.lib.ksafe.KSafe
 import eu.anifantakis.lib.ksafe.asFlow
 import eu.anifantakis.lib.ksafe.asMutableStateFlow
-import eu.anifantakis.lib.ksafe.asStateFlow
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,8 +36,7 @@ data class MoviesListState(
  *
  * | Before 1.8.0                                    | New in 1.8.0                                              |
  * |-------------------------------------------------|-----------------------------------------------------------|
- * | `var x by ksafe(0)` — non-reactive              | `asStateFlow()` — read-only hot StateFlow                 |
- * | `var x by ksafe.mutableStateOf(0)` — no sync    | `asFlow()` — read-only cold Flow                          |
+ * | `var x by ksafe(0)` — non-reactive              | `asFlow()` — read-only cold Flow                           |
  * | `kSafe.getStateFlow("key", 0, scope)` — manual  | `asMutableStateFlow()` — read/write drop-in replacement   |
  * |                                                  | `mutableStateOf(scope=)` — Compose + cross-screen sync    |
  */
@@ -61,7 +59,8 @@ class FlowDelegatesViewModel(
     //    All standard operations work: .value, .update{}, .compareAndSet()
     // ═══════════════════════════════════════════════════════════════════════
 
-    private val _moviesState by ksafe.asMutableStateFlow(MoviesListState(), viewModelScope)
+    private val _moviesState by
+        ksafe.asMutableStateFlow(MoviesListState(), viewModelScope, key = "moviesState")
     val moviesState: StateFlow<MoviesListState> get() = _moviesState
 
     fun loadMovies() {
@@ -83,27 +82,20 @@ class FlowDelegatesViewModel(
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // 2. asStateFlow & asFlow — READ-ONLY REACTIVE OBSERVATION
+    // 2. asFlow & TWO-WAY BINDING
     //
-    //    asStateFlow: HOT — always holds current value, needs scope.
-    //                 Use in ViewModels to expose state to the UI.
+    //    asFlow:  COLD — only active when collected, no scope needed.
+    //             Use in repositories, or when you want to transform/
+    //             combine before exposing to the UI (see themeLabel).
     //
-    //    asFlow:      COLD — only active when collected, no scope needed.
-    //                 Use in repositories, or when you want to transform/
-    //                 combine before exposing to the UI.
-    //
-    //    Write with kSafe.put() — both flows auto-update.
+    //    The username shows the standard shape for editable persisted state:
+    //    a private asMutableStateFlow the screen writes through, exposed
+    //    publicly as a read-only StateFlow.
     // ═══════════════════════════════════════════════════════════════════════
 
-    // Two-way — the text field binds to THIS. A read-only asStateFlow cannot back an input:
-    // its value only changes once the write has round-tripped through storage, so every
-    // keystroke would be replaced mid-edit and the caret would jump back to the start.
-    val usernameInput: MutableStateFlow<String> by
+    private val _username: MutableStateFlow<String> by
         ksafe.asMutableStateFlow("Guest", viewModelScope, key = "username")
-
-    // Hot, read-only — always holds current value. Same key, so it mirrors edits live.
-    val username: StateFlow<String> by
-        ksafe.asStateFlow("Guest", viewModelScope, key = "username")
+    val username: StateFlow<String> get() = _username
 
     // Cold — only active when collected, great for transformations
     val darkMode: Flow<Boolean> by ksafe.asFlow(defaultValue = false)
@@ -114,7 +106,7 @@ class FlowDelegatesViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Light Mode")
 
     fun onNameChanged(name: String) {
-        usernameInput.value = name
+        _username.update { name }
     }
 
     fun toggleDarkMode() {

@@ -39,7 +39,6 @@ fun FlowDelegatesScreen(
     val scrollState = rememberScrollState()
 
     val moviesState by viewModel.moviesState.collectAsState()
-    val usernameInput by viewModel.usernameInput.collectAsState()
     val username by viewModel.username.collectAsState()
     val darkMode by viewModel.darkMode.collectAsState(initial = false)
     val themeLabel by viewModel.themeLabel.collectAsState()
@@ -121,36 +120,26 @@ fun FlowDelegatesScreen(
             SectionDivider()
 
             // ═════════════════════════════════════════════════════════════
-            // 2. asStateFlow & asFlow — Settings example from docs
+            // 2. asFlow + two-way binding — Settings example from docs
             // ═════════════════════════════════════════════════════════════
-            SectionHeader("asStateFlow & asFlow — read-only reactive")
+            SectionHeader("asFlow & two-way binding")
 
             CodeSnippet(
-                "// The field edits this one — two-way, and it publishes before it persists:\n" +
-                "val usernameInput by kSafe.asMutableStateFlow(\"Guest\", scope, key = \"username\")\n\n" +
-                "// Hot, read-only — same key, so it always holds the current value:\n" +
-                "val username: StateFlow<String> by kSafe.asStateFlow(\"Guest\", scope, key = \"username\")\n\n" +
+                "// Editable persisted state — private writer, public read-only view:\n" +
+                "private val _username by kSafe.asMutableStateFlow(\"Guest\", scope, key = \"username\")\n" +
+                "val username: StateFlow<String> get() = _username\n" +
+                "fun onNameChanged(name: String) { _username.update { name } }\n\n" +
                 "// Cold — transform, combine, then expose:\n" +
                 "val darkMode: Flow<Boolean> by kSafe.asFlow(defaultValue = false)\n" +
                 "val themeLabel = darkMode.map { if (it) \"Dark\" else \"Light\" }.stateIn(...)"
             )
 
-            // Username input — bound to the WRITABLE flow. Binding an input to the read-only
-            // asStateFlow below would replace the text mid-edit and reverse what you type.
             OutlinedTextField(
-                value = usernameInput,
+                value = username,
                 onValueChange = viewModel::onNameChanged,
                 label = { Text("Username (asMutableStateFlow)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
-            )
-
-            // The read-only observer of the same key, tracking the field live.
-            Text(
-                "asStateFlow sees: \"$username\"",
-                fontSize = 12.sp,
-                color = Color(0xFF2E7D32),
-                modifier = Modifier.fillMaxWidth()
             )
 
             // Dark mode toggle with derived label
@@ -172,9 +161,8 @@ fun FlowDelegatesScreen(
             }
 
             Text(
-                "Type a name → the writable flow publishes, then persists, and the read-only " +
-                    "asStateFlow on the same key follows. Toggle switch → asFlow emits → " +
-                    "themeLabel derived via .map{}.stateIn()",
+                "Type a name → it publishes instantly, then persists in the background. " +
+                    "Toggle switch → asFlow emits → themeLabel derived via .map{}.stateIn()",
                 fontSize = 11.sp, color = Color.Gray
             )
 
