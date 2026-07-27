@@ -39,6 +39,7 @@ fun FlowDelegatesScreen(
     val scrollState = rememberScrollState()
 
     val moviesState by viewModel.moviesState.collectAsState()
+    val usernameInput by viewModel.usernameInput.collectAsState()
     val username by viewModel.username.collectAsState()
     val darkMode by viewModel.darkMode.collectAsState(initial = false)
     val themeLabel by viewModel.themeLabel.collectAsState()
@@ -125,20 +126,31 @@ fun FlowDelegatesScreen(
             SectionHeader("asStateFlow & asFlow — read-only reactive")
 
             CodeSnippet(
-                "// Hot — always holds current value:\n" +
-                "val username: StateFlow<String> by kSafe.asStateFlow(\"Guest\", viewModelScope)\n\n" +
+                "// The field edits this one — two-way, and it publishes before it persists:\n" +
+                "val usernameInput by kSafe.asMutableStateFlow(\"Guest\", scope, key = \"username\")\n\n" +
+                "// Hot, read-only — same key, so it always holds the current value:\n" +
+                "val username: StateFlow<String> by kSafe.asStateFlow(\"Guest\", scope, key = \"username\")\n\n" +
                 "// Cold — transform, combine, then expose:\n" +
                 "val darkMode: Flow<Boolean> by kSafe.asFlow(defaultValue = false)\n" +
                 "val themeLabel = darkMode.map { if (it) \"Dark\" else \"Light\" }.stateIn(...)"
             )
 
-            // Username input
+            // Username input — bound to the WRITABLE flow. Binding an input to the read-only
+            // asStateFlow below would replace the text mid-edit and reverse what you type.
             OutlinedTextField(
-                value = username,
+                value = usernameInput,
                 onValueChange = viewModel::onNameChanged,
-                label = { Text("Username (asStateFlow)") },
+                label = { Text("Username (asMutableStateFlow)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
+            )
+
+            // The read-only observer of the same key, tracking the field live.
+            Text(
+                "asStateFlow sees: \"$username\"",
+                fontSize = 12.sp,
+                color = Color(0xFF2E7D32),
+                modifier = Modifier.fillMaxWidth()
             )
 
             // Dark mode toggle with derived label
@@ -160,7 +172,8 @@ fun FlowDelegatesScreen(
             }
 
             Text(
-                "Type a name → asStateFlow emits. Toggle switch → asFlow emits → " +
+                "Type a name → the writable flow publishes, then persists, and the read-only " +
+                    "asStateFlow on the same key follows. Toggle switch → asFlow emits → " +
                     "themeLabel derived via .map{}.stateIn()",
                 fontSize = 11.sp, color = Color.Gray
             )

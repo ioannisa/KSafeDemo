@@ -9,6 +9,7 @@ import eu.anifantakis.lib.ksafe.asMutableStateFlow
 import eu.anifantakis.lib.ksafe.asStateFlow
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -94,8 +95,15 @@ class FlowDelegatesViewModel(
     //    Write with kSafe.put() — both flows auto-update.
     // ═══════════════════════════════════════════════════════════════════════
 
-    // Hot — always holds current value
-    val username: StateFlow<String> by ksafe.asStateFlow("Guest", viewModelScope)
+    // Two-way — the text field binds to THIS. A read-only asStateFlow cannot back an input:
+    // its value only changes once the write has round-tripped through storage, so every
+    // keystroke would be replaced mid-edit and the caret would jump back to the start.
+    val usernameInput: MutableStateFlow<String> by
+        ksafe.asMutableStateFlow("Guest", viewModelScope, key = "username")
+
+    // Hot, read-only — always holds current value. Same key, so it mirrors edits live.
+    val username: StateFlow<String> by
+        ksafe.asStateFlow("Guest", viewModelScope, key = "username")
 
     // Cold — only active when collected, great for transformations
     val darkMode: Flow<Boolean> by ksafe.asFlow(defaultValue = false)
@@ -106,7 +114,7 @@ class FlowDelegatesViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Light Mode")
 
     fun onNameChanged(name: String) {
-        viewModelScope.launch { ksafe.put("username", name) }
+        usernameInput.value = name
     }
 
     fun toggleDarkMode() {
