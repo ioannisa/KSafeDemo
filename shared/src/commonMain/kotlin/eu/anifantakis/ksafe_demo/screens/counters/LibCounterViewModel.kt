@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration.Companion.seconds
 
 @Immutable
 @Serializable
@@ -138,7 +139,7 @@ class LibCounterViewModel(
         bioTimerJob = viewModelScope.launch {
             for (i in bioAuthDurationSeconds downTo 1) {
                 bioAuthRemaining = i
-                delay(1000)
+                delay(1.seconds)
             }
             bioAuthRemaining = 0
         }
@@ -324,7 +325,7 @@ class LibCounterViewModel(
         // Reset in-memory state to defaults so the UI updates immediately
         count1 = 1000
         count2 = 2000
-        _count2b.value = 2000
+        _count2b.update { 2000 }
         count3 = 3000
         count4 = 10
         count5 = 20
@@ -388,7 +389,7 @@ class LibCounterViewModel(
                 // Step 2: Countdown — user should lock the device now
                 for (i in 15 downTo 1) {
                     lockTestCountdown = i
-                    delay(1000)
+                    delay(1.seconds)
                 }
                 lockTestCountdown = 0
 

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration.Companion.milliseconds
 
 // ─── Data classes ────────────────────────────────────────────────────────────
 
@@ -59,8 +60,7 @@ class FlowDelegatesViewModel(
     //    All standard operations work: .value, .update{}, .compareAndSet()
     // ═══════════════════════════════════════════════════════════════════════
 
-    private val _moviesState by
-        ksafe.asMutableStateFlow(MoviesListState(), viewModelScope, key = "moviesState")
+    private val _moviesState by ksafe.asMutableStateFlow(MoviesListState(), viewModelScope, key = "moviesState")
     val moviesState: StateFlow<MoviesListState> get() = _moviesState
 
     fun loadMovies() {
@@ -68,7 +68,7 @@ class FlowDelegatesViewModel(
         viewModelScope.launch {
             try {
                 // Simulate API call
-                kotlinx.coroutines.delay(800)
+                kotlinx.coroutines.delay(800.milliseconds)
                 val movies = listOf("Inception", "Interstellar", "The Matrix", "Blade Runner 2049")
                 _moviesState.update { it.copy(loading = false, movies = movies) }
             } catch (e: Exception) {
@@ -93,8 +93,7 @@ class FlowDelegatesViewModel(
     //    publicly as a read-only StateFlow.
     // ═══════════════════════════════════════════════════════════════════════
 
-    private val _username: MutableStateFlow<String> by
-        ksafe.asMutableStateFlow("Guest", viewModelScope, key = "username")
+    private val _username: MutableStateFlow<String> by ksafe.asMutableStateFlow("Guest", viewModelScope, key = "username")
     val username: StateFlow<String> get() = _username
 
     // Cold — only active when collected, great for transformations
