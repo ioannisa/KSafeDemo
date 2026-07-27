@@ -20,13 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppColor
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppTheme
-import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppButton
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppCard
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
 import eu.anifantakis.lib.ksafe.KSafeProtectionInfo
@@ -303,10 +303,10 @@ private val previewProtectionInfo = KSafeProtectionInfo(
     notes = emptyList(),
 )
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
 private fun PreviewSecurityScreen() {
-    KSafeDemoTheme {
+    AppPreview {
         SecurityScreen(
             state = SecurityState(
                 protectionInfo = previewProtectionInfo,

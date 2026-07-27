@@ -21,14 +21,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppColor
-import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppButton
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppCard
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppDialog
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppDivider
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
 import eu.anifantakis.ksafe_demo.features.storage.domain.model.AuthInfo
@@ -349,10 +349,10 @@ private fun SectionGap() {
     Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
 }
 
-@Preview(showBackground = true, name = "Standard State")
+@PreviewLightDark
 @Composable
 private fun StorageScreenPreview() {
-    KSafeDemoTheme {
+    AppPreview {
         StorageScreen(
             state = StorageState(
                 bioCount = 5,

@@ -11,9 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppRadioPreference
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
@@ -90,10 +90,10 @@ private fun ThemeMode.description(): String = when (this) {
     ThemeMode.SYSTEM -> "Follow the operating system appearance"
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
 private fun PreferencesScreenPreview() {
-    KSafeDemoTheme(themeMode = ThemeMode.DAY) {
+    AppPreview {
         PreferencesScreen(
             state = PreferencesState(themeMode = ThemeMode.SYSTEM),
             onIntent = {},

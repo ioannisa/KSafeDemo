@@ -25,14 +25,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppColor
-import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppButton
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppCard
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppDivider
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextField
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
@@ -226,10 +226,10 @@ private fun parseHexColor(hex: String): Color {
 
 private val ColorSwatchSize = 14.dp
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun PreviewCustomJsonScreen() {
-    KSafeDemoTheme {
+    AppPreview {
         CustomJsonScreen(
             state = CustomJsonState(
                 profile = UserProfile(

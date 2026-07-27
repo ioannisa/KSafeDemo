@@ -16,13 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppColor
-import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppButton
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppCard
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppDivider
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppProgressIndicator
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppSwitch
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
@@ -258,10 +258,10 @@ private fun ValueCard(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun PreviewFlowDelegatesScreen() {
-    KSafeDemoTheme {
+    AppPreview {
         FlowDelegatesScreen(
             state = FlowDelegatesState(
                 movies = MoviesListState(movies = listOf("Inception", "Interstellar")),
