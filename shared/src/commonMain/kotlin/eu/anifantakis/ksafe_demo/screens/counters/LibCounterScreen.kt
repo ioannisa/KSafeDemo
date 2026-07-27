@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
@@ -44,9 +45,14 @@ import org.koin.compose.viewmodel.koinViewModel
 fun LibCounterScreen(
     counterViewModel: LibCounterViewModel = koinViewModel()
 ) {
+    // The StateFlow is collected here so LibCounterScreenContent stays a plain-value
+    // composable — previewable without a ViewModel or a coroutine scope.
+    val count2b by counterViewModel.count2b.collectAsStateWithLifecycle()
+
     LibCounterScreenContent(
         count1 = counterViewModel.count1,
         count2 = counterViewModel.count2,
+        count2b = count2b,
         count3 = counterViewModel.count3,
         bioCount = counterViewModel.bioCount,
         bioAuthRemaining = counterViewModel.bioAuthRemaining,
@@ -55,6 +61,8 @@ fun LibCounterScreen(
         lockTestCountdown = counterViewModel.lockTestCountdown,
         lockTestResult = counterViewModel.lockTestResult,
         isLockTestRunning = counterViewModel.isLockTestRunning,
+        isRotating = counterViewModel.isRotating,
+        rotationResult = counterViewModel.rotationResult,
         userMessage = counterViewModel.userMessage,
         onIncrement = counterViewModel::increment,
         onRefreshCount2 = counterViewModel::refreshCount2,
@@ -64,6 +72,8 @@ fun LibCounterScreen(
         onClearVault = counterViewModel::clearVault,
         onStartLockTest = counterViewModel::startLockTest,
         onDismissLockTestResult = counterViewModel::dismissLockTestResult,
+        onRotateKeys = counterViewModel::rotateKeys,
+        onDismissRotationResult = counterViewModel::dismissRotationResult,
         onUserMessageShown = counterViewModel::consumeUserMessage
     )
 }
@@ -72,6 +82,7 @@ fun LibCounterScreen(
 fun LibCounterScreenContent(
     count1: Int,
     count2: Int,
+    count2b: Int,
     count3: Int,
     bioCount: Int,
     bioAuthRemaining: Int,
@@ -80,6 +91,8 @@ fun LibCounterScreenContent(
     lockTestCountdown: Int,
     lockTestResult: String?,
     isLockTestRunning: Boolean,
+    isRotating: Boolean,
+    rotationResult: String?,
     userMessage: String?,
     onIncrement: () -> Unit,
     onRefreshCount2: () -> Unit,
@@ -89,6 +102,8 @@ fun LibCounterScreenContent(
     onClearVault: () -> Unit,
     onStartLockTest: (Boolean) -> Unit,
     onDismissLockTestResult: () -> Unit,
+    onRotateKeys: () -> Unit,
+    onDismissRotationResult: () -> Unit,
     onUserMessageShown: () -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -173,6 +188,28 @@ fun LibCounterScreenContent(
 
             Spacer(modifier = Modifier.padding(2.dp))
 
+            // --- Counter 2b: ksafe.asMutableStateFlow ---
+            Text(
+                text = "ksafe.asMutableStateFlow (persisted, reactive)",
+                fontSize = 13.sp,
+                color = Color.Gray
+            )
+            CompactCard(
+                label = "Counter 2b",
+                sublabel = "MutableStateFlow — no refresh needed",
+                value = count2b.toString(),
+                modifier = Modifier.fillMaxWidth(0.6f)
+            )
+            Text(
+                text = "Same storage, different shape: a MutableStateFlow instead of a Compose " +
+                    "State. It takes a scope, so it subscribes to its key and picks up outside " +
+                    "writes by itself — that is the button above that it doesn't need.",
+                fontSize = 11.sp,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.padding(2.dp))
+
             // --- AuthInfo: data class with ksafe.mutableStateOf ---
             Text(
                 text = "ksafe.mutableStateOf — data class (persisted, encrypted)",
@@ -246,6 +283,24 @@ fun LibCounterScreenContent(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
 
+            // --- Key Rotation ---
+            Text(text = "Key Rotation", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "Re-encrypts every encrypted entry under a fresh key generation and " +
+                    "drops the superseded keys. Whole-store — the values themselves never change, " +
+                    "so the counters above stay exactly as they are.",
+                fontSize = 11.sp,
+                color = Color.Gray
+            )
+            Button(onClick = onRotateKeys, enabled = !isRotating) {
+                Text(
+                    text = if (isRotating) "Rotating..." else "Rotate Keys",
+                    fontSize = 14.sp
+                )
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
             // --- Lock-State Policy Test ---
             Text(text = "Lock-State Policy Test", fontSize = 15.sp, fontWeight = FontWeight.Bold)
             Text(
@@ -283,6 +338,19 @@ fun LibCounterScreenContent(
                 text = { Text(lockTestResult) },
                 confirmButton = {
                     TextButton(onClick = onDismissLockTestResult) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
+
+        if (rotationResult != null) {
+            AlertDialog(
+                onDismissRequest = onDismissRotationResult,
+                title = { Text("Key Rotation") },
+                text = { Text(rotationResult) },
+                confirmButton = {
+                    TextButton(onClick = onDismissRotationResult) {
                         Text("OK")
                     }
                 }
@@ -375,6 +443,7 @@ fun PreviewLibCounterScreen() {
     LibCounterScreenContent(
         count1 = 1000,
         count2 = 2000,
+        count2b = 2000,
         count3 = 3000,
         bioCount = 5,
         bioAuthRemaining = 0,
@@ -383,6 +452,8 @@ fun PreviewLibCounterScreen() {
         lockTestCountdown = -1,
         lockTestResult = null,
         isLockTestRunning = false,
+        isRotating = false,
+        rotationResult = null,
         userMessage = null,
         onIncrement = {},
         onRefreshCount2 = {},
@@ -392,6 +463,8 @@ fun PreviewLibCounterScreen() {
         onClearVault = {},
         onStartLockTest = {},
         onDismissLockTestResult = {},
+        onRotateKeys = {},
+        onDismissRotationResult = {},
         onUserMessageShown = {}
     )
 }

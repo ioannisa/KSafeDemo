@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.anifantakis.lib.ksafe.KSafe
+import eu.anifantakis.lib.ksafe.asMutableStateFlow
 import eu.anifantakis.lib.ksafe.invoke
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import eu.anifantakis.ksafe_demo.di.SecurityViolationsHolder
@@ -18,9 +19,12 @@ import eu.anifantakis.lib.ksafe.KSafeWriteMode
 import eu.anifantakis.lib.ksafe.SecurityViolation
 import eu.anifantakis.lib.ksafe.biometrics.BiometricAuthorizationDuration
 import eu.anifantakis.lib.ksafe.biometrics.KSafeBiometrics
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -48,9 +52,14 @@ class LibCounterViewModel(
     var count2 by ksafe.mutableStateOf(2000)
         private set
 
+
+    private val _count2b by ksafe.asMutableStateFlow(2000, viewModelScope)
+    val count2b: StateFlow<Int> get() = _count2b
+
     /** Manual refresh — re-reads "count2" from KSafe cache.
      *  Needed because count2 uses mutableStateOf without scope,
-     *  so it won't see writes from the Flows screen automatically. */
+     *  so it won't see writes from the Flows screen automatically.
+     *  count2b needs no equivalent — its scope keeps it current. */
     fun refreshCount2() {
         count2 = ksafe.getDirect("count2", 2000)
     }
@@ -94,7 +103,7 @@ class LibCounterViewModel(
     // --- Key Info Tracking ---
 
     private val trackedKeys = listOf(
-        "count2", "counter3Key", "count4", "count5",
+        "count2", "count2b", "counter3Key", "count4", "count5",
         "count6", "count7", "bioCount", "secureToken", "authInfo"
     )
 
@@ -133,6 +142,57 @@ class LibCounterViewModel(
             }
             bioAuthRemaining = 0
         }
+    }
+
+    // --- Key Rotation ---
+
+    var isRotating by mutableStateOf(false)
+        private set
+
+    var rotationResult by mutableStateOf<String?>(null)
+        private set
+
+    /**
+     * Rotates the WHOLE store — `rotateKeys()` takes no key argument, because the master key
+     * it replaces is shared by every entry. Each encrypted entry is decrypted under the old
+     * generation and re-encrypted under the new one; values are untouched.
+     *
+     * Entries a concurrent write races, and strict (`requireUnlockedDevice`) entries on a
+     * locked device, come back as `skipped` — still readable under their previous key, and
+     * picked up by the next call. That is why this is safe to press twice.
+     */
+    fun rotateKeys() {
+        if (isRotating) return
+        isRotating = true
+        viewModelScope.launch {
+            try {
+                val result = ksafe.rotateKeys()
+                rotationResult = buildString {
+                    appendLine("Re-encrypted: ${result.rotated}")
+                    appendLine("Skipped:      ${result.skipped}")
+                    appendLine("Failed:       ${result.failed}")
+                    append("Key generation is now ${result.keyGeneration}")
+                    if (result.skipped > 0) {
+                        append(
+                            "\n\nSkipped entries were being written to, or are strict entries " +
+                                "on a locked device. They stay readable under their previous " +
+                                "key — rotate again to pick them up."
+                        )
+                    }
+                }
+                refreshKeyInfo()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                rotationResult = "Rotation failed:\n${e.message}"
+            } finally {
+                isRotating = false
+            }
+        }
+    }
+
+    fun dismissRotationResult() {
+        rotationResult = null
     }
 
     // --- Lock Test Feature ---
@@ -213,6 +273,9 @@ class LibCounterViewModel(
 
         count1++
         count2++
+        // The MutableStateFlow way — .update{} rather than an assignment; the persist and the
+        // emission both happen inside the delegate.
+        _count2b.update { it + 1 }
         count3++
         count4++
         count5++
@@ -249,6 +312,7 @@ class LibCounterViewModel(
 
         // or use delete for coroutines usage
         viewModelScope.launch {
+            ksafe.delete("count2b")
             ksafe.delete("counter3Key")
             ksafe.delete("count4")
             ksafe.delete("count5")
@@ -260,6 +324,7 @@ class LibCounterViewModel(
         // Reset in-memory state to defaults so the UI updates immediately
         count1 = 1000
         count2 = 2000
+        _count2b.value = 2000
         count3 = 3000
         count4 = 10
         count5 = 20
@@ -353,7 +418,13 @@ class LibCounterViewModel(
                             ""
                         }
                         lockTestResult = "READ SUCCEEDED while locked.\n\n" +
-                                "The encrypted read was NOT blocked." +
+                                "The encrypted read was NOT blocked.\n\n" +
+                                "Note: requireUnlockedDevice is enforced on Android and Apple " +
+                                "only. JVM Desktop has no device-lock concept to key against, " +
+                                "and browsers have neither that nor a synchronous decrypt, so " +
+                                "KSafe drops the flag there rather than leave the value " +
+                                "write-only. On Web and Desktop this test therefore always " +
+                                "reads back — that is the documented behaviour, not a failure." +
                                 debuggerNote
                     } else {
                         lockTestResult = "UNEXPECTED RESULT.\n\n" +
