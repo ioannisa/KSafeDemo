@@ -12,7 +12,7 @@ A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https:/
 
 | Storage Screen | Flows Screen | Custom JSON Screen | Security Screen | Preferences Screen |
 |:--------------:|:------------:|:------------------:|:---------------:|:------------------:|
-| <img width="270" alt="image" src="https://github.com/user-attachments/assets/4de5a40c-6335-4fbe-9f59-0b8bdcde8ff4" /> | *(screenshot pending)* | *(screenshot pending)* | <img width="270" alt="image" src="https://github.com/user-attachments/assets/968c0156-c97d-4ca4-8f4b-77614048f870" /> | *(screenshot pending)* |
+| <img width="270" alt="image" src="https://github.com/user-attachments/assets/fbf461b5-b2c6-4b2a-9de4-1443a2aa3a84" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/f05fed91-1df4-4810-a684-6b2258535700" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/d7b3abcd-6f6e-4bad-9f2e-ef78f70aea6e" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/af169904-64cb-4cc9-aeef-71668a269825" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/1ba21590-9522-4dfc-a19a-136c535967cb" /> |
 
 ---
 
