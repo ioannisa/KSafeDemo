@@ -38,7 +38,7 @@ data class FlowDelegatesState(
     val movies: MoviesListState = MoviesListState(),
     val username: String = "Guest",
     val darkMode: Boolean = false,
-    val themeLabel: String = "Light Mode",
+    val themeLabel: String = "Off Mode",
     val storageCountIsolated: Int = 2000,
     val storageCountSynced: Int = 2000,
 )
@@ -128,11 +128,11 @@ class FlowDelegatesViewModel(
     private val username: StateFlow<String> get() = _username
 
     // Cold — only active when collected, great for transformations
-    private val darkMode: Flow<Boolean> by ksafe.asFlow(defaultValue = false)
+    private val toggleMode: Flow<Boolean> by ksafe.asFlow(defaultValue = false)
 
     // Cold flow transformed into a derived StateFlow — real-world pattern
-    private val themeLabel: StateFlow<String> = darkMode
-        .map { isDark -> if (isDark) "Dark Mode" else "Light Mode" }
+    private val themeLabel: StateFlow<String> = toggleMode
+        .map { isOn -> if (isOn) "On Mode" else "Off Mode" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Light Mode")
 
     private fun onNameChanged(name: String) {
@@ -204,7 +204,7 @@ class FlowDelegatesViewModel(
 
     private val moviesComposeState = moviesState.toComposeState(viewModelScope)
     private val usernameComposeState = username.toComposeState(viewModelScope)
-    private val darkModeState = darkMode
+    private val darkModeState = toggleMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
         .toComposeState(viewModelScope)
     private val themeLabelComposeState = themeLabel.toComposeState(viewModelScope)

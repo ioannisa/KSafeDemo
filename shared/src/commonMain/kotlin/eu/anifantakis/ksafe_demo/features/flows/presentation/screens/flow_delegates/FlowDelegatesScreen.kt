@@ -143,7 +143,7 @@ private fun FlowDelegatesScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column {
-                AppText("Dark Mode (asFlow)", AppTextStyle.BODY)
+                AppText("Toggle Some Value (asFlow)", AppTextStyle.BODY)
                 AppText(
                     text = "Derived: ${state.themeLabel}",
                     style = AppTextStyle.CAPTION,
