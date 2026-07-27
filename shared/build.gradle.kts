@@ -79,6 +79,11 @@ kotlin {
             // Application instance through androidApplication().
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
+
+            // Android Studio loads ComposeViewAdapter reflectively while rendering previews.
+            // ui-tooling-preview only supplies the @Preview API; the adapter itself comes from
+            // ui-tooling and must be present in the module that owns the preview composables.
+            implementation(libs.ui.tooling)
         }
         commonMain.dependencies {
             implementation(libs.runtime)

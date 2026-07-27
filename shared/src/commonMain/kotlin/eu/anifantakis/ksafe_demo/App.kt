@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.Preview
 import eu.anifantakis.ksafe_demo.app.navigation.AppRoute
 import eu.anifantakis.ksafe_demo.app.navigation.NavigationRoot
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
@@ -28,7 +27,6 @@ import org.koin.core.logger.Level
 
 @OptIn(KoinExperimentalAPI::class)
 @Composable
-@Preview
 fun App() {
     KoinApplication(
         configuration = createKoinConfiguration(),
