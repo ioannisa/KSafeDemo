@@ -521,24 +521,25 @@ shared/src/
 ├── commonMain/kotlin/eu/anifantakis/ksafe_demo/
 │   ├── App.kt                              # Koin/theme/startup gate + persisted route
 │   ├── app/navigation/                     # Navigation3 routes, navigator and root
-│   ├── core/presentation/
-│   │   ├── design_system/
-│   │   │   └── components/                 # One App* component + light/dark preview per file
-│   │   │       └── content/                 # Reusable content cards, headers and status UI
-│   │   ├── global_state/                   # app-wide loading/snackbar state
-│   │   ├── helper/                         # StateFlow/effect Compose bridges
-│   │   └── scaffold/                       # shared application scaffold
+│   ├── core/
+│   │   ├── data/persistence/KSafeStartup.kt # app-wide KSafe cache startup barrier
+│   │   └── presentation/
+│   │       ├── design_system/
+│   │       │   └── components/             # One App* component + light/dark preview per file
+│   │       │       └── content/             # Reusable content cards, headers and status UI
+│   │       ├── global_state/                # app-wide loading/snackbar state
+│   │       ├── helper/                      # StateFlow/effect Compose bridges
+│   │       └── scaffold/                    # shared application scaffold
 │   ├── di/
 │   │   ├── KoinConfiguration.kt
 │   │   ├── Modules.kt                      # shared DI (with `expect val platformModule`)
 │   │   └── SecurityViolationsHolder.kt
-│   ├── util/
-│   │   ├── BackgroundTask.kt               # expect for platform background tasks
-│   │   └── KSafeStartup.kt                 # expect cache-ready startup seam
 │   └── features/                           # package-per-feature boundary
 │       ├── counters/
 │       │   ├── domain/model/AuthInfo.kt
-│       │   └── presentation/screens/counters/  # Root + private Screen + MVI ViewModel
+│       │   └── presentation/
+│       │       ├── platform/LockTestExecutionWindow.kt # lock-test execution seam
+│       │       └── screens/counters/        # Root + private Screen + MVI ViewModel
 │       ├── flows/presentation/screens/flow_delegates/
 │       ├── custom_json/
 │       │   ├── domain/model/UserProfile.kt
@@ -551,30 +552,38 @@ shared/src/
 │           └── presentation/screens/preferences/
 │
 ├── androidMain/kotlin/eu/anifantakis/ksafe_demo/
+│   ├── core/data/persistence/KSafeStartup.android.kt # startup barrier no-op
 │   ├── di/Modules.android.kt               # KSafe with requireUnlockedDevice
-│   └── util/BackgroundTask.android.kt      # No-op (Android doesn't suspend)
+│   └── features/counters/presentation/platform/
+│       └── LockTestExecutionWindow.android.kt # lock test runs directly
 │
 ├── appleMain/kotlin/eu/anifantakis/ksafe_demo/        ← shared by iOS + macOS (NEW in 2.0.1)
+│   ├── core/data/persistence/KSafeStartup.apple.kt # startup barrier no-op
 │   └── di/Modules.apple.kt                  # one DI module for both Apple targets
 │
 ├── iosMain/kotlin/eu/anifantakis/ksafe_demo/
 │   ├── MainViewController.kt                # ComposeUIViewController { App() } — Xcode calls this
-│   └── util/BackgroundTask.ios.kt           # UIApplication.beginBackgroundTask for lock test
+│   └── features/counters/presentation/platform/
+│       └── LockTestExecutionWindow.ios.kt   # finite UIKit execution for lock test
 │
 ├── macosMain/kotlin/eu/anifantakis/ksafe_demo/        ← native macOS (NEW in 2.0.1)
-│   └── util/BackgroundTask.macos.kt         # No-op (macOS doesn't suspend apps)
+│   └── features/counters/presentation/platform/
+│       └── LockTestExecutionWindow.macos.kt # lock test runs directly
 │
 ├── jvmMain/kotlin/eu/anifantakis/ksafe_demo/
+│   ├── core/data/persistence/KSafeStartup.jvm.kt # startup barrier no-op
 │   ├── di/Modules.jvm.kt
-│   └── util/BackgroundTask.jvm.kt           # No-op
+│   └── features/counters/presentation/platform/LockTestExecutionWindow.jvm.kt
 │
 ├── jsMain/kotlin/eu/anifantakis/ksafe_demo/
+│   ├── core/data/persistence/KSafeStartup.js.kt # awaits WebCrypto caches
 │   ├── di/Modules.js.kt                     # KSafe with localStorage + WebCrypto
-│   └── util/BackgroundTask.js.kt            # No-op
+│   └── features/counters/presentation/platform/LockTestExecutionWindow.js.kt
 │
 └── wasmJsMain/kotlin/eu/anifantakis/ksafe_demo/
+    ├── core/data/persistence/KSafeStartup.wasmJs.kt # awaits WebCrypto caches
     ├── di/Modules.wasmJs.kt                 # KSafe with localStorage + WebCrypto
-    └── util/BackgroundTask.wasmJs.kt        # No-op
+    └── features/counters/presentation/platform/LockTestExecutionWindow.wasmJs.kt
 ```
 
 Each launcher module holds only its `main()` (or `MainActivity`):
@@ -587,7 +596,7 @@ jsApp/src/jsMain/kotlin/.../main.kt          # ComposeViewport
 macosApp/src/macosMain/kotlin/.../main.macos.kt   # NSApplication + Window(...) { App() } + run loop
 ```
 
-**Note on Apple source-set sharing:** the demo mirrors the lib's appleMain split — the platform-agnostic Koin module (which just builds a `KSafe` with the demo's security policy) lives in `appleMain/`, while the UIKit-specific entry point (`MainViewController` using `UIViewController`) and `BackgroundTask` (using `UIApplication.beginBackgroundTask`) stay in `iosMain/`. The iOS framework is still exported from `shared/` — Xcode links it as `ComposeApp` — whereas the AppKit `NSApplication` bootstrap is an executable entry point and so lives in its own `macosApp/` module.
+**Note on Apple source-set sharing:** the demo mirrors the lib's appleMain split — the platform-agnostic Koin module (which just builds a `KSafe` with the demo's security policy) and KSafe startup barrier live in `appleMain/`, while the UIKit-specific entry point (`MainViewController` using `UIViewController`) and the counters feature's `LockTestExecutionWindow` (using `UIApplication.beginBackgroundTask`) stay in `iosMain/`. The iOS framework is still exported from `shared/` — Xcode links it as `ComposeApp` — whereas the AppKit `NSApplication` bootstrap is an executable entry point and so lives in its own `macosApp/` module.
 
 ---
 

@@ -1,9 +1,11 @@
 package eu.anifantakis.ksafe_demo.app.navigation
 
+import androidx.compose.runtime.Immutable
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Immutable
 @Serializable
 sealed interface AppRoute : NavKey {
     val title: String

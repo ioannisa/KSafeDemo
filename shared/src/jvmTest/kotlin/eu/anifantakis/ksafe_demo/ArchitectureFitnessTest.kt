@@ -9,6 +9,15 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ArchitectureFitnessTest {
+    private val sharedSourceSetsRoot: Path by lazy {
+        val workingDirectory = Path.of(System.getProperty("user.dir"))
+        listOf(
+            workingDirectory.resolve("shared/src"),
+            workingDirectory.resolve("src"),
+        ).firstOrNull(Files::isDirectory)
+            ?: error("Cannot locate shared source sets from $workingDirectory")
+    }
+
     private val featureRoot: Path by lazy {
         val workingDirectory = Path.of(System.getProperty("user.dir"))
         listOf(
@@ -28,6 +37,44 @@ class ArchitectureFitnessTest {
                 "Feature '$feature' must live under $featureRoot",
             )
         }
+    }
+
+    @Test
+    fun sharedSourceSetsDoNotExposeAnOwnerlessTopLevelUtilPackage() {
+        val ownerlessUtilPackages = Files.walk(sharedSourceSetsRoot).use { paths ->
+            paths
+                .filter(Files::isDirectory)
+                .filter { path ->
+                    path.toString()
+                        .replace('\\', '/')
+                        .endsWith("/kotlin/eu/anifantakis/ksafe_demo/util")
+                }
+                .iterator()
+                .asSequence()
+                .toList()
+        }
+
+        assertTrue(
+            ownerlessUtilPackages.isEmpty(),
+            "Move each top-level util to its owning feature or a semantic core package: " +
+                ownerlessUtilPackages,
+        )
+    }
+
+    @Test
+    fun platformSeamsLiveWithTheirOwners() {
+        assertTrue(
+            Files.isRegularFile(
+                featureRoot.resolve(
+                    "counters/presentation/platform/LockTestExecutionWindow.kt",
+                ),
+            ),
+        )
+        assertTrue(
+            Files.isRegularFile(
+                featureRoot.parent.resolve("core/data/persistence/KSafeStartup.kt"),
+            ),
+        )
     }
 
     @Test

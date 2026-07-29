@@ -14,8 +14,8 @@ import eu.anifantakis.lib.ksafe.asMutableStateFlow
 import eu.anifantakis.lib.ksafe.invoke
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import eu.anifantakis.ksafe_demo.di.SecurityViolationsHolder
+import eu.anifantakis.ksafe_demo.features.counters.presentation.platform.withLockTestExecutionWindow
 import eu.anifantakis.ksafe_demo.features.counters.domain.model.AuthInfo
-import eu.anifantakis.ksafe_demo.util.withPlatformBackgroundTask
 import eu.anifantakis.lib.ksafe.KSafeEncryptedProtection
 import eu.anifantakis.lib.ksafe.KSafeKeyInfo
 import eu.anifantakis.lib.ksafe.KSafeWriteMode
@@ -415,7 +415,7 @@ class CountersViewModel(
         viewModelScope.launch {
             // Wrap in a platform background task so iOS doesn't suspend
             // the process while the screen is off
-            withPlatformBackgroundTask("KSafeLockTest") {
+            withLockTestExecutionWindow {
                 val testKey = if (useHardwareIsolated) "__lock_test_token_hw__" else "__lock_test_token__"
                 val protectionLevel = if (useHardwareIsolated) KSafeEncryptedProtection.HARDWARE_ISOLATED else KSafeEncryptedProtection.DEFAULT
 
@@ -432,7 +432,7 @@ class CountersViewModel(
                 } catch (e: Exception) {
                     lockTestResult = "SETUP FAILED.\n\nCould not store test value: ${e.message}"
                     isLockTestRunning = false
-                    return@withPlatformBackgroundTask
+                    return@withLockTestExecutionWindow
                 }
 
                 // Step 2: Countdown — user should lock the device now

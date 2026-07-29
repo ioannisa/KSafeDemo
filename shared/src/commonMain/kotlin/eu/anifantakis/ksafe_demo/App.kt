@@ -9,13 +9,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import eu.anifantakis.ksafe_demo.app.navigation.AppRoute
 import eu.anifantakis.ksafe_demo.app.navigation.NavigationRoot
+import eu.anifantakis.ksafe_demo.core.data.persistence.awaitKSafeCachesReady
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
 import eu.anifantakis.ksafe_demo.di.createKoinConfiguration
 import eu.anifantakis.ksafe_demo.di.customJsonKSafe
 import eu.anifantakis.ksafe_demo.di.preferencesKSafe
 import eu.anifantakis.ksafe_demo.features.preferences.domain.model.ThemeMode
 import eu.anifantakis.ksafe_demo.features.preferences.domain.repository.ThemePreferenceRepository
-import eu.anifantakis.ksafe_demo.util.awaitKSafeCachesReady
 import eu.anifantakis.lib.ksafe.KSafe
 import eu.anifantakis.lib.ksafe.KSafeEncryptedProtection
 import eu.anifantakis.lib.ksafe.KSafeWriteMode
