@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.storage.presentation.screens.storage
+package eu.anifantakis.ksafe_demo.features.counters.presentation.screens.counters
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.Stable
@@ -14,7 +14,7 @@ import eu.anifantakis.lib.ksafe.asMutableStateFlow
 import eu.anifantakis.lib.ksafe.invoke
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import eu.anifantakis.ksafe_demo.di.SecurityViolationsHolder
-import eu.anifantakis.ksafe_demo.features.storage.domain.model.AuthInfo
+import eu.anifantakis.ksafe_demo.features.counters.domain.model.AuthInfo
 import eu.anifantakis.ksafe_demo.util.withPlatformBackgroundTask
 import eu.anifantakis.lib.ksafe.KSafeEncryptedProtection
 import eu.anifantakis.lib.ksafe.KSafeKeyInfo
@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
-data class StorageState(
+data class CountersState(
     val count1: Int = 1000,
     val count2: Int = 2000,
     val count2b: Int = 2300,
@@ -48,24 +48,24 @@ data class StorageState(
     val rotationResult: String? = null,
 )
 
-sealed interface StorageIntent {
-    data object Increment : StorageIntent
-    data object RefreshCount2 : StorageIntent
-    data object Clear : StorageIntent
-    data object BiometricIncrement : StorageIntent
-    data object GenerateToken : StorageIntent
-    data object ClearVault : StorageIntent
-    data class StartLockTest(val useHardwareIsolated: Boolean) : StorageIntent
-    data object DismissLockTestResult : StorageIntent
-    data object RotateKeys : StorageIntent
-    data object DismissRotationResult : StorageIntent
+sealed interface CountersIntent {
+    data object Increment : CountersIntent
+    data object RefreshCount2 : CountersIntent
+    data object Clear : CountersIntent
+    data object BiometricIncrement : CountersIntent
+    data object GenerateToken : CountersIntent
+    data object ClearVault : CountersIntent
+    data class StartLockTest(val useHardwareIsolated: Boolean) : CountersIntent
+    data object DismissLockTestResult : CountersIntent
+    data object RotateKeys : CountersIntent
+    data object DismissRotationResult : CountersIntent
 }
 
 /** Screen-local effects are intentionally absent; snackbars use the app-wide effect channel. */
-sealed interface StorageEffect
+sealed interface CountersEffect
 
 @Stable
-class StorageViewModel(
+class CountersViewModel(
     private val ksafe: KSafe,
 ) : BaseGlobalViewModel() {
 
@@ -88,8 +88,8 @@ class StorageViewModel(
     private val count2c = _count2c.asStateFlow()
 
 
-    val state: State<StorageState> = derivedStateOf {
-        StorageState(
+    val state: State<CountersState> = derivedStateOf {
+        CountersState(
             count1 = count1,
             count2 = count2,
             count2b = count2bState.value,
@@ -107,18 +107,18 @@ class StorageViewModel(
         )
     }
 
-    fun onAction(intent: StorageIntent) {
+    fun onAction(intent: CountersIntent) {
         when (intent) {
-            StorageIntent.Increment -> increment()
-            StorageIntent.RefreshCount2 -> refreshCount2()
-            StorageIntent.Clear -> clear()
-            StorageIntent.BiometricIncrement -> bioCounterIncrement()
-            StorageIntent.GenerateToken -> generateNewToken()
-            StorageIntent.ClearVault -> clearVault()
-            is StorageIntent.StartLockTest -> startLockTest(intent.useHardwareIsolated)
-            StorageIntent.DismissLockTestResult -> dismissLockTestResult()
-            StorageIntent.RotateKeys -> rotateKeys()
-            StorageIntent.DismissRotationResult -> dismissRotationResult()
+            CountersIntent.Increment -> increment()
+            CountersIntent.RefreshCount2 -> refreshCount2()
+            CountersIntent.Clear -> clear()
+            CountersIntent.BiometricIncrement -> bioCounterIncrement()
+            CountersIntent.GenerateToken -> generateNewToken()
+            CountersIntent.ClearVault -> clearVault()
+            is CountersIntent.StartLockTest -> startLockTest(intent.useHardwareIsolated)
+            CountersIntent.DismissLockTestResult -> dismissLockTestResult()
+            CountersIntent.RotateKeys -> rotateKeys()
+            CountersIntent.DismissRotationResult -> dismissRotationResult()
         }
     }
 

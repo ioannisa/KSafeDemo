@@ -19,7 +19,7 @@ import eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custo
 import eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates.FlowDelegatesScreenRoot
 import eu.anifantakis.ksafe_demo.features.preferences.presentation.screens.preferences.PreferencesScreenRoot
 import eu.anifantakis.ksafe_demo.features.security.presentation.screens.security.SecurityScreenRoot
-import eu.anifantakis.ksafe_demo.features.storage.presentation.screens.storage.StorageScreenRoot
+import eu.anifantakis.ksafe_demo.features.counters.presentation.screens.counters.CountersScreenRoot
 
 @Composable
 fun NavigationRoot(
@@ -62,8 +62,8 @@ fun NavigationRoot(
                 rememberViewModelStoreNavEntryDecorator(),
             ),
             entryProvider = entryProvider<NavKey> {
-                entry<AppRoute.Storage> {
-                    StorageScreenRoot()
+                entry<AppRoute.Counters> {
+                    CountersScreenRoot()
                 }
                 entry<AppRoute.Flows> {
                     FlowDelegatesScreenRoot()

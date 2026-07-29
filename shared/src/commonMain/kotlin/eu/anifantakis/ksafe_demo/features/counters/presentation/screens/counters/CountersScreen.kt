@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.storage.presentation.screens.storage
+package eu.anifantakis.ksafe_demo.features.counters.presentation.screens.counters
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,31 +25,31 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppColor
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppButton
-import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppCard
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppDialog
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppDivider
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
-import eu.anifantakis.ksafe_demo.features.storage.domain.model.AuthInfo
-import kotlinx.collections.immutable.ImmutableList
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppLabelCard
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppValueCard
+import eu.anifantakis.ksafe_demo.features.counters.domain.model.AuthInfo
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun StorageScreenRoot(
-    viewModel: StorageViewModel = koinViewModel(),
+fun CountersScreenRoot(
+    viewModel: CountersViewModel = koinViewModel(),
 ) {
-    StorageScreen(
+    CountersScreen(
         state = viewModel.state.value,
         onIntent = viewModel::onAction,
     )
 }
 
 @Composable
-private fun StorageScreen(
-    state: StorageState,
-    onIntent: (StorageIntent) -> Unit,
+private fun CountersScreen(
+    state: CountersState,
+    onIntent: (CountersIntent) -> Unit,
 ) {
     var showClearDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -73,14 +73,14 @@ private fun StorageScreen(
                 text = "mutableStateOf (no persistence)",
                 style = AppTextStyle.EYEBROW,
             )
-            ValueCard(
+            AppValueCard(
                 label = "Counter 1",
                 sublabel = "plain state — resets on restart",
                 value = state.count1.toString(),
                 modifier = Modifier.fillMaxWidth(0.5f),
             )
 
-            SectionGap()
+            Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
             AppText(
                 text = "ksafe.mutableStateOf (persisted)",
                 style = AppTextStyle.EYEBROW,
@@ -91,13 +91,13 @@ private fun StorageScreen(
                     .height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(UIConst.paddingCompact),
             ) {
-                ValueCard(
+                AppValueCard(
                     label = "Counter 2",
                     sublabel = "encrypted — observed on Flows tab",
                     value = state.count2.toString(),
                     modifier = Modifier.weight(1f),
                 )
-                ValueCard(
+                AppValueCard(
                     label = "Counter 3",
                     sublabel = "unencrypted",
                     value = state.count3.toString(),
@@ -117,11 +117,11 @@ private fun StorageScreen(
             )
             AppButton(
                 label = "Refresh Counter 2",
-                onClick = { onIntent(StorageIntent.RefreshCount2) },
+                onClick = { onIntent(CountersIntent.RefreshCount2) },
                 textStyle = AppTextStyle.ACTION_SMALL,
             )
 
-            SectionGap()
+            Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
             AppText(
                 text = "ksafe.asMutableStateFlow (persisted, reactive)",
                 style = AppTextStyle.EYEBROW,
@@ -132,13 +132,13 @@ private fun StorageScreen(
                     .height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(UIConst.paddingCompact),
             ) {
-                ValueCard(
+                AppValueCard(
                     label = "Counter 2b",
                     sublabel = "MutableStateFlow — no refresh needed",
                     value = state.count2b.toString(),
                     modifier = Modifier.weight(0.5f),
                 )
-                ValueCard(
+                AppValueCard(
                     label = "Counter 2c",
                     sublabel = "MutableStateFlow — no refresh needed",
                     value = state.count2c.toString(),
@@ -152,24 +152,25 @@ private fun StorageScreen(
                 style = AppTextStyle.SMALL,
             )
 
-            SectionGap()
+            Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
             AppText(
                 text = "ksafe.mutableStateOf — data class (persisted, encrypted)",
                 style = AppTextStyle.EYEBROW,
             )
-            LabelCard(
+            AppLabelCard(
                 label = "AuthInfo",
                 lines = persistentListOf(
                     "accessToken: ${state.authInfo.accessToken}",
                     "refreshToken: ${state.authInfo.refreshToken}",
                     "expiresIn: ${state.authInfo.expiresIn}",
                 ),
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
                 AppButton(
                     label = "+",
-                    onClick = { onIntent(StorageIntent.Increment) },
+                    onClick = { onIntent(CountersIntent.Increment) },
                     textStyle = AppTextStyle.ACTION_LARGE,
                 )
                 AppButton(
@@ -179,30 +180,31 @@ private fun StorageScreen(
                 )
                 AppButton(
                     label = "Bio: ${state.bioCount}",
-                    onClick = { onIntent(StorageIntent.BiometricIncrement) },
+                    onClick = { onIntent(CountersIntent.BiometricIncrement) },
                     textStyle = AppTextStyle.ACTION_LARGE,
                 )
             }
 
-            SectionGap()
+            Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
             AppText(
                 text = "Hardware-Secured Vault (StrongBox / Secure Enclave)",
                 style = AppTextStyle.EYEBROW,
             )
-            LabelCard(
+            AppLabelCard(
                 label = "Vault Token",
                 lines = persistentListOf(
                     state.secureToken.ifEmpty { "No token stored" },
                 ),
+                modifier = Modifier.fillMaxWidth(),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
                 AppButton(
                     label = "Generate Token",
-                    onClick = { onIntent(StorageIntent.GenerateToken) },
+                    onClick = { onIntent(CountersIntent.GenerateToken) },
                 )
                 AppButton(
                     label = "Clear Vault",
-                    onClick = { onIntent(StorageIntent.ClearVault) },
+                    onClick = { onIntent(CountersIntent.ClearVault) },
                 )
             }
 
@@ -231,7 +233,7 @@ private fun StorageScreen(
             )
             AppButton(
                 label = if (state.isRotating) "Rotating..." else "Rotate Keys",
-                onClick = { onIntent(StorageIntent.RotateKeys) },
+                onClick = { onIntent(CountersIntent.RotateKeys) },
                 enabled = !state.isRotating,
             )
 
@@ -260,11 +262,11 @@ private fun StorageScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
                     AppButton(
                         label = "Test Lock (Default)",
-                        onClick = { onIntent(StorageIntent.StartLockTest(false)) },
+                        onClick = { onIntent(CountersIntent.StartLockTest(false)) },
                     )
                     AppButton(
                         label = "Test Lock (Hardware)",
-                        onClick = { onIntent(StorageIntent.StartLockTest(true)) },
+                        onClick = { onIntent(CountersIntent.StartLockTest(true)) },
                     )
                 }
             }
@@ -276,8 +278,8 @@ private fun StorageScreen(
             title = "Lock Test Result",
             text = result,
             confirmLabel = "OK",
-            onConfirm = { onIntent(StorageIntent.DismissLockTestResult) },
-            onDismiss = { onIntent(StorageIntent.DismissLockTestResult) },
+            onConfirm = { onIntent(CountersIntent.DismissLockTestResult) },
+            onDismiss = { onIntent(CountersIntent.DismissLockTestResult) },
         )
     }
     state.rotationResult?.let { result ->
@@ -285,8 +287,8 @@ private fun StorageScreen(
             title = "Key Rotation",
             text = result,
             confirmLabel = "OK",
-            onConfirm = { onIntent(StorageIntent.DismissRotationResult) },
-            onDismiss = { onIntent(StorageIntent.DismissRotationResult) },
+            onConfirm = { onIntent(CountersIntent.DismissRotationResult) },
+            onDismiss = { onIntent(CountersIntent.DismissRotationResult) },
         )
     }
     if (showClearDialog) {
@@ -295,7 +297,7 @@ private fun StorageScreen(
             text = "This will delete all stored keys and reset counters to their defaults.",
             confirmLabel = "Clear",
             onConfirm = {
-                onIntent(StorageIntent.Clear)
+                onIntent(CountersIntent.Clear)
                 showClearDialog = false
             },
             onDismiss = { showClearDialog = false },
@@ -304,57 +306,12 @@ private fun StorageScreen(
     }
 }
 
-@Composable
-private fun ValueCard(
-    label: String,
-    sublabel: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
-    AppCard(modifier = modifier, bordered = true) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(UIConst.paddingCompact),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            AppText(label, AppTextStyle.CAPTION)
-            AppText(value, AppTextStyle.VALUE, fontWeight = FontWeight.Bold)
-            AppText(sublabel, AppTextStyle.MICRO)
-        }
-    }
-}
-
-@Composable
-private fun LabelCard(
-    label: String,
-    lines: ImmutableList<String>,
-) {
-    AppCard(modifier = Modifier.fillMaxWidth(), bordered = true) {
-        Column(
-            modifier = Modifier
-                .padding(UIConst.paddingSmall)
-                .padding(horizontal = UIConst.screenHorizontalPadding),
-        ) {
-            AppText(label, AppTextStyle.BODY, color = AppColor.Muted)
-            lines.forEach { line ->
-                AppText(line, AppTextStyle.BODY)
-            }
-        }
-    }
-}
-
-@Composable
-private fun SectionGap() {
-    Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
-}
-
 @PreviewLightDark
 @Composable
-private fun StorageScreenPreview() {
+private fun CountersScreenPreview() {
     AppPreview {
-        StorageScreen(
-            state = StorageState(
+        CountersScreen(
+            state = CountersState(
                 bioCount = 5,
                 authInfo = AuthInfo("abc_token", "ref_token", 9999),
                 secureToken = "550e8400-e29b-41d4-a716-446655440000",

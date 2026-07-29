@@ -14,4 +14,5 @@ object UIConst {
 
     val cornerRadius = 8.dp
     val borderWidth = 1.dp
+    val colorSwatchSize = 14.dp
 }

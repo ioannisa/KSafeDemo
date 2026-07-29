@@ -1,6 +1,7 @@
 package eu.anifantakis.ksafe_demo.app.navigation
 
 import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -8,8 +9,9 @@ sealed interface AppRoute : NavKey {
     val title: String
 
     @Serializable
-    data object Storage : AppRoute {
-        override val title = "Storage"
+    @SerialName("eu.anifantakis.ksafe_demo.app.navigation.AppRoute.Storage")
+    data object Counters : AppRoute {
+        override val title = "Counters"
     }
 
     @Serializable
@@ -33,6 +35,6 @@ sealed interface AppRoute : NavKey {
     }
 
     companion object {
-        val entries: List<AppRoute> = listOf(Storage, Flows, CustomJson, Security, Preferences)
+        val entries: List<AppRoute> = listOf(Counters, Flows, CustomJson, Security, Preferences)
     }
 }

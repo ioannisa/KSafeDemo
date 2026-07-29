@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppTheme
 
 enum class AppTextStyle {
@@ -81,4 +82,15 @@ fun AppText(
         color = if (color == Color.Unspecified) defaultColor else color,
         fontWeight = fontWeight,
     )
+}
+
+@PreviewLightDark
+@Composable
+private fun PreviewAppText() {
+    AppPreview {
+        AppText(
+            text = "Semantic app text",
+            style = AppTextStyle.SECTION_HEADING,
+        )
+    }
 }

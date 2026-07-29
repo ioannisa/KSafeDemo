@@ -78,7 +78,7 @@ private fun ThemeAwareAppContent(
 @Composable
 fun AppContent() {
     val ksafe: KSafe = koinInject()
-    var currentRoute: AppRoute by ksafe.rememberKSafeState(AppRoute.Storage)
+    var currentRoute: AppRoute by ksafe.rememberKSafeState(AppRoute.Counters)
 
     LaunchedEffect(ksafe) {
         val info = ksafe.protectionInfo

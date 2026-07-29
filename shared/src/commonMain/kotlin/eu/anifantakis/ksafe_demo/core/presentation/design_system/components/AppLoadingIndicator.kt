@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 
 @Composable
 fun AppLoadingIndicator(
@@ -33,3 +34,10 @@ fun AppLoadingIndicator(
     }
 }
 
+@PreviewLightDark
+@Composable
+private fun PreviewAppLoadingIndicator() {
+    AppPreview {
+        AppLoadingIndicator(isLoading = true)
+    }
+}

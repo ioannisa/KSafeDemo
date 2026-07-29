@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.storage.domain.model
+package eu.anifantakis.ksafe_demo.features.counters.domain.model
 
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable

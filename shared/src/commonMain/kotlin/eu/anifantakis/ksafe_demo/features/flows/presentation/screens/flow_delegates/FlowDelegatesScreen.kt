@@ -1,6 +1,5 @@
 package eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,13 +19,17 @@ import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppColor
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppButton
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppCard
-import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppDivider
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppProgressIndicator
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppSwitch
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextField
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppCodeBlock
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppCodeBlockStyle
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppSectionDivider
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppSectionHeader
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppValueCard
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -66,11 +68,12 @@ private fun FlowDelegatesScreen(
             style = AppTextStyle.CAPTION,
         )
 
-        SectionHeader("asMutableStateFlow — drop-in MutableStateFlow")
-        CodeSnippet(
+        AppSectionHeader("asMutableStateFlow — drop-in MutableStateFlow")
+        AppCodeBlock(
             "// Standard: private val _state = MutableStateFlow(MoviesListState())\n" +
                 "// KSafe: private val _state by kSafe.asMutableStateFlow(...)\n" +
                 "// Same .update{} and .value API, persisted automatically",
+            style = AppCodeBlockStyle.WARM,
         )
         AppCard(
             modifier = Modifier
@@ -124,12 +127,13 @@ private fun FlowDelegatesScreen(
             )
         }
 
-        SectionDivider()
-        SectionHeader("asFlow & two-way binding")
-        CodeSnippet(
+        AppSectionDivider()
+        AppSectionHeader("asFlow & two-way binding")
+        AppCodeBlock(
             "private val _username by kSafe.asMutableStateFlow(\"Guest\", scope)\n" +
                 "val toggleMode: Flow<Boolean> by kSafe.asFlow(false)\n" +
                 "val themeLabel = toggleMode.map { ... }.stateIn(...)",
+            style = AppCodeBlockStyle.WARM,
         )
         AppTextField(
             value = state.username,
@@ -157,23 +161,24 @@ private fun FlowDelegatesScreen(
             )
         }
 
-        SectionDivider()
-        SectionHeader("mutableStateOf(scope) — cross-screen sync")
-        CodeSnippet(
-            "// StorageViewModel owns key \"count2\"\n" +
+        AppSectionDivider()
+        AppSectionHeader("mutableStateOf(scope) — cross-screen sync")
+        AppCodeBlock(
+            "// CountersViewModel owns key \"count2\"\n" +
                 "var isolated by kSafe.mutableStateOf(2000, key = \"count2\")\n" +
                 "var synced by kSafe.mutableStateOf(2000, key = \"count2\", scope = viewModelScope)",
+            style = AppCodeBlockStyle.WARM,
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
         ) {
-            ValueCard(
+            AppValueCard(
                 label = "isolated (no scope)",
                 value = state.storageCountIsolated.toString(),
                 modifier = Modifier.weight(1f),
             )
-            ValueCard(
+            AppValueCard(
                 label = "synced (with scope)",
                 value = state.storageCountSynced.toString(),
                 modifier = Modifier.weight(1f),
@@ -196,65 +201,11 @@ private fun FlowDelegatesScreen(
             fontWeight = FontWeight.Bold,
         )
 
-        SectionDivider()
+        AppSectionDivider()
         AppButton(
             label = "Clear All Flow Demos",
             onClick = { onIntent(FlowDelegatesIntent.ClearAll) },
         )
-    }
-}
-
-@Composable
-private fun SectionHeader(text: String) {
-    AppText(
-        text = text,
-        style = AppTextStyle.BODY,
-        color = AppColor.Primary,
-        fontWeight = FontWeight.Bold,
-    )
-}
-
-@Composable
-private fun SectionDivider() {
-    AppDivider(modifier = Modifier.padding(vertical = UIConst.paddingSmall))
-}
-
-@Composable
-private fun CodeSnippet(code: String) {
-    AppText(
-        text = code,
-        style = AppTextStyle.CODE,
-        color = AppColor.WarmCodeText,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = AppColor.WarmCodeBackground,
-                shape = RoundedCornerShape(UIConst.cornerRadius),
-            )
-            .padding(UIConst.paddingSmall),
-    )
-}
-
-@Composable
-private fun ValueCard(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
-    AppCard(modifier = modifier, bordered = true) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(UIConst.paddingCompact),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            AppText(label, AppTextStyle.CAPTION)
-            AppText(
-                text = value,
-                style = AppTextStyle.VALUE,
-                fontWeight = FontWeight.Bold,
-            )
-        }
     }
 }
 

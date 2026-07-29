@@ -10,7 +10,7 @@ A comprehensive Kotlin Multiplatform demo application showcasing [KSafe](https:/
 
 ## Screenshots
 
-| Storage Screen | Flows Screen | Custom JSON Screen | Security Screen | Preferences Screen |
+| Counters Screen | Flows Screen | Custom JSON Screen | Security Screen | Preferences Screen |
 |:--------------:|:------------:|:------------------:|:---------------:|:------------------:|
 | <img width="270" alt="image" src="https://github.com/user-attachments/assets/fbf461b5-b2c6-4b2a-9de4-1443a2aa3a84" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/f05fed91-1df4-4810-a684-6b2258535700" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/d7b3abcd-6f6e-4bad-9f2e-ef78f70aea6e" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/af169904-64cb-4cc9-aeef-71668a269825" /> | <img width="270" alt="image" src="https://github.com/user-attachments/assets/1ba21590-9522-4dfc-a19a-136c535967cb" /> |
 
@@ -71,7 +71,7 @@ This demo application serves as a practical guide to understanding and implement
 ### 9. `rememberKSafeState` — composable-local persistent state (New in 2.0.0)
 - **`rememberSaveable`-style API for KSafe**: composable-body local state that survives app restarts (not just config changes)
 - **Auto-keying from property name**: `var idx by ksafe.rememberKSafeState(0)` stores under the key `"idx"` — explicit `key = "..."` available when you want it
-- **Used in `App.kt`**: the bottom-tab route (`var currentRoute by ksafe.rememberKSafeState(AppRoute.Storage)`) persists across cold launches with no ViewModel involved — see [Code Examples → `rememberKSafeState`](#bottom-tab-persistence-with-rememberksafestate-appkt)
+- **Used in `App.kt`**: the bottom-tab route (`var currentRoute by ksafe.rememberKSafeState(AppRoute.Counters)`) persists across cold launches with no ViewModel involved — see [Code Examples → `rememberKSafeState`](#bottom-tab-persistence-with-rememberksafestate-appkt)
 
 ### 10. Native macOS Target (New in 2.0.1)
 - **Native `macosArm64` / `macosX64` binary**: Compose Multiplatform on AppKit, Skia rendering, KSafe's `appleMain` Keychain + CryptoKit path. Same source as iOS — no UI rewrites
@@ -82,7 +82,7 @@ This demo application serves as a practical guide to understanding and implement
 
 ## App Screens
 
-### Storage Screen
+### Counters Screen
 
 Demonstrates various ways to persist data with KSafe:
 
@@ -104,7 +104,7 @@ Demonstrates the new flow delegate APIs introduced in KSafe 1.8.0:
 | **asMutableStateFlow (Movies)** | Drop-in replacement for standard `MutableStateFlow`. `MoviesListState` data class with loading/error/movies — `.update{}` persists the entire state atomically |
 | **asStateFlow (username)** | Read-only hot `StateFlow<String>` delegate — editable via `OutlinedTextField`, writes through `kSafe.put()` |
 | **asFlow (dark mode)** | Read-only cold `Flow<Boolean>` delegate — toggle via `Switch`, derived `themeLabel` via `.map{}.stateIn()` shows real flow transformation |
-| **Cross-screen sync** | Two cards observe the Storage screen's Counter 2 (key `"count2"`): one **without scope** (frozen at init value) and one **with scope** (updates in real-time when you tap "+" on the Storage tab). Proves the difference between isolated and synced `mutableStateOf` across separate ViewModels |
+| **Cross-screen sync** | Two cards observe the Counters screen's Counter 2 (key `"count2"`): one **without scope** (frozen at init value) and one **with scope** (updates in real-time when you tap "+" on the Counters tab). Proves the difference between isolated and synced `mutableStateOf` across separate ViewModels |
 
 ### Custom JSON Screen
 
@@ -142,10 +142,10 @@ Selects and persists the app-wide appearance:
 
 ## Code Examples from the Demo
 
-### Basic Encrypted State (StorageViewModel.kt)
+### Basic Encrypted State (CountersViewModel.kt)
 
 ```kotlin
-class StorageViewModel(
+class CountersViewModel(
     private val ksafe: KSafe,
 ) : BaseGlobalViewModel() {
 
@@ -162,13 +162,13 @@ class StorageViewModel(
         mode = KSafeWriteMode.Plain
     )
 
-    val state: State<StorageState> = derivedStateOf {
-        StorageState(count1 = count1, count2 = count2, count3 = count3)
+    val state: State<CountersState> = derivedStateOf {
+        CountersState(count1 = count1, count2 = count2, count3 = count3)
     }
 
-    fun onAction(intent: StorageIntent) {
+    fun onAction(intent: CountersIntent) {
         when (intent) {
-            StorageIntent.Increment -> increment()
+            CountersIntent.Increment -> increment()
             // ...
         }
     }
@@ -186,9 +186,9 @@ fun AppContent() {
 
     // Persisted across app restarts via KSafe — the bottom-tab selection
     // survives process death without any boilerplate. Compare with the
-    // pre-2.0 version that used `remember { mutableStateOf(AppRoute.Storage) }`,
+    // pre-2.0 version that used `remember { mutableStateOf(AppRoute.Counters) }`,
     // which only survived recomposition.
-    var currentRoute: AppRoute by ksafe.rememberKSafeState(AppRoute.Storage)
+    var currentRoute: AppRoute by ksafe.rememberKSafeState(AppRoute.Counters)
 
     NavigationRoot(
         selectedRoute = currentRoute,
@@ -410,9 +410,9 @@ class FlowDelegatesViewModel(private val ksafe: KSafe) : ViewModel() {
         viewModelScope.launch { ksafe.put("username", name) }
     }
 
-    // 3. Cross-screen sync — observes Storage screen's "count2" key
+    // 3. Cross-screen sync — observes Counters screen's "count2" key
     //    Without scope: frozen at init value
-    //    With scope: updates in real-time when Storage screen writes
+    //    With scope: updates in real-time when Counters screen writes
     var storageCountIsolated by ksafe.mutableStateOf(2000, key = "count2")
     var storageCountSynced by ksafe.mutableStateOf(2000, key = "count2", scope = viewModelScope)
 }
@@ -461,7 +461,7 @@ The demo includes an interactive test for the `requireUnlockedDevice` feature:
 
 ## Biometric Authentication
 
-The demo uses the standalone **`:ksafe-biometrics`** module from the KSafe library directly — no per-platform `expect/actual` wrapper in the demo itself. The module ships its own platform actuals (`BiometricPrompt` on Android, `LAContext` on iOS / macOS, no-op auto-success on JVM and Web), so the demo's `StorageViewModel.kt` calls a single common API:
+The demo uses the standalone **`:ksafe-biometrics`** module from the KSafe library directly — no per-platform `expect/actual` wrapper in the demo itself. The module ships its own platform actuals (`BiometricPrompt` on Android, `LAContext` on iOS / macOS, no-op auto-success on JVM and Web), so the demo's `CountersViewModel.kt` calls a single common API:
 
 ```kotlin
 import eu.anifantakis.lib.ksafe.biometrics.KSafeBiometrics
@@ -522,7 +522,9 @@ shared/src/
 │   ├── App.kt                              # Koin/theme/startup gate + persisted route
 │   ├── app/navigation/                     # Navigation3 routes, navigator and root
 │   ├── core/presentation/
-│   │   ├── design_system/                  # App* UI façade and theme tokens
+│   │   ├── design_system/
+│   │   │   └── components/                 # One App* component + light/dark preview per file
+│   │   │       └── content/                 # Reusable content cards, headers and status UI
 │   │   ├── global_state/                   # app-wide loading/snackbar state
 │   │   ├── helper/                         # StateFlow/effect Compose bridges
 │   │   └── scaffold/                       # shared application scaffold
@@ -534,9 +536,9 @@ shared/src/
 │   │   ├── BackgroundTask.kt               # expect for platform background tasks
 │   │   └── KSafeStartup.kt                 # expect cache-ready startup seam
 │   └── features/                           # package-per-feature boundary
-│       ├── storage/
+│       ├── counters/
 │       │   ├── domain/model/AuthInfo.kt
-│       │   └── presentation/screens/storage/   # Root + private Screen + MVI ViewModel
+│       │   └── presentation/screens/counters/  # Root + private Screen + MVI ViewModel
 │       ├── flows/presentation/screens/flow_delegates/
 │       ├── custom_json/
 │       │   ├── domain/model/UserProfile.kt

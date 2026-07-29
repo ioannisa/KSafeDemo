@@ -147,29 +147,33 @@ class FlowDelegatesViewModel(
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // 3. CROSS-SCREEN SYNC — real demo with the Storage screen
+    // 3. CROSS-SCREEN SYNC — real demo with the Counters screen
     //
-    //    The Storage screen (StorageViewModel) has:
+    //    The Counters screen (CountersViewModel) has:
     //      var count2 by ksafe.mutableStateOf(2000)  // key = "count2", NO scope
     //
     //    Here we observe the SAME key "count2" two ways:
     //      - without scope: reads once at init, stays stale
-    //      - with scope: live subscription, updates when Storage screen changes it
+    //      - with scope: live subscription, updates when Counters screen changes it
     //
-    //    DEMO: Go to Storage tab, tap "+", come back here.
+    //    DEMO: Go to Counters tab, tap "+", come back here.
     //    Only the synced value updates. The isolated one is frozen.
     // ═══════════════════════════════════════════════════════════════════════
 
-    // NO scope — reads "count2" from cache at init, won't see Storage screen's writes
+
+    // BEFORE ANY NEGATIVE COMMENTS - private set is not necessary as the var is scoped private
+    // but I keep it for educational reasons incase you were not following my MVI approach
+
+    // NO scope — reads "count2" from cache at init, won't see Counters screen's writes
     private var storageCountIsolated by ksafe.mutableStateOf(2000, key = "count2")
         private set
 
-    // WITH scope — observes "count2" via flow, updates when Storage screen increments it
+    // WITH scope — observes "count2" via flow, updates when Counters screen increments it
     private var storageCountSynced by ksafe.mutableStateOf(2000, key = "count2", scope = viewModelScope)
         private set
 
     /** Write to "count2" from THIS screen — proves cross-screen sync works both ways.
-     *  Uses kSafe.put() to simulate an external write (like the Storage screen does).
+     *  Uses kSafe.put() to simulate an external write (like the Counters screen does).
      *  The synced delegate picks it up via flow; the isolated one stays frozen. */
     private fun incrementFromFlowsScreen() {
         viewModelScope.launch {
@@ -194,7 +198,7 @@ class FlowDelegatesViewModel(
             ksafe.delete("moviesState")
             ksafe.delete("username")
             ksafe.delete("toggleMode")
-            // Note: we don't delete "count2" here — that belongs to the Storage screen.
+            // Note: we don't delete "count2" here — that belongs to the Counters screen.
             // The cross-screen demo reads it, not owns it.
         }
         _moviesState.value = MoviesListState()

@@ -3,6 +3,7 @@ package eu.anifantakis.ksafe_demo.core.presentation.scaffold
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -11,7 +12,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppLoadingIndicator
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
 import eu.anifantakis.ksafe_demo.core.presentation.global_state.GlobalEffect
 import eu.anifantakis.ksafe_demo.core.presentation.global_state.GlobalStateContainer
 import eu.anifantakis.ksafe_demo.core.presentation.helper.ObserveEffects
@@ -43,3 +49,27 @@ fun ApplicationScaffold(
     }
 }
 
+@PreviewLightDark
+@Composable
+private fun PreviewApplicationScaffold() {
+    AppPreview {
+        ApplicationScaffold(
+            bottomBar = {
+                AppText(
+                    text = "Bottom navigation",
+                    style = AppTextStyle.NAVIGATION_LABEL,
+                    modifier = Modifier.padding(UIConst.paddingRegular),
+                )
+            },
+            globalStateContainer = GlobalStateContainer(),
+        ) { padding ->
+            AppText(
+                text = "Application content",
+                style = AppTextStyle.BODY,
+                modifier = Modifier
+                    .padding(padding)
+                    .padding(UIConst.paddingRegular),
+            )
+        }
+    }
+}

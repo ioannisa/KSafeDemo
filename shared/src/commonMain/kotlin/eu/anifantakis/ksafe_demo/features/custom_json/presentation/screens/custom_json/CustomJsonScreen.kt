@@ -1,8 +1,6 @@
 package eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custom_json
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,32 +8,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
-import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppColor
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppButton
-import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppCard
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppDivider
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextField
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppCodeBlock
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppProfileCard
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppSectionHeader
 import eu.anifantakis.ksafe_demo.features.custom_json.domain.model.HexColor
 import eu.anifantakis.ksafe_demo.features.custom_json.domain.model.Timestamp
 import eu.anifantakis.ksafe_demo.features.custom_json.domain.model.UserProfile
@@ -80,15 +74,23 @@ private fun CustomJsonScreen(
         )
         AppDivider()
 
-        StepHeader("1. Define custom serializers")
-        CodeBlock(
+        AppSectionHeader(
+            text = "1. Define custom serializers",
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = AppTextStyle.STEP_TITLE,
+        )
+        AppCodeBlock(
             "object TimestampSerializer : KSerializer<Timestamp> {\n" +
                 "  override fun serialize(encoder: Encoder, value: Timestamp) =\n" +
                 "    encoder.encodeLong(value.epochMillis)\n" +
                 "}",
         )
-        StepHeader("2. Register serializers")
-        CodeBlock(
+        AppSectionHeader(
+            text = "2. Register serializers",
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = AppTextStyle.STEP_TITLE,
+        )
+        AppCodeBlock(
             "val customJson = Json {\n" +
                 "  serializersModule = SerializersModule {\n" +
                 "    contextual(TimestampSerializer)\n" +
@@ -96,10 +98,18 @@ private fun CustomJsonScreen(
                 "  }\n" +
                 "}",
         )
-        StepHeader("3. Pass it through KSafeConfig")
-        CodeBlock("val ksafe = KSafe(config = KSafeConfig(json = customJson))")
-        StepHeader("4. Use @Contextual fields")
-        CodeBlock(
+        AppSectionHeader(
+            text = "3. Pass it through KSafeConfig",
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = AppTextStyle.STEP_TITLE,
+        )
+        AppCodeBlock("val ksafe = KSafe(config = KSafeConfig(json = customJson))")
+        AppSectionHeader(
+            text = "4. Use @Contextual fields",
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = AppTextStyle.STEP_TITLE,
+        )
+        AppCodeBlock(
             "@Serializable\n" +
                 "data class UserProfile(\n" +
                 "  val name: String,\n" +
@@ -109,7 +119,11 @@ private fun CustomJsonScreen(
         )
 
         AppDivider()
-        StepHeader("Try It")
+        AppSectionHeader(
+            text = "Try It",
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = AppTextStyle.STEP_TITLE,
+        )
         AppTextField(
             value = state.nameInput,
             onValueChange = { onIntent(CustomJsonIntent.NameChanged(it)) },
@@ -139,75 +153,31 @@ private fun CustomJsonScreen(
         }
 
         AppDivider()
-        StepHeader("Stored Values (persisted across restarts)")
-        ProfileCard(label = "Encrypted", profile = state.profile)
-        ProfileCard(label = "Plain Text", profile = state.plainProfile)
+        AppSectionHeader(
+            text = "Stored Values (persisted across restarts)",
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = AppTextStyle.STEP_TITLE,
+        )
+        AppProfileCard(
+            label = "Encrypted",
+            name = state.profile.name,
+            createdAt = "${state.profile.createdAt.epochMillis} " +
+                "(${state.profile.createdAt.toReadableString()})",
+            favoriteColor = state.profile.favoriteColor.hex,
+            favoriteColorSwatch = parseHexColor(state.profile.favoriteColor.hex),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        AppProfileCard(
+            label = "Plain Text",
+            name = state.plainProfile.name,
+            createdAt = "${state.plainProfile.createdAt.epochMillis} " +
+                "(${state.plainProfile.createdAt.toReadableString()})",
+            favoriteColor = state.plainProfile.favoriteColor.hex,
+            favoriteColorSwatch = parseHexColor(state.plainProfile.favoriteColor.hex),
+            modifier = Modifier.fillMaxWidth(),
+        )
         Spacer(modifier = Modifier.height(UIConst.paddingRegular))
     }
-}
-
-@Composable
-private fun StepHeader(text: String) {
-    AppText(
-        text = text,
-        style = AppTextStyle.STEP_TITLE,
-        modifier = Modifier.fillMaxWidth(),
-        color = AppColor.Primary,
-        fontWeight = FontWeight.Bold,
-    )
-}
-
-@Composable
-private fun ProfileCard(
-    label: String,
-    profile: UserProfile,
-) {
-    AppCard(modifier = Modifier.fillMaxWidth(), bordered = true) {
-        Column(
-            modifier = Modifier
-                .padding(UIConst.paddingSmall)
-                .padding(horizontal = UIConst.screenHorizontalPadding),
-        ) {
-            AppText(label, AppTextStyle.CAPTION)
-            AppText("name: ${profile.name}", AppTextStyle.BODY)
-            AppText(
-                text = "createdAt: ${profile.createdAt.epochMillis} " +
-                    "(${profile.createdAt.toReadableString()})",
-                style = AppTextStyle.BODY,
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
-            ) {
-                AppText(
-                    text = "favoriteColor: ${profile.favoriteColor.hex}",
-                    style = AppTextStyle.BODY,
-                )
-                Box(
-                    modifier = Modifier
-                        .size(ColorSwatchSize)
-                        .clip(CircleShape)
-                        .background(parseHexColor(profile.favoriteColor.hex)),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CodeBlock(code: String) {
-    AppText(
-        text = code,
-        style = AppTextStyle.CODE,
-        color = AppColor.CodeText,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = AppColor.CodeBackground,
-                shape = RoundedCornerShape(UIConst.cornerRadius),
-            )
-            .padding(UIConst.paddingSmall),
-    )
 }
 
 private fun parseHexColor(hex: String): Color {
@@ -223,8 +193,6 @@ private fun parseHexColor(hex: String): Color {
         Color.Gray
     }
 }
-
-private val ColorSwatchSize = 14.dp
 
 @PreviewLightDark
 @Composable

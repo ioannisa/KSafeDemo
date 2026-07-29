@@ -14,7 +14,7 @@ class AppContractTest {
     @Test
     fun routesHaveStableUniqueTitles() {
         assertEquals(
-            expected = listOf("Storage", "Flows", "Custom JSON", "Security", "Preferences"),
+            expected = listOf("Counters", "Flows", "Custom JSON", "Security", "Preferences"),
             actual = AppRoute.entries.map(AppRoute::title),
         )
         assertEquals(

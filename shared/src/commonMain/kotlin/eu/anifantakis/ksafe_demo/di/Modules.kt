@@ -7,7 +7,7 @@ import eu.anifantakis.ksafe_demo.features.preferences.data.repository.ThemePrefe
 import eu.anifantakis.ksafe_demo.features.preferences.domain.repository.ThemePreferenceRepository
 import eu.anifantakis.ksafe_demo.features.preferences.presentation.screens.preferences.PreferencesViewModel
 import eu.anifantakis.ksafe_demo.features.security.presentation.screens.security.SecurityViewModel
-import eu.anifantakis.ksafe_demo.features.storage.presentation.screens.storage.StorageViewModel
+import eu.anifantakis.ksafe_demo.features.counters.presentation.screens.counters.CountersViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -28,7 +28,7 @@ val sharedModule = module {
         ThemePreferenceRepositoryImpl(get(preferencesKSafe))
     }
 
-    viewModelOf(::StorageViewModel)
+    viewModelOf(::CountersViewModel)
     viewModelOf(::FlowDelegatesViewModel)
     viewModelOf(::PreferencesViewModel)
 

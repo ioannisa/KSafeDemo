@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
 
 /**
@@ -18,6 +19,17 @@ internal fun AppPreview(content: @Composable () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,
             content = content,
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun PreviewAppPreview() {
+    AppPreview {
+        AppText(
+            text = "Preview surface",
+            style = AppTextStyle.BODY,
         )
     }
 }
