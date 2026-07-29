@@ -81,50 +81,63 @@ fun AppContent() {
     var currentRoute: AppRoute by ksafe.rememberKSafeState(AppRoute.Counters)
 
     LaunchedEffect(ksafe) {
-        val info = ksafe.protectionInfo
-        println(
-            "KSafe protection: " +
-                "intended=${info.intendedLevel} " +
-                "effective=${info.effectiveLevel} " +
-                "custody=\"${info.custody}\" " +
-                "notes=${info.notes}"
-        )
-
-        @Suppress("DEPRECATION")
-        suspend fun demo(key: String, value: String, requested: String, mode: KSafeWriteMode) {
-            ksafe.put(key, value, mode)
-            val keyInfo = ksafe.getKeyInfo(key)
-            println(
-                "KSafe per-key: key=$key " +
-                    "requested=$requested " +
-                    "achieved=${keyInfo?.level} " +
-                    "legacy.storage=${keyInfo?.storage}"
-            )
-            ksafe.delete(key)
-        }
-
-        demo(
-            key = "demo_plain_theme",
-            value = "dark",
-            requested = "Plain",
-            mode = KSafeWriteMode.Plain,
-        )
-        demo(
-            key = "demo_encrypted_token",
-            value = "abc-123",
-            requested = "Encrypted(DEFAULT)",
-            mode = KSafeWriteMode.Encrypted(),
-        )
-        demo(
-            key = "demo_hw_isolated_secret",
-            value = "supersecret",
-            requested = "Encrypted(HARDWARE_ISOLATED)",
-            mode = KSafeWriteMode.Encrypted(KSafeEncryptedProtection.HARDWARE_ISOLATED),
-        )
+        runKSafeProtectionDiagnostics(ksafe)
     }
 
     NavigationRoot(
         selectedRoute = currentRoute,
         onRouteSelected = { currentRoute = it },
     )
+}
+
+private suspend fun runKSafeProtectionDiagnostics(ksafe: KSafe) {
+    val info = ksafe.protectionInfo
+    println(
+        "KSafe protection: " +
+            "intended=${info.intendedLevel} " +
+            "effective=${info.effectiveLevel} " +
+            "custody=\"${info.custody}\" " +
+            "notes=${info.notes}"
+    )
+
+    logKSafeEntryProtection(
+        ksafe = ksafe,
+        key = "demo_plain_theme",
+        value = "dark",
+        requested = "Plain",
+        mode = KSafeWriteMode.Plain,
+    )
+    logKSafeEntryProtection(
+        ksafe = ksafe,
+        key = "demo_encrypted_token",
+        value = "abc-123",
+        requested = "Encrypted(DEFAULT)",
+        mode = KSafeWriteMode.Encrypted(),
+    )
+    logKSafeEntryProtection(
+        ksafe = ksafe,
+        key = "demo_hw_isolated_secret",
+        value = "supersecret",
+        requested = "Encrypted(HARDWARE_ISOLATED)",
+        mode = KSafeWriteMode.Encrypted(KSafeEncryptedProtection.HARDWARE_ISOLATED),
+    )
+}
+
+@Suppress("DEPRECATION")
+private suspend fun logKSafeEntryProtection(
+    ksafe: KSafe,
+    key: String,
+    value: String,
+    requested: String,
+    mode: KSafeWriteMode,
+) {
+    ksafe.put(key, value, mode)
+    val keyInfo = ksafe.getKeyInfo(key)
+    println(
+        "KSafe per-key: key=$key " +
+            "requested=$requested " +
+            "achieved=${keyInfo?.level} " +
+            "legacy.storage=${keyInfo?.storage}"
+    )
+    ksafe.delete(key)
 }
