@@ -33,6 +33,9 @@ import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppT
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppLabelCard
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppValueCard
 import eu.anifantakis.ksafe_demo.features.counters.domain.model.AuthInfo
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -70,19 +73,19 @@ private fun CountersScreen(
             verticalArrangement = Arrangement.spacedBy(UIConst.paddingExtraSmall),
         ) {
             AppText(
-                text = "mutableStateOf (no persistence)",
+                text = Strings[StringKey.COUNTERS_MUTABLE_STATE_NO_PERSISTENCE],
                 style = AppTextStyle.EYEBROW,
             )
             AppValueCard(
-                label = "Counter 1",
-                sublabel = "plain state — resets on restart",
+                label = Strings[StringKey.COUNTERS_COUNTER_1],
+                sublabel = Strings[StringKey.COUNTERS_PLAIN_STATE_RESETS],
                 value = state.count1.toString(),
                 modifier = Modifier.fillMaxWidth(0.5f),
             )
 
             Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
             AppText(
-                text = "ksafe.mutableStateOf (persisted)",
+                text = Strings[StringKey.COUNTERS_KSAFE_MUTABLE_STATE_PERSISTED],
                 style = AppTextStyle.EYEBROW,
             )
             Row(
@@ -92,38 +95,36 @@ private fun CountersScreen(
                 horizontalArrangement = Arrangement.spacedBy(UIConst.paddingCompact),
             ) {
                 AppValueCard(
-                    label = "Counter 2",
-                    sublabel = "encrypted — observed on Flows tab",
+                    label = Strings[StringKey.COUNTERS_COUNTER_2],
+                    sublabel = Strings[StringKey.COUNTERS_ENCRYPTED_OBSERVED_ON_FLOWS],
                     value = state.count2.toString(),
                     modifier = Modifier.weight(1f),
                 )
                 AppValueCard(
-                    label = "Counter 3",
-                    sublabel = "unencrypted",
+                    label = Strings[StringKey.COUNTERS_COUNTER_3],
+                    sublabel = Strings[StringKey.COUNTERS_UNENCRYPTED],
                     value = state.count3.toString(),
                     modifier = Modifier.weight(1f),
                 )
             }
             AppText(
-                text = "Counter 2 is also observed on the Flows tab. Tap \"+\" here, then check " +
-                    "Flows — the synced value updates in real-time.",
+                text = Strings[StringKey.COUNTERS_COUNTER_2_SYNC_DESCRIPTION],
                 style = AppTextStyle.SMALL,
                 color = AppColor.Primary,
             )
             AppText(
-                text = "If the Flows tab wrote to Counter 2, tap Refresh to see the latest value " +
-                    "(no scope = manual refresh needed).",
+                text = Strings[StringKey.COUNTERS_COUNTER_2_REFRESH_DESCRIPTION],
                 style = AppTextStyle.SMALL,
             )
             AppButton(
-                label = "Refresh Counter 2",
+                label = Strings[StringKey.COUNTERS_REFRESH_COUNTER_2],
                 onClick = { onIntent(CountersIntent.RefreshCount2) },
                 textStyle = AppTextStyle.ACTION_SMALL,
             )
 
             Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
             AppText(
-                text = "ksafe.asMutableStateFlow (persisted, reactive)",
+                text = Strings[StringKey.COUNTERS_MUTABLE_STATE_FLOW_PERSISTED],
                 style = AppTextStyle.EYEBROW,
             )
             Row(
@@ -133,28 +134,26 @@ private fun CountersScreen(
                 horizontalArrangement = Arrangement.spacedBy(UIConst.paddingCompact),
             ) {
                 AppValueCard(
-                    label = "Counter 2b",
-                    sublabel = "MutableStateFlow — no refresh needed",
+                    label = Strings[StringKey.COUNTERS_COUNTER_2B],
+                    sublabel = Strings[StringKey.COUNTERS_FLOW_NO_REFRESH],
                     value = state.count2b.toString(),
                     modifier = Modifier.weight(0.5f),
                 )
                 AppValueCard(
-                    label = "Counter 2c",
-                    sublabel = "MutableStateFlow — no refresh needed",
+                    label = Strings[StringKey.COUNTERS_COUNTER_2C],
+                    sublabel = Strings[StringKey.COUNTERS_FLOW_NO_REFRESH],
                     value = state.count2c.toString(),
                     modifier = Modifier.weight(0.5f),
                 )
             }
             AppText(
-                text = "Same storage, different shape: a MutableStateFlow instead of a Compose " +
-                    "State. It takes a scope, so it subscribes to its key and picks up outside " +
-                    "writes by itself — that is the button above that it doesn't need.",
+                text = Strings[StringKey.COUNTERS_FLOW_EXPLANATION],
                 style = AppTextStyle.SMALL,
             )
 
             Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
             AppText(
-                text = "ksafe.mutableStateOf — data class (persisted, encrypted)",
+                text = Strings[StringKey.COUNTERS_DATA_CLASS_PERSISTED],
                 style = AppTextStyle.EYEBROW,
             )
             AppLabelCard(
@@ -174,12 +173,13 @@ private fun CountersScreen(
                     textStyle = AppTextStyle.ACTION_LARGE,
                 )
                 AppButton(
-                    label = "Clear",
+                    label = Strings[StringKey.COMMON_CLEAR],
                     onClick = { showClearDialog = true },
                     textStyle = AppTextStyle.ACTION_LARGE,
                 )
                 AppButton(
-                    label = "Bio: ${state.bioCount}",
+                    label = Strings[StringKey.COUNTERS_BIOMETRIC_COUNT]
+                        .withArgs(listOf(state.bioCount)),
                     onClick = { onIntent(CountersIntent.BiometricIncrement) },
                     textStyle = AppTextStyle.ACTION_LARGE,
                 )
@@ -187,23 +187,25 @@ private fun CountersScreen(
 
             Spacer(modifier = Modifier.height(UIConst.paddingExtraSmall))
             AppText(
-                text = "Hardware-Secured Vault (StrongBox / Secure Enclave)",
+                text = Strings[StringKey.COUNTERS_HARDWARE_SECURED_VAULT],
                 style = AppTextStyle.EYEBROW,
             )
             AppLabelCard(
-                label = "Vault Token",
+                label = Strings[StringKey.COUNTERS_VAULT_TOKEN],
                 lines = persistentListOf(
-                    state.secureToken.ifEmpty { "No token stored" },
+                    state.secureToken.ifEmpty {
+                        Strings[StringKey.COUNTERS_NO_TOKEN_STORED]
+                    },
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
                 AppButton(
-                    label = "Generate Token",
+                    label = Strings[StringKey.COUNTERS_GENERATE_TOKEN],
                     onClick = { onIntent(CountersIntent.GenerateToken) },
                 )
                 AppButton(
-                    label = "Clear Vault",
+                    label = Strings[StringKey.COUNTERS_CLEAR_VAULT],
                     onClick = { onIntent(CountersIntent.ClearVault) },
                 )
             }
@@ -212,7 +214,8 @@ private fun CountersScreen(
 
             if (state.bioAuthRemaining > 0) {
                 AppText(
-                    text = "Bio auth window open — no prompt for ${state.bioAuthRemaining}s",
+                    text = Strings[StringKey.COUNTERS_BIO_AUTH_WINDOW]
+                        .withArgs(listOf(state.bioAuthRemaining)),
                     style = AppTextStyle.EYEBROW,
                     fontWeight = FontWeight.Bold,
                     color = AppColor.Success,
@@ -221,38 +224,43 @@ private fun CountersScreen(
 
             AppDivider(modifier = Modifier.padding(vertical = UIConst.paddingSmall))
             AppText(
-                text = "Key Rotation",
+                text = Strings[StringKey.COUNTERS_KEY_ROTATION],
                 style = AppTextStyle.SECTION_TITLE,
                 fontWeight = FontWeight.Bold,
             )
             AppText(
-                text = "Re-encrypts every encrypted entry under a fresh key generation and " +
-                    "drops the superseded keys. Whole-store — the values themselves never change, " +
-                    "so the counters above stay exactly as they are.",
+                text = Strings[StringKey.COUNTERS_KEY_ROTATION_DESCRIPTION],
                 style = AppTextStyle.SMALL,
             )
             AppButton(
-                label = if (state.isRotating) "Rotating..." else "Rotate Keys",
+                label = Strings[
+                    if (state.isRotating) {
+                        StringKey.COUNTERS_ROTATING
+                    } else {
+                        StringKey.COUNTERS_ROTATE_KEYS
+                    }
+                ],
                 onClick = { onIntent(CountersIntent.RotateKeys) },
                 enabled = !state.isRotating,
             )
 
             AppDivider(modifier = Modifier.padding(vertical = UIConst.paddingSmall))
             AppText(
-                text = "Lock-State Policy Test",
+                text = Strings[StringKey.COUNTERS_LOCK_STATE_POLICY_TEST],
                 style = AppTextStyle.SECTION_TITLE,
                 fontWeight = FontWeight.Bold,
             )
             AppText(
-                text = "Run from Home Screen, not Xcode, for accurate results",
+                text = Strings[StringKey.COUNTERS_LOCK_TEST_INSTRUCTIONS],
                 style = AppTextStyle.SMALL,
             )
             if (state.isLockTestRunning) {
                 AppText(
                     text = if (state.lockTestCountdown > 0) {
-                        "Lock your device now! Reading in ${state.lockTestCountdown}s..."
+                        Strings[StringKey.COUNTERS_LOCK_DEVICE_COUNTDOWN]
+                            .withArgs(listOf(state.lockTestCountdown))
                     } else {
-                        "Attempting encrypted read..."
+                        Strings[StringKey.COUNTERS_ATTEMPTING_ENCRYPTED_READ]
                     },
                     style = AppTextStyle.SECTION_TITLE,
                     fontWeight = FontWeight.Bold,
@@ -261,11 +269,11 @@ private fun CountersScreen(
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
                     AppButton(
-                        label = "Test Lock (Default)",
+                        label = Strings[StringKey.COUNTERS_TEST_LOCK_DEFAULT],
                         onClick = { onIntent(CountersIntent.StartLockTest(false)) },
                     )
                     AppButton(
-                        label = "Test Lock (Hardware)",
+                        label = Strings[StringKey.COUNTERS_TEST_LOCK_HARDWARE],
                         onClick = { onIntent(CountersIntent.StartLockTest(true)) },
                     )
                 }
@@ -275,33 +283,33 @@ private fun CountersScreen(
 
     state.lockTestResult?.let { result ->
         AppDialog(
-            title = "Lock Test Result",
-            text = result,
-            confirmLabel = "OK",
+            title = Strings[StringKey.COUNTERS_LOCK_TEST_RESULT],
+            text = result.asString(),
+            confirmLabel = Strings[StringKey.COMMON_OK],
             onConfirm = { onIntent(CountersIntent.DismissLockTestResult) },
             onDismiss = { onIntent(CountersIntent.DismissLockTestResult) },
         )
     }
     state.rotationResult?.let { result ->
         AppDialog(
-            title = "Key Rotation",
-            text = result,
-            confirmLabel = "OK",
+            title = Strings[StringKey.COUNTERS_KEY_ROTATION],
+            text = result.asString(),
+            confirmLabel = Strings[StringKey.COMMON_OK],
             onConfirm = { onIntent(CountersIntent.DismissRotationResult) },
             onDismiss = { onIntent(CountersIntent.DismissRotationResult) },
         )
     }
     if (showClearDialog) {
         AppDialog(
-            title = "Clear all values?",
-            text = "This will delete all stored keys and reset counters to their defaults.",
-            confirmLabel = "Clear",
+            title = Strings[StringKey.COUNTERS_CLEAR_ALL_TITLE],
+            text = Strings[StringKey.COUNTERS_CLEAR_ALL_DESCRIPTION],
+            confirmLabel = Strings[StringKey.COMMON_CLEAR],
             onConfirm = {
                 onIntent(CountersIntent.Clear)
                 showClearDialog = false
             },
             onDismiss = { showClearDialog = false },
-            dismissLabel = "Cancel",
+            dismissLabel = Strings[StringKey.COMMON_CANCEL],
         )
     }
 }

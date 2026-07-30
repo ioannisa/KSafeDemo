@@ -35,7 +35,8 @@ fun ApplicationScaffold(
 
     ObserveEffects(globalStateContainer.effects) { effect ->
         when (effect) {
-            is GlobalEffect.SnackbarMessage -> snackbarHostState.showSnackbar(effect.message)
+            is GlobalEffect.SnackbarMessage ->
+                snackbarHostState.showSnackbar(effect.message.resolve())
         }
     }
 

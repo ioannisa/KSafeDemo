@@ -33,6 +33,9 @@ import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.cont
 import eu.anifantakis.ksafe_demo.features.custom_json.domain.model.HexColor
 import eu.anifantakis.ksafe_demo.features.custom_json.domain.model.Timestamp
 import eu.anifantakis.ksafe_demo.features.custom_json.domain.model.UserProfile
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -64,18 +67,18 @@ private fun CustomJsonScreen(
         verticalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
     ) {
         AppText(
-            text = "Custom JSON Serialization",
+            text = Strings[StringKey.CUSTOM_JSON_TITLE],
             style = AppTextStyle.SCREEN_TITLE_COMPACT,
             fontWeight = FontWeight.Bold,
         )
         AppText(
-            text = "Store data classes with @Contextual fields that need custom serializers.",
+            text = Strings[StringKey.CUSTOM_JSON_SUBTITLE],
             style = AppTextStyle.CAPTION,
         )
         AppDivider()
 
         AppSectionHeader(
-            text = "1. Define custom serializers",
+            text = Strings[StringKey.CUSTOM_JSON_DEFINE_SERIALIZERS],
             modifier = Modifier.fillMaxWidth(),
             textStyle = AppTextStyle.STEP_TITLE,
         )
@@ -86,7 +89,7 @@ private fun CustomJsonScreen(
                 "}",
         )
         AppSectionHeader(
-            text = "2. Register serializers",
+            text = Strings[StringKey.CUSTOM_JSON_REGISTER_SERIALIZERS],
             modifier = Modifier.fillMaxWidth(),
             textStyle = AppTextStyle.STEP_TITLE,
         )
@@ -99,13 +102,13 @@ private fun CustomJsonScreen(
                 "}",
         )
         AppSectionHeader(
-            text = "3. Pass it through KSafeConfig",
+            text = Strings[StringKey.CUSTOM_JSON_PASS_THROUGH_CONFIG],
             modifier = Modifier.fillMaxWidth(),
             textStyle = AppTextStyle.STEP_TITLE,
         )
         AppCodeBlock("val ksafe = KSafe(config = KSafeConfig(json = customJson))")
         AppSectionHeader(
-            text = "4. Use @Contextual fields",
+            text = Strings[StringKey.CUSTOM_JSON_USE_CONTEXTUAL_FIELDS],
             modifier = Modifier.fillMaxWidth(),
             textStyle = AppTextStyle.STEP_TITLE,
         )
@@ -120,46 +123,47 @@ private fun CustomJsonScreen(
 
         AppDivider()
         AppSectionHeader(
-            text = "Try It",
+            text = Strings[StringKey.CUSTOM_JSON_TRY_IT],
             modifier = Modifier.fillMaxWidth(),
             textStyle = AppTextStyle.STEP_TITLE,
         )
         AppTextField(
             value = state.nameInput,
             onValueChange = { onIntent(CustomJsonIntent.NameChanged(it)) },
-            label = "Name",
+            label = Strings[StringKey.CUSTOM_JSON_NAME],
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
             AppButton(
-                label = "Save",
+                label = Strings[StringKey.COMMON_SAVE],
                 onClick = {
                     keyboardController?.hide()
                     onIntent(CustomJsonIntent.Save)
                 },
             )
             AppButton(
-                label = "Clear",
+                label = Strings[StringKey.COMMON_CLEAR],
                 onClick = { onIntent(CustomJsonIntent.Clear) },
             )
         }
         if (state.saveCount > 0) {
             AppText(
-                text = "Saved ${state.saveCount} time(s) — color cycles on each save",
+                text = Strings[StringKey.CUSTOM_JSON_SAVED_COUNT]
+                    .withArgs(listOf(state.saveCount)),
                 style = AppTextStyle.CAPTION,
             )
         }
 
         AppDivider()
         AppSectionHeader(
-            text = "Stored Values (persisted across restarts)",
+            text = Strings[StringKey.CUSTOM_JSON_STORED_VALUES],
             modifier = Modifier.fillMaxWidth(),
             textStyle = AppTextStyle.STEP_TITLE,
         )
         AppProfileCard(
-            label = "Encrypted",
+            label = Strings[StringKey.CUSTOM_JSON_ENCRYPTED],
             name = state.profile.name,
             createdAt = "${state.profile.createdAt.epochMillis} " +
                 "(${state.profile.createdAt.toReadableString()})",
@@ -168,7 +172,7 @@ private fun CustomJsonScreen(
             modifier = Modifier.fillMaxWidth(),
         )
         AppProfileCard(
-            label = "Plain Text",
+            label = Strings[StringKey.CUSTOM_JSON_PLAIN_TEXT],
             name = state.plainProfile.name,
             createdAt = "${state.plainProfile.createdAt.epochMillis} " +
                 "(${state.plainProfile.createdAt.toReadableString()})",

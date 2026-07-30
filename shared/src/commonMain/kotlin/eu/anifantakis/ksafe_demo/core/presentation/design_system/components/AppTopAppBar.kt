@@ -14,6 +14,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppDrawableRepo
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +40,7 @@ fun AppTopAppBar(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = AppDrawableRepo.back,
-                        contentDescription = "Back",
+                        contentDescription = Strings[StringKey.COMMON_BACK],
                     )
                 }
             }
@@ -47,7 +50,7 @@ fun AppTopAppBar(
                 IconButton(onClick = { isMenuExpanded = true }) {
                     Icon(
                         imageVector = AppDrawableRepo.appMenu,
-                        contentDescription = "Open application menu",
+                        contentDescription = Strings[StringKey.COMMON_OPEN_APPLICATION_MENU],
                     )
                 }
                 DropdownMenu(
@@ -57,7 +60,7 @@ fun AppTopAppBar(
                     DropdownMenuItem(
                         text = {
                             AppText(
-                                text = "Preferences",
+                                text = Strings[StringKey.COMMON_PREFERENCES],
                                 style = AppTextStyle.BODY,
                             )
                         },
@@ -75,7 +78,7 @@ fun AppTopAppBar(
                     DropdownMenuItem(
                         text = {
                             AppText(
-                                text = "About",
+                                text = Strings[StringKey.COMMON_ABOUT],
                                 style = AppTextStyle.BODY,
                             )
                         },
@@ -101,7 +104,7 @@ fun AppTopAppBar(
 private fun PreviewAppTopAppBar() {
     AppPreview {
         AppTopAppBar(
-            title = "Presenting KSafe 3.1.0",
+            title = Strings[StringKey.APP_PRESENTING_KSAFE].withArgs(listOf("3.1.0")),
             onPreferencesClick = {},
             onAboutClick = {},
         )

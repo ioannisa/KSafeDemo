@@ -26,6 +26,9 @@ import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppT
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTopAppBar
 import eu.anifantakis.ksafe_demo.core.presentation.scaffold.ApplicationScaffold
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
 import eu.anifantakis.ksafe_demo.features.about.presentation.screens.about.AboutScreenRoot
 import eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custom_json.CustomJsonScreenRoot
 import eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates.FlowDelegatesScreenRoot
@@ -56,7 +59,8 @@ fun NavigationRoot(
     ApplicationScaffold(
         topBar = {
             AppTopAppBar(
-                title = "Presenting KSafe ${kSafeInfo.kSafeVersion}",
+                title = Strings[StringKey.APP_PRESENTING_KSAFE]
+                    .withArgs(listOf(kSafeInfo.kSafeVersion)),
                 onPreferencesClick = { showPreferences = true },
                 onAboutClick = {
                     if (navigator.current() != AppRoute.About) {
@@ -77,7 +81,10 @@ fun NavigationRoot(
                                 navigator.resetTo(route)
                             },
                             label = {
-                                AppText(route.title, AppTextStyle.NAVIGATION_LABEL)
+                                AppText(
+                                    text = Strings[route.titleKey],
+                                    style = AppTextStyle.NAVIGATION_LABEL,
+                                )
                             },
                             icon = { },
                         )
@@ -126,7 +133,7 @@ fun NavigationRoot(
 
     if (showPreferences) {
         AppModalBottomSheet(
-            title = "Preferences",
+            title = Strings[StringKey.COMMON_PREFERENCES],
             onDismiss = { showPreferences = false },
         ) {
             PreferencesScreenRoot()

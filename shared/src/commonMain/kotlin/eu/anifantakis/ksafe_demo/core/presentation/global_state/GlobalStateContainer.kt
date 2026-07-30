@@ -1,5 +1,6 @@
 package eu.anifantakis.ksafe_demo.core.presentation.global_state
 
+import androidx.compose.runtime.Stable
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Stable
 class GlobalStateContainer {
     private val _state = MutableStateFlow(GlobalState())
     val state = _state.asStateFlow()
@@ -46,4 +48,3 @@ class GlobalStateContainer {
         }
     }
 }
-

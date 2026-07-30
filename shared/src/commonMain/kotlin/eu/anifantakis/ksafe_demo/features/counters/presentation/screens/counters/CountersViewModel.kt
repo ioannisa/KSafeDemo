@@ -9,6 +9,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import eu.anifantakis.ksafe_demo.core.presentation.global_state.BaseGlobalViewModel
 import eu.anifantakis.ksafe_demo.core.presentation.helper.toComposeState
+import eu.anifantakis.ksafe_demo.core.presentation.helper.UiText
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.localized
 import eu.anifantakis.lib.ksafe.KSafe
 import eu.anifantakis.lib.ksafe.asMutableStateFlow
 import eu.anifantakis.lib.ksafe.invoke
@@ -42,10 +45,10 @@ data class CountersState(
     val authInfo: AuthInfo = AuthInfo(),
     val secureToken: String = "",
     val lockTestCountdown: Int = -1,
-    val lockTestResult: String? = null,
+    val lockTestResult: UiText? = null,
     val isLockTestRunning: Boolean = false,
     val isRotating: Boolean = false,
-    val rotationResult: String? = null,
+    val rotationResult: UiText? = null,
 )
 
 sealed interface CountersIntent {
@@ -201,7 +204,7 @@ class CountersViewModel(
 
     private var isRotating by mutableStateOf(false)
 
-    private var rotationResult by mutableStateOf<String?>(null)
+    private var rotationResult by mutableStateOf<UiText?>(null)
 
     /**
      * Rotates the WHOLE store — `rotateKeys()` takes no key argument, because the master key
@@ -218,24 +221,26 @@ class CountersViewModel(
         viewModelScope.launch {
             try {
                 val result = ksafe.rotateKeys()
-                rotationResult = buildString {
-                    appendLine("Re-encrypted: ${result.rotated}")
-                    appendLine("Skipped:      ${result.skipped}")
-                    appendLine("Failed:       ${result.failed}")
-                    append("Key generation is now ${result.keyGeneration}")
-                    if (result.skipped > 0) {
-                        append(
-                            "\n\nSkipped entries were being written to, or are strict entries " +
-                                "on a locked device. They stay readable under their previous " +
-                                "key — rotate again to pick them up."
-                        )
-                    }
+                val resultKey = if (result.skipped > 0) {
+                    StringKey.COUNTERS_ROTATION_RESULT_WITH_SKIPPED
+                } else {
+                    StringKey.COUNTERS_ROTATION_RESULT
                 }
+                rotationResult = UiText.res(
+                    resultKey,
+                    result.rotated,
+                    result.skipped,
+                    result.failed,
+                    result.keyGeneration,
+                )
                 refreshKeyInfo()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                rotationResult = "Rotation failed:\n${e.message}"
+                rotationResult = UiText.res(
+                    StringKey.COUNTERS_ROTATION_FAILED,
+                    e.message.orEmpty(),
+                )
             } finally {
                 isRotating = false
             }
@@ -249,7 +254,7 @@ class CountersViewModel(
     // --- Lock Test Feature ---
     private var lockTestCountdown by mutableStateOf(-1)
 
-    private var lockTestResult by mutableStateOf<String?>(null)
+    private var lockTestResult by mutableStateOf<UiText?>(null)
 
     private var isLockTestRunning by mutableStateOf(false)
 
@@ -281,7 +286,7 @@ class CountersViewModel(
             println("DEBUG: biometricsAvailableDirect callback, available=$available")
 
             if (!available) {
-                showSnackbar("Biometrics unavailable — no fingerprint, face, or device lock is set up")
+                showSnackbar(StringKey.COUNTERS_BIOMETRICS_UNAVAILABLE)
                 return@biometricsAvailableDirect
             }
 
@@ -289,7 +294,7 @@ class CountersViewModel(
             // - Once authenticated, no new prompt for 6 seconds
             // - Scoped to this screen instance (new ViewModel = re-authenticate)
             KSafeBiometrics.verifyBiometricDirect(
-                reason = "Authenticate to save",
+                reason = StringKey.COUNTERS_AUTHENTICATE_TO_SAVE.localized(),
                 authorizationDuration = BiometricAuthorizationDuration(
                     duration = bioAuthDurationSeconds * 1000L,
                     scope = viewModelScope.hashCode().toString()
@@ -307,7 +312,7 @@ class CountersViewModel(
                 } else {
                     // Biometrics exist but the user cancelled or failed to match. Without
                     // this the button is silent here too — the same complaint, different cause.
-                    showSnackbar("Authentication failed or was cancelled")
+                    showSnackbar(StringKey.COUNTERS_AUTHENTICATION_FAILED)
                 }
             }
         }
@@ -430,7 +435,10 @@ class CountersViewModel(
                         )
                     )
                 } catch (e: Exception) {
-                    lockTestResult = "SETUP FAILED.\n\nCould not store test value: ${e.message}"
+                    lockTestResult = UiText.res(
+                        StringKey.COUNTERS_LOCK_SETUP_FAILED,
+                        e.message.orEmpty(),
+                    )
                     isLockTestRunning = false
                     return@withLockTestExecutionWindow
                 }
@@ -455,35 +463,22 @@ class CountersViewModel(
                     )
 
                     if (readBack == "pre-stored-while-unlocked") {
-                        val debuggerNote = if (hasDebugger) {
-                            "\n\nA debugger / debug build was detected. " +
-                                    "Xcode's debugger prevents iOS data protection from engaging — " +
-                                    "the Keychain stays unlocked while the debugger is connected.\n\n" +
-                                    "To test accurately:\n" +
-                                    "1. Build & run the app on your device\n" +
-                                    "2. Press Stop in Xcode\n" +
-                                    "3. Launch the app from the Home Screen\n" +
-                                    "4. Run this test again"
+                        lockTestResult = if (hasDebugger) {
+                            UiText.res(StringKey.COUNTERS_LOCK_READ_SUCCEEDED_WITH_DEBUGGER)
                         } else {
-                            ""
+                            UiText.res(StringKey.COUNTERS_LOCK_READ_SUCCEEDED)
                         }
-                        lockTestResult = "READ SUCCEEDED while locked.\n\n" +
-                                "The encrypted read was NOT blocked.\n\n" +
-                                "Note: requireUnlockedDevice is enforced on Android and Apple " +
-                                "only. JVM Desktop has no device-lock concept to key against, " +
-                                "and browsers have neither that nor a synchronous decrypt, so " +
-                                "KSafe drops the flag there rather than leave the value " +
-                                "write-only. On Web and Desktop this test therefore always " +
-                                "reads back — that is the documented behaviour, not a failure." +
-                                debuggerNote
                     } else {
-                        lockTestResult = "UNEXPECTED RESULT.\n\n" +
-                                "Read returned: \"$readBack\""
+                        lockTestResult = UiText.res(
+                            StringKey.COUNTERS_LOCK_UNEXPECTED_RESULT,
+                            readBack,
+                        )
                     }
                 } catch (e: Exception) {
-                    lockTestResult = "READ BLOCKED — feature works!\n\n" +
-                            "The encrypted read failed while the device was locked:\n${e.message}\n\n" +
-                            "This confirms requireUnlockedDevice is working correctly."
+                    lockTestResult = UiText.res(
+                        StringKey.COUNTERS_LOCK_READ_BLOCKED,
+                        e.message.orEmpty(),
+                    )
                 } finally {
                     // Clean up the test key
                     try { ksafe.delete(testKey) } catch (_: Exception) { }

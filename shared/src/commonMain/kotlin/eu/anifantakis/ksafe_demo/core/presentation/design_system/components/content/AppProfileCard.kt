@@ -20,6 +20,9 @@ import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppC
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
 
 @Composable
 fun AppProfileCard(
@@ -37,13 +40,23 @@ fun AppProfileCard(
                 .padding(horizontal = UIConst.screenHorizontalPadding),
         ) {
             AppText(label, AppTextStyle.CAPTION)
-            AppText("name: $name", AppTextStyle.BODY)
-            AppText("createdAt: $createdAt", AppTextStyle.BODY)
+            AppText(
+                Strings[StringKey.CUSTOM_JSON_PROFILE_NAME].withArgs(listOf(name)),
+                AppTextStyle.BODY,
+            )
+            AppText(
+                Strings[StringKey.CUSTOM_JSON_PROFILE_CREATED_AT].withArgs(listOf(createdAt)),
+                AppTextStyle.BODY,
+            )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
             ) {
-                AppText("favoriteColor: $favoriteColor", AppTextStyle.BODY)
+                AppText(
+                    Strings[StringKey.CUSTOM_JSON_PROFILE_FAVORITE_COLOR]
+                        .withArgs(listOf(favoriteColor)),
+                    AppTextStyle.BODY,
+                )
                 Box(
                     modifier = Modifier
                         .size(UIConst.colorSwatchSize)

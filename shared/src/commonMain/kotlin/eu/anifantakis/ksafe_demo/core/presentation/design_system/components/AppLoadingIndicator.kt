@@ -14,6 +14,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
 
 @Composable
 fun AppLoadingIndicator(
@@ -21,13 +23,14 @@ fun AppLoadingIndicator(
     modifier: Modifier = Modifier,
 ) {
     if (!isLoading) return
+    val processingDescription = Strings[StringKey.COMMON_PROCESSING]
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.24f))
             .pointerInput(Unit) { detectTapGestures { } }
-            .semantics { contentDescription = "Processing" },
+            .semantics { contentDescription = processingDescription },
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)

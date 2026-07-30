@@ -1,5 +1,7 @@
 package eu.anifantakis.ksafe_demo.di
 
+import eu.anifantakis.ksafe_demo.core.data.preferences.KSafeAppLanguageStore
+import eu.anifantakis.ksafe_demo.core.domain.preferences.AppLanguageStore
 import eu.anifantakis.ksafe_demo.core.presentation.global_state.GlobalStateContainer
 import eu.anifantakis.ksafe_demo.features.about.presentation.screens.about.AboutViewModel
 import eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custom_json.CustomJsonViewModel
@@ -25,6 +27,9 @@ val preferencesKSafe = named("preferencesKSafe")
 
 val sharedModule = module {
     single { GlobalStateContainer() }
+    single<AppLanguageStore> {
+        KSafeAppLanguageStore(get(preferencesKSafe))
+    }
     single<ThemePreferenceRepository> {
         ThemePreferenceRepositoryImpl(get(preferencesKSafe))
     }

@@ -7,6 +7,8 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.lifecycle.viewModelScope
 import eu.anifantakis.ksafe_demo.core.presentation.global_state.BaseGlobalViewModel
 import eu.anifantakis.ksafe_demo.core.presentation.helper.toComposeState
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.localized
 import eu.anifantakis.lib.ksafe.KSafe
 import eu.anifantakis.lib.ksafe.asFlow
 import eu.anifantakis.lib.ksafe.asMutableStateFlow
@@ -36,9 +38,9 @@ data class MoviesListState(
 @Immutable
 data class FlowDelegatesState(
     val movies: MoviesListState = MoviesListState(),
-    val username: String = "Guest",
+    val username: String = "",
     val toggleMode: Boolean = false,
-    val toggleLabel: String = "Off Mode",
+    val toggleLabelKey: StringKey = StringKey.FLOWS_OFF_MODE,
     val storageCountIsolated: Int = 2000,
     val storageCountSynced: Int = 2000,
 )
@@ -124,16 +126,26 @@ class FlowDelegatesViewModel(
     //    publicly as a read-only StateFlow.
     // ═══════════════════════════════════════════════════════════════════════
 
-    private val _username: MutableStateFlow<String> by ksafe.asMutableStateFlow("Guest", viewModelScope, key = "username")
+    private val _username: MutableStateFlow<String> by ksafe.asMutableStateFlow(
+        StringKey.FLOWS_DEFAULT_USERNAME.localized(),
+        viewModelScope,
+        key = "username",
+    )
     private val username: StateFlow<String> get() = _username
 
     // Cold — only active when collected, great for transformations
     private val toggleMode: Flow<Boolean> by ksafe.asFlow(defaultValue = false)
 
     // Cold flow transformed into a derived StateFlow — real-world pattern
-    private val toggleLabel: StateFlow<String> = toggleMode
-        .map { isOn -> if (isOn) "On Mode" else "Off Mode" }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Light Mode")
+    private val toggleLabel: StateFlow<StringKey> = toggleMode
+        .map { isOn ->
+            if (isOn) StringKey.FLOWS_ON_MODE else StringKey.FLOWS_OFF_MODE
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            StringKey.FLOWS_OFF_MODE,
+        )
 
     private fun onNameChanged(name: String) {
         _username.update { name }
@@ -218,7 +230,7 @@ class FlowDelegatesViewModel(
             movies = moviesComposeState.value,
             username = usernameComposeState.value,
             toggleMode = toggleModeState.value,
-            toggleLabel = toggleLabelComposeState.value,
+            toggleLabelKey = toggleLabelComposeState.value,
             storageCountIsolated = storageCountIsolated,
             storageCountSynced = storageCountSynced,
         )

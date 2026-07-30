@@ -10,7 +10,10 @@ import androidx.compose.runtime.setValue
 import eu.anifantakis.ksafe_demo.app.navigation.AppRoute
 import eu.anifantakis.ksafe_demo.app.navigation.NavigationRoot
 import eu.anifantakis.ksafe_demo.core.data.persistence.awaitKSafeCachesReady
+import eu.anifantakis.ksafe_demo.core.domain.preferences.AppLanguageStore
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.LocalizationManager
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.LocalizationProvider
 import eu.anifantakis.ksafe_demo.di.createKoinConfiguration
 import eu.anifantakis.ksafe_demo.di.customJsonKSafe
 import eu.anifantakis.ksafe_demo.di.preferencesKSafe
@@ -60,6 +63,7 @@ private fun KSafeReadyAppContent() {
 @Composable
 private fun ThemeAwareAppContent(
     themePreferenceRepository: ThemePreferenceRepository = koinInject(),
+    appLanguageStore: AppLanguageStore = koinInject(),
 ) {
     val themeMode: ThemeMode? by produceState<ThemeMode?>(
         initialValue = null,
@@ -67,10 +71,22 @@ private fun ThemeAwareAppContent(
     ) {
         themePreferenceRepository.themeMode.collect { value = it }
     }
+    var localizationReady by remember(appLanguageStore) { mutableStateOf(false) }
 
-    themeMode?.let { resolvedThemeMode ->
-        KSafeDemoTheme(themeMode = resolvedThemeMode) {
-            AppContent()
+    LaunchedEffect(appLanguageStore) {
+        LocalizationManager.setLanguage(
+            LocalizationManager.resolveStartup(appLanguageStore.languageCode),
+        )
+        localizationReady = true
+    }
+
+    if (localizationReady) {
+        themeMode?.let { resolvedThemeMode ->
+            LocalizationProvider {
+                KSafeDemoTheme(themeMode = resolvedThemeMode) {
+                    AppContent()
+                }
+            }
         }
     }
 }

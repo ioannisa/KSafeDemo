@@ -19,6 +19,9 @@ import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppP
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppTextStyle
 import eu.anifantakis.ksafe_demo.core.presentation.helper.ObserveEffects
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -55,18 +58,17 @@ private fun AboutScreen(
         verticalArrangement = Arrangement.spacedBy(UIConst.paddingRegular),
     ) {
         AppText(
-            text = "About",
+            text = Strings[StringKey.ABOUT_TITLE],
             style = AppTextStyle.SCREEN_TITLE,
             fontWeight = FontWeight.Bold,
         )
         AppText(
-            text = "KSafe ${state.kSafeVersion}",
+            text = Strings[StringKey.ABOUT_KSAFE_VERSION].withArgs(listOf(state.kSafeVersion)),
             style = AppTextStyle.SECTION_HEADING,
             fontWeight = FontWeight.Bold,
         )
         AppText(
-            text = "A Kotlin Multiplatform library for secure, encrypted persistence backed " +
-                "by the platform Keystore or Keychain.",
+            text = Strings[StringKey.ABOUT_DESCRIPTION],
             style = AppTextStyle.BODY,
         )
 
@@ -79,7 +81,7 @@ private fun AboutScreen(
                 verticalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
             ) {
                 AppText(
-                    text = "Developer",
+                    text = Strings[StringKey.ABOUT_DEVELOPER],
                     style = AppTextStyle.SECTION_TITLE,
                     fontWeight = FontWeight.Bold,
                 )
@@ -87,21 +89,21 @@ private fun AboutScreen(
                 AppText(state.developerEmail, AppTextStyle.CAPTION)
                 AppText(state.developerWebsite, AppTextStyle.CAPTION)
                 AppButton(
-                    label = "Personal website",
+                    label = Strings[StringKey.ABOUT_PERSONAL_WEBSITE],
                     onClick = {
                         onIntent(AboutIntent.OpenLink(state.developerWebsite))
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 AppButton(
-                    label = "Email",
+                    label = Strings[StringKey.COMMON_EMAIL],
                     onClick = {
                         onIntent(AboutIntent.OpenLink("mailto:${state.developerEmail}"))
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 AppButton(
-                    label = "GitHub profile",
+                    label = Strings[StringKey.ABOUT_GITHUB_PROFILE],
                     onClick = {
                         onIntent(AboutIntent.OpenLink(state.developerGitHub))
                     },
@@ -119,31 +121,31 @@ private fun AboutScreen(
                 verticalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
             ) {
                 AppText(
-                    text = "Projects",
+                    text = Strings[StringKey.ABOUT_PROJECTS],
                     style = AppTextStyle.SECTION_TITLE,
                     fontWeight = FontWeight.Bold,
                 )
                 AppText(
-                    text = "KSafe library",
+                    text = Strings[StringKey.ABOUT_KSAFE_LIBRARY],
                     style = AppTextStyle.BODY,
                     fontWeight = FontWeight.Bold,
                 )
                 AppText(state.kSafeRepository, AppTextStyle.CAPTION)
                 AppButton(
-                    label = "Open KSafe repository",
+                    label = Strings[StringKey.ABOUT_OPEN_KSAFE_REPOSITORY],
                     onClick = {
                         onIntent(AboutIntent.OpenLink(state.kSafeRepository))
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 AppText(
-                    text = "KSafeDemo application",
+                    text = Strings[StringKey.ABOUT_KSAFE_DEMO_APPLICATION],
                     style = AppTextStyle.BODY,
                     fontWeight = FontWeight.Bold,
                 )
                 AppText(state.kSafeDemoRepository, AppTextStyle.CAPTION)
                 AppButton(
-                    label = "Open KSafeDemo repository",
+                    label = Strings[StringKey.ABOUT_OPEN_KSAFE_DEMO_REPOSITORY],
                     onClick = {
                         onIntent(AboutIntent.OpenLink(state.kSafeDemoRepository))
                     },

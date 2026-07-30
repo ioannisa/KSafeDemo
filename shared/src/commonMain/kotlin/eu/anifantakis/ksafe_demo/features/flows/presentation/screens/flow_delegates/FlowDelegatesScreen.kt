@@ -30,6 +30,9 @@ import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.cont
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppSectionDivider
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppSectionHeader
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.content.AppValueCard
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -59,16 +62,16 @@ private fun FlowDelegatesScreen(
         verticalArrangement = Arrangement.spacedBy(UIConst.paddingCompact),
     ) {
         AppText(
-            text = "Flow Delegates (1.8.0+)",
+            text = Strings[StringKey.FLOWS_TITLE],
             style = AppTextStyle.SCREEN_TITLE,
             fontWeight = FontWeight.Bold,
         )
         AppText(
-            text = "MutableStateFlow + encryption + persistence",
+            text = Strings[StringKey.FLOWS_SUBTITLE],
             style = AppTextStyle.CAPTION,
         )
 
-        AppSectionHeader("asMutableStateFlow — drop-in MutableStateFlow")
+        AppSectionHeader(Strings[StringKey.FLOWS_MUTABLE_STATE_FLOW_SECTION])
         AppCodeBlock(
             "// Standard: private val _state = MutableStateFlow(MoviesListState())\n" +
                 "// KSafe: private val _state by kSafe.asMutableStateFlow(...)\n" +
@@ -83,7 +86,7 @@ private fun FlowDelegatesScreen(
         ) {
             Column(modifier = Modifier.padding(UIConst.paddingSmall)) {
                 AppText(
-                    text = "MoviesListState (persisted + encrypted)",
+                    text = Strings[StringKey.FLOWS_MOVIES_STATE],
                     style = AppTextStyle.CAPTION,
                 )
                 Spacer(Modifier.height(UIConst.paddingExtraSmall))
@@ -94,13 +97,17 @@ private fun FlowDelegatesScreen(
                             horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
                         ) {
                             AppProgressIndicator()
-                            AppText("Loading movies...", AppTextStyle.BODY)
+                            AppText(
+                                Strings[StringKey.FLOWS_LOADING_MOVIES],
+                                AppTextStyle.BODY,
+                            )
                         }
                     }
 
                     state.movies.error != null -> {
                         AppText(
-                            text = "Error: ${state.movies.error}",
+                            text = Strings[StringKey.FLOWS_ERROR]
+                                .withArgs(listOf(state.movies.error)),
                             style = AppTextStyle.BODY,
                             color = AppColor.Error,
                         )
@@ -112,23 +119,26 @@ private fun FlowDelegatesScreen(
                         }
                     }
 
-                    else -> AppText("No movies loaded", AppTextStyle.CAPTION)
+                    else -> AppText(
+                        Strings[StringKey.FLOWS_NO_MOVIES_LOADED],
+                        AppTextStyle.CAPTION,
+                    )
                 }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
             AppButton(
-                label = "Load Movies",
+                label = Strings[StringKey.FLOWS_LOAD_MOVIES],
                 onClick = { onIntent(FlowDelegatesIntent.LoadMovies) },
             )
             AppButton(
-                label = "Clear",
+                label = Strings[StringKey.COMMON_CLEAR],
                 onClick = { onIntent(FlowDelegatesIntent.ClearMovies) },
             )
         }
 
         AppSectionDivider()
-        AppSectionHeader("asFlow & two-way binding")
+        AppSectionHeader(Strings[StringKey.FLOWS_AS_FLOW_SECTION])
         AppCodeBlock(
             "private val _username by kSafe.asMutableStateFlow(\"Guest\", scope)\n" +
                 "val toggleMode: Flow<Boolean> by kSafe.asFlow(false)\n" +
@@ -138,7 +148,7 @@ private fun FlowDelegatesScreen(
         AppTextField(
             value = state.username,
             onValueChange = { onIntent(FlowDelegatesIntent.NameChanged(it)) },
-            label = "Username (asMutableStateFlow)",
+            label = Strings[StringKey.FLOWS_USERNAME],
             modifier = Modifier.fillMaxWidth(),
         )
         Row(
@@ -147,9 +157,13 @@ private fun FlowDelegatesScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column {
-                AppText("Toggle Some Value (asFlow)", AppTextStyle.BODY)
                 AppText(
-                    text = "Derived: ${state.toggleLabel}",
+                    Strings[StringKey.FLOWS_TOGGLE_VALUE],
+                    AppTextStyle.BODY,
+                )
+                AppText(
+                    text = Strings[StringKey.FLOWS_DERIVED_VALUE]
+                        .withArgs(listOf(Strings[state.toggleLabelKey])),
                     style = AppTextStyle.CAPTION,
                     color = if (state.toggleMode) AppColor.Success else AppColor.Error,
                     fontWeight = FontWeight.Bold,
@@ -162,7 +176,7 @@ private fun FlowDelegatesScreen(
         }
 
         AppSectionDivider()
-        AppSectionHeader("mutableStateOf(scope) — cross-screen sync")
+        AppSectionHeader(Strings[StringKey.FLOWS_SCOPE_SYNC_SECTION])
         AppCodeBlock(
             "// CountersViewModel owns key \"count2\"\n" +
                 "var isolated by kSafe.mutableStateOf(2000, key = \"count2\")\n" +
@@ -174,28 +188,28 @@ private fun FlowDelegatesScreen(
             horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
         ) {
             AppValueCard(
-                label = "isolated (no scope)",
+                label = Strings[StringKey.FLOWS_ISOLATED_NO_SCOPE],
                 value = state.storageCountIsolated.toString(),
                 modifier = Modifier.weight(1f),
             )
             AppValueCard(
-                label = "synced (with scope)",
+                label = Strings[StringKey.FLOWS_SYNCED_WITH_SCOPE],
                 value = state.storageCountSynced.toString(),
                 modifier = Modifier.weight(1f),
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
             AppButton(
-                label = "+1 from this screen",
+                label = Strings[StringKey.FLOWS_INCREMENT_FROM_SCREEN],
                 onClick = { onIntent(FlowDelegatesIntent.IncrementStorageCounter) },
             )
             AppButton(
-                label = "Refresh isolated",
+                label = Strings[StringKey.FLOWS_REFRESH_ISOLATED],
                 onClick = { onIntent(FlowDelegatesIntent.RefreshIsolated) },
             )
         }
         AppText(
-            text = "The scoped value updates in real time; the isolated value needs a manual refresh.",
+            text = Strings[StringKey.FLOWS_SYNC_EXPLANATION],
             style = AppTextStyle.SMALL,
             color = AppColor.Primary,
             fontWeight = FontWeight.Bold,
@@ -203,7 +217,7 @@ private fun FlowDelegatesScreen(
 
         AppSectionDivider()
         AppButton(
-            label = "Clear All Flow Demos",
+            label = Strings[StringKey.FLOWS_CLEAR_ALL],
             onClick = { onIntent(FlowDelegatesIntent.ClearAll) },
         )
     }

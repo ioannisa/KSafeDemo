@@ -1,6 +1,7 @@
 package eu.anifantakis.ksafe_demo
 
 import eu.anifantakis.ksafe_demo.app.navigation.AppRoute
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.resolveDarkTheme
 import eu.anifantakis.ksafe_demo.features.custom_json.data.serialization.customJsonForKSafe
 import eu.anifantakis.ksafe_demo.features.custom_json.domain.model.HexColor
@@ -13,10 +14,15 @@ import kotlin.test.assertFalse
 
 class AppContractTest {
     @Test
-    fun routesHaveStableUniqueTitles() {
+    fun routesHaveStableUniqueTitleKeys() {
         assertEquals(
-            expected = listOf("Counters", "Flows", "Custom JSON", "Security"),
-            actual = AppRoute.bottomNavigationEntries.map(AppRoute::title),
+            expected = listOf(
+                StringKey.NAV_COUNTERS,
+                StringKey.NAV_FLOWS,
+                StringKey.NAV_CUSTOM_JSON,
+                StringKey.NAV_SECURITY,
+            ),
+            actual = AppRoute.bottomNavigationEntries.map(AppRoute::titleKey),
         )
         assertEquals(
             expected = AppRoute.bottomNavigationEntries.size,

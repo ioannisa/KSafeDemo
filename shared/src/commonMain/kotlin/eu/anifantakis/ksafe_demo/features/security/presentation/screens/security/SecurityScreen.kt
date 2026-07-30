@@ -30,6 +30,9 @@ import eu.anifantakis.lib.ksafe.KSafeProtectionInfo
 import eu.anifantakis.lib.ksafe.KSafeProtectionLevel
 import eu.anifantakis.lib.ksafe.SecurityViolation
 import eu.anifantakis.lib.ksafe.compose.UiSecurityViolation
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
+import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -61,14 +64,28 @@ private fun SecurityScreen(
                 AppTheme.colors.hardwareIsolatedBackground to AppTheme.colors.hardwareIsolatedAccent
         }
     val protectionDetails = persistentListOf(
-        AppLabelValue("Intended", protectionInfo.intendedLevel.name),
-        AppLabelValue("Effective", protectionInfo.effectiveLevel.name),
-        AppLabelValue("Custody", protectionInfo.custody),
+        AppLabelValue(
+            Strings[StringKey.SECURITY_INTENDED],
+            protectionInfo.intendedLevel.name,
+        ),
+        AppLabelValue(
+            Strings[StringKey.SECURITY_EFFECTIVE],
+            protectionInfo.effectiveLevel.name,
+        ),
+        AppLabelValue(
+            Strings[StringKey.SECURITY_CUSTODY],
+            protectionInfo.custody,
+        ),
     ).let { details ->
         if (protectionInfo.notes.isEmpty()) {
             details
         } else {
-            details.adding(AppLabelValue("Notes", protectionInfo.notes.joinToString()))
+            details.adding(
+                AppLabelValue(
+                    Strings[StringKey.SECURITY_NOTES],
+                    protectionInfo.notes.joinToString(),
+                ),
+            )
         }
     }
 
@@ -81,20 +98,21 @@ private fun SecurityScreen(
         verticalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
     ) {
         AppText(
-            text = "Security Status",
+            text = Strings[StringKey.SECURITY_TITLE],
             style = AppTextStyle.SCREEN_TITLE_LARGE,
             fontWeight = FontWeight.Bold,
         )
         AppText(
-            text = "KSafe security policy and key-custody demo",
+            text = Strings[StringKey.SECURITY_SUBTITLE],
             style = AppTextStyle.BODY,
         )
 
         AppStatusBanner(
             text = if (state.violations.isEmpty()) {
-                "Secure Environment"
+                Strings[StringKey.SECURITY_SECURE_ENVIRONMENT]
             } else {
-                "${state.violations.size} Warning(s) Detected"
+                Strings[StringKey.SECURITY_WARNINGS_DETECTED]
+                    .withArgs(listOf(state.violations.size))
             },
             contentColor = if (state.violations.isEmpty()) AppColor.Success else AppColor.Error,
             containerColor = if (state.violations.isEmpty()) {
@@ -106,7 +124,7 @@ private fun SecurityScreen(
         )
 
         AppText(
-            text = "Key Protection",
+            text = Strings[StringKey.SECURITY_KEY_PROTECTION],
             style = AppTextStyle.SECTION_HEADING,
             modifier = Modifier.fillMaxWidth(),
             fontWeight = FontWeight.Bold,
@@ -117,24 +135,25 @@ private fun SecurityScreen(
             containerColor = protectionContainerColor,
             details = protectionDetails,
             subtitle = if (protectionDegraded) {
-                "Degraded from ${protectionInfo.intendedLevel.name}"
+                Strings[StringKey.SECURITY_DEGRADED_FROM]
+                    .withArgs(listOf(protectionInfo.intendedLevel.name))
             } else {
                 null
             },
             modifier = Modifier.fillMaxWidth(),
         )
         AppButton(
-            label = "Refresh Security Status",
+            label = Strings[StringKey.SECURITY_REFRESH_STATUS],
             onClick = { onIntent(SecurityIntent.Refresh) },
         )
         AppText(
-            text = "Protection info is live and can change after key rotation or recovery.",
+            text = Strings[StringKey.SECURITY_LIVE_INFO],
             style = AppTextStyle.SMALL,
         )
 
         Spacer(modifier = Modifier.height(UIConst.paddingSmall))
         AppText(
-            text = "Security Checks",
+            text = Strings[StringKey.SECURITY_CHECKS],
             style = AppTextStyle.SECTION_HEADING,
             modifier = Modifier.fillMaxWidth(),
             fontWeight = FontWeight.Bold,
@@ -142,9 +161,11 @@ private fun SecurityScreen(
         allViolationTypes.forEach { violationType ->
             val isViolated = state.violations.any { it.violation == violationType }
             AppStatusCard(
-                title = violationTitle(violationType),
-                status = if (isViolated) "WARNING" else "OK",
-                description = violationDescription(violationType),
+                title = Strings[violationTitleKey(violationType)],
+                status = Strings[
+                    if (isViolated) StringKey.SECURITY_WARNING else StringKey.SECURITY_OK
+                ],
+                description = Strings[violationDescriptionKey(violationType)],
                 accentColor = if (isViolated) AppColor.Warning else AppColor.Success,
                 containerColor = if (isViolated) AppColor.WarningBackground else AppColor.Surface,
                 modifier = Modifier.fillMaxWidth(),
@@ -157,14 +178,13 @@ private fun SecurityScreen(
         ) {
             Column(modifier = Modifier.padding(UIConst.paddingRegular)) {
                 AppText(
-                    text = "Current Policy: WarnOnly",
+                    text = Strings[StringKey.SECURITY_CURRENT_POLICY]
+                        .withArgs(listOf("WarnOnly")),
                     style = AppTextStyle.SECTION_TITLE,
                     fontWeight = FontWeight.Bold,
                 )
                 AppText(
-                    text = "The demo reports security issues without blocking functionality. " +
-                        "Production apps handling sensitive data should choose a policy based " +
-                        "on their threat model.",
+                    text = Strings[StringKey.SECURITY_POLICY_DESCRIPTION],
                     style = AppTextStyle.BODY,
                 )
             }
@@ -179,25 +199,18 @@ private val allViolationTypes = listOf(
     SecurityViolation.Emulator,
 )
 
-private fun violationTitle(violation: SecurityViolation): String = when (violation) {
-    SecurityViolation.RootedDevice -> "Root/Jailbreak Detection"
-    SecurityViolation.DebuggerAttached -> "Debugger Detection"
-    SecurityViolation.DebugBuild -> "Debug Build Detection"
-    SecurityViolation.Emulator -> "Emulator Detection"
+private fun violationTitleKey(violation: SecurityViolation): StringKey = when (violation) {
+    SecurityViolation.RootedDevice -> StringKey.SECURITY_ROOTED_TITLE
+    SecurityViolation.DebuggerAttached -> StringKey.SECURITY_DEBUGGER_TITLE
+    SecurityViolation.DebugBuild -> StringKey.SECURITY_DEBUG_BUILD_TITLE
+    SecurityViolation.Emulator -> StringKey.SECURITY_EMULATOR_TITLE
 }
 
-private fun violationDescription(violation: SecurityViolation): String = when (violation) {
-    SecurityViolation.RootedDevice ->
-        "The device is rooted or jailbroken, which can weaken application sandboxing."
-
-    SecurityViolation.DebuggerAttached ->
-        "A debugger can inspect runtime memory, including values while they are decrypted."
-
-    SecurityViolation.DebugBuild ->
-        "Debug builds may expose more information and use weaker operational controls."
-
-    SecurityViolation.Emulator ->
-        "Emulators and simulators do not provide the same hardware-backed guarantees as devices."
+private fun violationDescriptionKey(violation: SecurityViolation): StringKey = when (violation) {
+    SecurityViolation.RootedDevice -> StringKey.SECURITY_ROOTED_DESCRIPTION
+    SecurityViolation.DebuggerAttached -> StringKey.SECURITY_DEBUGGER_DESCRIPTION
+    SecurityViolation.DebugBuild -> StringKey.SECURITY_DEBUG_BUILD_DESCRIPTION
+    SecurityViolation.Emulator -> StringKey.SECURITY_EMULATOR_DESCRIPTION
 }
 
 private val previewProtectionInfo = KSafeProtectionInfo(
