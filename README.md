@@ -76,7 +76,7 @@ implementation("eu.anifantakis:ksafe-biometrics:3.0.0")
 | Biometrics | The standalone biometrics module gates an action and demonstrates a scoped authorization window |
 | Protection diagnostics | The app shows intended versus effective protection, key custody, per-key information, and reported degradation |
 | Runtime policy | Root/jailbreak, debugger, debug-build, and emulator checks demonstrate configurable security actions |
-| Cross-platform startup | An injectable phased preload pipeline hydrates KSafe and startup preferences before `Ready`; the launch surface and minimum duration remain configurable |
+| Cross-platform startup | A single suspend `preload` lambda explicitly awaits KSafe readiness and runs all required work before the first usable frame; launch surface and minimum duration remain configurable |
 
 ---
 

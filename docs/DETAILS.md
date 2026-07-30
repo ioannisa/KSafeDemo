@@ -86,7 +86,7 @@ This demo application serves as a practical guide to understanding and implement
 ### 10. `rememberKSafeState` — composable-local persistent state (New in 2.0.0)
 - **`rememberSaveable`-style API for KSafe**: composable-body local state that survives app restarts (not just config changes)
 - **Auto-keying from property name**: `var idx by ksafe.rememberKSafeState(0)` stores under the key `"idx"` — explicit `key = "..."` available when you want it
-- **Used in `App.kt`**: the bottom-tab route (`var currentRoute by ksafe.rememberKSafeState(AppRoute.Counters)`) persists across cold launches with no ViewModel involved — see [Code Examples → `rememberKSafeState`](#bottom-tab-persistence-with-rememberksafestate-appkt)
+- **Used in `AppContent.kt`**: the bottom-tab route (`var currentRoute by ksafe.rememberKSafeState(AppRoute.Counters)`) persists across cold launches with no ViewModel involved — see [Code Examples → `rememberKSafeState`](#bottom-tab-persistence-with-rememberksafestate-appcontentkt)
 
 ### 11. Native macOS Target (New in 2.0.1)
 - **Native `macosArm64` / `macosX64` binary**: Compose Multiplatform on AppKit, Skia rendering, KSafe's `appleMain` Keychain + CryptoKit path. Same source as iOS — no UI rewrites
@@ -203,9 +203,9 @@ class CountersViewModel(
 }
 ```
 
-### Bottom-tab persistence with `rememberKSafeState` (App.kt)
+### Bottom-tab persistence with `rememberKSafeState` (AppContent.kt)
 
-The demo's `App.kt` uses **`rememberKSafeState`** to persist the selected bottom-tab across cold app launches. Pre-2.0 this would have required a `MainViewModel` + Koin wiring + `koinViewModel()` injection + flow observation just to remember which tab the user had open. With `rememberKSafeState` it's one line:
+The demo's `AppContent.kt` uses **`rememberKSafeState`** to persist the selected bottom-tab across cold app launches. Pre-2.0 this would have required a `MainViewModel` + Koin wiring + `koinViewModel()` injection + flow observation just to remember which tab the user had open. With `rememberKSafeState` it's one line:
 
 ```kotlin
 @Composable
@@ -442,24 +442,21 @@ actual val platformModule: Module
 fun main() {
     val body = document.body ?: return
     ComposeViewport(body) {
-        KoinMultiplatformApplication(config = createKoinConfiguration()) {
-            var cacheReady by remember { mutableStateOf(false) }
-
-            LaunchedEffect(Unit) {
-                val ksafe: KSafe = getKoin().get()
-                ksafe.awaitCacheReady()
-                cacheReady = true
-            }
-
-            if (cacheReady) {
-                AppContent()
-            }
-        }
+        App(
+            onPlatformSplashReadyToDismiss = {
+                document
+                    .getElementById("app-startup-placeholder")
+                    ?.let { placeholder ->
+                        placeholder.parentNode?.removeChild(placeholder)
+                    }
+            },
+        )
     }
 }
 ```
 
-> **Note:** On WASM, Koin must be initialized before `awaitCacheReady()` can retrieve the KSafe instance. The `AppContent()` composable (extracted from `App()`) renders only after the async WebCrypto initialization completes.
+> **Note:** `AppStartupHost` creates Koin first. The application `preload` lambda explicitly
+> resolves every KSafe store and awaits its cache before rendering `AppContent`.
 
 ### Flow Delegates (FlowDelegatesViewModel.kt)
 
@@ -610,9 +607,11 @@ KSafeDemo/
 ```
 shared/src/
 ├── commonMain/kotlin/eu/anifantakis/ksafe_demo/
-│   ├── App.kt                              # startup host + persisted route
-│   ├── app/startup/                        # shared readiness coordinator and KSafe loader
-│   ├── app/navigation/                     # Navigation3 routes, navigator and root
+│   ├── App.kt                              # thin entry point + preload lambda
+│   ├── app/
+│   │   ├── AppContent.kt                   # persisted route + navigation root
+│   │   ├── navigation/                     # Navigation3 routes, navigator and root
+│   │   └── startup/                        # splash host, readiness coordinator and loader
 │   ├── core/
 │   │   ├── data/
 │   │   │   ├── persistence/KSafeStartup.kt # app-wide KSafe cache startup barrier
@@ -697,16 +696,28 @@ macosApp/src/macosMain/kotlin/.../main.macos.kt   # NSApplication + Window(...) 
 
 ### Cross-platform startup policy
 
-`AppStartupCoordinator` is the single application-level readiness gate. It delegates real
-startup work to `AppStartupPipeline`, then publishes `Ready` only after every blocking preload
-task has completed. `App` exposes the startup presentation as configuration:
+`AppStartupCoordinator` is the single application-level readiness gate. `App` keeps the
+developer-facing API deliberately small: application-specific startup work is written directly
+inside one suspend `preload` lambda.
 
 ```kotlin
+private val appPreload: AppPreload = {
+    awaitKSafeReady()
+
+    get<RemoteConfigRepository>().preload()
+    get<SessionRepository>().restoreSession()
+}
+
 App(
     splashMode = AppSplashMode.CUSTOM, // or NATIVE_UNTIL_READY
     minimumSplashDurationMillis = 0L,
+    preload = appPreload,
 )
 ```
+
+`AppPreloadScope.awaitKSafeReady()` resolves all three app-lifetime KSafe stores and waits for
+their caches. `AppPreloadScope.get<T>()` resolves any additional dependencies from the
+already-created application Koin graph, so no startup-task class or extra DI binding is required.
 
 `CUSTOM` dismisses the platform or HTML launch surface after Compose's first frame and
 reveals the shared `AppStartupScreen`. `NATIVE_UNTIL_READY` keeps the platform surface
@@ -714,43 +725,23 @@ until startup reaches `Ready`; it is also dismissed on failure so the localized 
 remains reachable. `minimumSplashDurationMillis` runs concurrently with real loading, so
 it never adds time when loading already takes longer, and its default is `0`.
 
-The preload pipeline has two ordered phases:
+Startup order is fixed and predictable:
 
-1. `PREREQUISITE` — dependencies that must be ready before later tasks can read them. The
-   built-in `KSafeCachesStartupTask` awaits all three KSafe stores; this performs asynchronous
-   IndexedDB/WebCrypto hydration on JS/WasmJS and returns immediately on Android, Apple, and JVM.
-2. `CRITICAL` — data required by the first usable application frame. The built-in
-   `StartupPreferencesTask` resolves the persisted theme and language after KSafe is safe to read.
+1. Execute the caller's suspend `preload` lambda.
+2. Its explicit `awaitKSafeReady()` call resolves all three KSafe stores. This performs
+   asynchronous IndexedDB/WebCrypto hydration on JS/WasmJS and returns immediately after
+   resolution on Android, Apple, and JVM.
+3. Execute any additional preload calls declared after that barrier.
+4. Resolve the persisted theme and language for the first usable frame.
+5. Publish `Ready` and continue observing theme changes reactively.
 
-Tasks inside the same phase execute concurrently under structured concurrency. A failure cancels
-the phase, identifies the failed task, and moves the coordinator to its localized retry state.
-Retry executes the pipeline again, so every task must be idempotent and should suspend instead of
-blocking the UI thread.
+Calls inside the lambda execute sequentially by default. Independent work can still use ordinary
+structured concurrency (`coroutineScope`, `async`) when parallel loading is useful.
 
-Additional first-frame work is registered through Koin without changing the coordinator or
-pipeline:
-
-```kotlin
-internal class RemoteConfigStartupTask(
-    private val repository: RemoteConfigRepository,
-) : AppStartupTask {
-    override val id = "remote_config"
-    override val phase = AppStartupPhase.CRITICAL
-
-    override suspend fun preload() {
-        repository.preload()
-    }
-}
-
-val sharedModule = module {
-    singleOf(::RemoteConfigStartupTask).bind<AppStartupTask>()
-    single { AppStartupPipeline(tasks = getAll()) }
-}
-```
-
-Only work required before the app becomes usable belongs in this pipeline. Analytics, optional
+Only work required before the app becomes usable belongs in this lambda. Analytics, optional
 content, cache refreshes, and speculative network requests should start after `Ready` so they do
-not extend the splash.
+not extend the splash. Retry invokes the lambda again, so its operations must be idempotent and
+should suspend instead of blocking the UI thread.
 
 | Target | Launch surface and configurable hand-off |
 |---|---|
@@ -759,7 +750,7 @@ not extend the splash.
 | JVM Desktop and native macOS | The shared Compose startup screen is the first application frame |
 | Kotlin/Wasm and Kotlin/JS | A light/dark HTML placeholder can hand off on Compose's first frame or remain until the startup gate finishes |
 
-The coordinator applies a 15-second timeout to the complete pipeline and can be retried. With the
+The coordinator applies a 15-second timeout to the complete preload flow and can be retried. With the
 default `CUSTOM` mode and zero minimum duration, fast startup is not artificially delayed;
 callers that want the custom splash to remain perceptible can opt into a duration such as `800L`.
 

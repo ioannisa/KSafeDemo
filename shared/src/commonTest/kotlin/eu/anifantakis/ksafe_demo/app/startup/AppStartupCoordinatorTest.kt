@@ -6,11 +6,13 @@ import eu.anifantakis.ksafe_demo.features.preferences.domain.model.ThemeMode
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.koin.dsl.koinApplication
 
 class AppStartupCoordinatorTest {
     @AfterTest
@@ -21,7 +23,7 @@ class AppStartupCoordinatorTest {
     @Test
     fun successfulInitializationPublishesThemeAndLanguage() = runTest {
         val coordinator = AppStartupCoordinator(
-            loader = AppStartupLoader {
+            loader = AppStartupLoader { _ ->
                 AppStartupPreferences(
                     themeMode = ThemeMode.NIGHT,
                     language = Language.EL,
@@ -39,7 +41,7 @@ class AppStartupCoordinatorTest {
     @Test
     fun successfulInitializationKeepsLoadingVisibleForTheMinimumDuration() = runTest {
         val coordinator = AppStartupCoordinator(
-            loader = AppStartupLoader {
+            loader = AppStartupLoader { _ ->
                 AppStartupPreferences(
                     themeMode = ThemeMode.SYSTEM,
                     language = Language.EN,
@@ -66,7 +68,7 @@ class AppStartupCoordinatorTest {
     @Test
     fun failedInitializationPublishesRetryableFailure() = runTest {
         val coordinator = AppStartupCoordinator(
-            loader = AppStartupLoader {
+            loader = AppStartupLoader { _ ->
                 error("unavailable")
             },
         )
@@ -80,7 +82,7 @@ class AppStartupCoordinatorTest {
     fun initializationCanBeRetriedAfterFailure() = runTest {
         var attempts = 0
         val coordinator = AppStartupCoordinator(
-            loader = AppStartupLoader {
+            loader = AppStartupLoader { _ ->
                 attempts++
                 if (attempts == 1) {
                     error("first attempt fails")
@@ -100,5 +102,37 @@ class AppStartupCoordinatorTest {
         assertEquals(AppStartupState.Ready(ThemeMode.DAY), coordinator.state.value)
         assertEquals(Language.FR, LocalizationManager.current)
         assertEquals(2, attempts)
+    }
+
+    @Test
+    fun customPreloadLambdaRunsBeforeReady() = runTest {
+        val application = koinApplication()
+        val preloadScope = AppPreloadScope(
+            koin = application.koin,
+            kSafeReady = {},
+        )
+        var preloadCompleted = false
+        val coordinator = AppStartupCoordinator(
+            loader = AppStartupLoader { preload ->
+                preloadScope.preload()
+                assertTrue(preloadCompleted)
+                AppStartupPreferences(
+                    themeMode = ThemeMode.SYSTEM,
+                    language = Language.EN,
+                )
+            },
+        )
+
+        try {
+            coordinator.initialize(
+                preload = {
+                    preloadCompleted = true
+                },
+            )
+
+            assertEquals(AppStartupState.Ready(ThemeMode.SYSTEM), coordinator.state.value)
+        } finally {
+            application.close()
+        }
     }
 }

@@ -44,7 +44,7 @@ internal data class AppStartupPreferences(
 )
 
 internal fun interface AppStartupLoader {
-    suspend fun load(): AppStartupPreferences
+    suspend fun load(preload: AppPreload): AppStartupPreferences
 }
 
 /**
@@ -60,7 +60,10 @@ class AppStartupCoordinator internal constructor(
     private val _state = MutableStateFlow<AppStartupState>(AppStartupState.Loading)
     val state: StateFlow<AppStartupState> = _state.asStateFlow()
 
-    suspend fun initialize(minimumSplashDurationMillis: Long = 0L) {
+    suspend fun initialize(
+        minimumSplashDurationMillis: Long = 0L,
+        preload: AppPreload = {},
+    ) {
         require(minimumSplashDurationMillis >= 0L) {
             "minimumSplashDurationMillis must be non-negative"
         }
@@ -73,7 +76,7 @@ class AppStartupCoordinator internal constructor(
                     delay(minimumSplashDurationMillis)
                 }
                 val loadedPreferences = withTimeout(timeoutMillis) {
-                    loader.load()
+                    loader.load(preload)
                 }
                 minimumSplashDuration.await()
                 loadedPreferences
