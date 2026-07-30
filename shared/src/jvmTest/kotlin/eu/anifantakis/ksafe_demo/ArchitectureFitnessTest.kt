@@ -27,7 +27,8 @@ class ArchitectureFitnessTest {
             ?: error("Cannot locate the features package from $workingDirectory")
     }
 
-    private val featureNames = listOf("counters", "flows", "custom_json", "security", "preferences")
+    private val featureNames =
+        listOf("counters", "flows", "custom_json", "security", "preferences", "about")
 
     @Test
     fun everyAppFeatureLivesUnderTheFeaturesPackage() {

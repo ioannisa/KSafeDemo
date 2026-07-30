@@ -1,6 +1,7 @@
 package eu.anifantakis.ksafe_demo.di
 
 import eu.anifantakis.ksafe_demo.core.presentation.global_state.GlobalStateContainer
+import eu.anifantakis.ksafe_demo.features.about.presentation.screens.about.AboutViewModel
 import eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custom_json.CustomJsonViewModel
 import eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates.FlowDelegatesViewModel
 import eu.anifantakis.ksafe_demo.features.preferences.data.repository.ThemePreferenceRepositoryImpl
@@ -31,6 +32,7 @@ val sharedModule = module {
     viewModelOf(::CountersViewModel)
     viewModelOf(::FlowDelegatesViewModel)
     viewModelOf(::PreferencesViewModel)
+    viewModelOf(::AboutViewModel)
 
     // SecurityViewModel - initialized with violations from the holder
     viewModelOf(::SecurityViewModel)

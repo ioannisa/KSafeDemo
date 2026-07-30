@@ -1,10 +1,6 @@
 package eu.anifantakis.ksafe_demo.core.presentation.design_system.components
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
 
@@ -15,11 +11,7 @@ import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
 @Composable
 internal fun AppPreview(content: @Composable () -> Unit) {
     KSafeDemoTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
-            content = content,
-        )
+        AppSurface(content = content)
     }
 }
 

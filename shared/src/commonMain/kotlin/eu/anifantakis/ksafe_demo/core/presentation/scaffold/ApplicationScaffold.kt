@@ -25,7 +25,8 @@ import org.koin.compose.koinInject
 
 @Composable
 fun ApplicationScaffold(
-    bottomBar: @Composable () -> Unit,
+    topBar: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
     globalStateContainer: GlobalStateContainer = koinInject(),
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -40,6 +41,7 @@ fun ApplicationScaffold(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = topBar,
         bottomBar = bottomBar,
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
@@ -54,6 +56,13 @@ fun ApplicationScaffold(
 private fun PreviewApplicationScaffold() {
     AppPreview {
         ApplicationScaffold(
+            topBar = {
+                AppText(
+                    text = "Presenting KSafe 3.1.0",
+                    style = AppTextStyle.SCREEN_TITLE_COMPACT,
+                    modifier = Modifier.padding(UIConst.paddingRegular),
+                )
+            },
             bottomBar = {
                 AppText(
                     text = "Bottom navigation",

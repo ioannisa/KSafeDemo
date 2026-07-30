@@ -79,13 +79,20 @@ private fun ThemeAwareAppContent(
 fun AppContent() {
     val ksafe: KSafe = koinInject()
     var currentRoute: AppRoute by ksafe.rememberKSafeState(AppRoute.Counters)
+    val selectedBottomRoute =
+        currentRoute.takeIf { it in AppRoute.bottomNavigationEntries } ?: AppRoute.Counters
 
     LaunchedEffect(ksafe) {
         runKSafeProtectionDiagnostics(ksafe)
     }
+    LaunchedEffect(currentRoute, selectedBottomRoute) {
+        if (currentRoute != selectedBottomRoute) {
+            currentRoute = selectedBottomRoute
+        }
+    }
 
     NavigationRoot(
-        selectedRoute = currentRoute,
+        selectedRoute = selectedBottomRoute,
         onRouteSelected = { currentRoute = it },
     )
 }

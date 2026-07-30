@@ -2,7 +2,6 @@ package eu.anifantakis.ksafe_demo.features.preferences.presentation.screens.pref
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -10,8 +9,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppDrawableRepo
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppPreview
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppRadioPreference
@@ -37,7 +38,7 @@ private fun PreferencesScreen(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .verticalScroll(rememberScrollState())
             .padding(
                 vertical = UIConst.screenVerticalPadding,
@@ -46,11 +47,6 @@ private fun PreferencesScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
     ) {
-        AppText(
-            text = "Preferences",
-            style = AppTextStyle.SCREEN_TITLE,
-            fontWeight = FontWeight.Bold,
-        )
         AppText(
             text = "Appearance",
             style = AppTextStyle.SECTION_HEADING,
@@ -68,6 +64,7 @@ private fun PreferencesScreen(
             AppRadioPreference(
                 title = themeMode.title(),
                 description = themeMode.description(),
+                icon = themeMode.icon(),
                 selected = state.themeMode == themeMode,
                 onClick = {
                     onIntent(PreferencesIntent.ThemeSelected(themeMode))
@@ -88,6 +85,13 @@ private fun ThemeMode.description(): String = when (this) {
     ThemeMode.DAY -> "Always use the light color palette"
     ThemeMode.NIGHT -> "Always use the dark color palette"
     ThemeMode.SYSTEM -> "Follow the operating system appearance"
+}
+
+@Composable
+private fun ThemeMode.icon(): ImageVector = when (this) {
+    ThemeMode.DAY -> AppDrawableRepo.themeDay
+    ThemeMode.NIGHT -> AppDrawableRepo.themeNight
+    ThemeMode.SYSTEM -> AppDrawableRepo.themeSystem
 }
 
 @PreviewLightDark

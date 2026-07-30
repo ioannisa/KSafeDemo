@@ -10,6 +10,7 @@ composeHotReload = "1.2.0"
 composeMultiplatform = "1.11.1"
 kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
+material-icons = "1.7.3"
 
 koin = "4.2.2"
 kotlinx-collections-immutable = "0.5.1"
@@ -46,6 +47,8 @@ koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", ver
 jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 jetbrains-lifecycle-viewmodel-navigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
 
+# Material Icons
+material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "material-icons" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

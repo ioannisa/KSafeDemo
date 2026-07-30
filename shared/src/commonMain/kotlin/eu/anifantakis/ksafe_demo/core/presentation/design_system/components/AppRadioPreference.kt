@@ -5,19 +5,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppDrawableRepo
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 
 @Composable
 fun AppRadioPreference(
     title: String,
     description: String,
+    icon: ImageVector? = null,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -40,6 +46,18 @@ fun AppRadioPreference(
                 selected = selected,
                 onClick = null,
             )
+            icon?.let {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    modifier = Modifier.size(UIConst.themePreferenceIconSize),
+                    tint = if (selected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+            }
             Column(modifier = Modifier.weight(1f)) {
                 AppText(
                     text = title,
@@ -62,6 +80,7 @@ private fun PreviewAppRadioPreference() {
         AppRadioPreference(
             title = "System theme",
             description = "Follow the device appearance",
+            icon = AppDrawableRepo.themeSystem,
             selected = true,
             onClick = {},
         )

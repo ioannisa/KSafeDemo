@@ -36,7 +36,13 @@ sealed interface AppRoute : NavKey {
         override val title = "Preferences"
     }
 
+    @Serializable
+    data object About : AppRoute {
+        override val title = "About"
+    }
+
     companion object {
-        val entries: List<AppRoute> = listOf(Counters, Flows, CustomJson, Security, Preferences)
+        val bottomNavigationEntries: List<AppRoute> =
+            listOf(Counters, Flows, CustomJson, Security)
     }
 }
