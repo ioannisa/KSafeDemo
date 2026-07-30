@@ -9,6 +9,7 @@ import eu.anifantakis.ksafe_demo.app.startup.AppStartupHost
 private val appPreload: AppPreload = {
     // Application work required before the first usable frame goes here. KSafe readiness is
     // already guaranteed by the pipeline before this lambda runs — no barrier call needed.
+    // Illustrative (RemoteConfigRepository is not a real demo class — substitute your own):
     // get<RemoteConfigRepository>().preload()
 }
 
@@ -16,7 +17,8 @@ private val appPreload: AppPreload = {
  * Application entry point.
  *
  * Add first-frame work directly to [preload]. KSafe readiness is guaranteed BEFORE the lambda
- * runs (the loader owns that barrier), and persisted theme/language are resolved after it.
+ * runs (the coordinator's pipeline owns that barrier), and persisted theme/language are
+ * resolved after it.
  */
 @Composable
 fun App(

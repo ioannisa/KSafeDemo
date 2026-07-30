@@ -1,9 +1,7 @@
 package eu.anifantakis.ksafe_demo.di
 
 import eu.anifantakis.ksafe_demo.app.startup.AppStartupCoordinator
-import eu.anifantakis.ksafe_demo.app.startup.AppStartupLoader
 import eu.anifantakis.ksafe_demo.app.startup.AppPreloadScope
-import eu.anifantakis.ksafe_demo.app.startup.DefaultAppStartupLoader
 import eu.anifantakis.ksafe_demo.core.data.persistence.awaitKSafeCachesReady
 import eu.anifantakis.ksafe_demo.core.data.preferences.KSafeAppLanguageStore
 import eu.anifantakis.ksafe_demo.core.domain.preferences.AppLanguageStore
@@ -38,8 +36,10 @@ val sharedModule = module {
     single<ThemePreferenceRepository> {
         ThemePreferenceRepositoryImpl(get(preferencesKSafe))
     }
-    single<AppStartupLoader> {
-        DefaultAppStartupLoader(
+    // The whole "what does the splash wait for" in one place: the coordinator runs
+    // awaitStoresReady → the App(preload = …) lambda → the theme/language reads below.
+    single {
+        AppStartupCoordinator(
             themePreferenceRepository = get(),
             appLanguageStore = get(),
             preloadScope = AppPreloadScope(koin = getKoin()),
@@ -52,7 +52,6 @@ val sharedModule = module {
             },
         )
     }
-    single { AppStartupCoordinator(get()) }
 
     viewModelOf(::CountersViewModel)
     viewModelOf(::FlowDelegatesViewModel)

@@ -2,9 +2,11 @@ package eu.anifantakis.ksafe_demo.app.startup
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import eu.anifantakis.ksafe_demo.core.domain.preferences.AppLanguageStore
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Language
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.LocalizationManager
 import eu.anifantakis.ksafe_demo.features.preferences.domain.model.ThemeMode
+import eu.anifantakis.ksafe_demo.features.preferences.domain.repository.ThemePreferenceRepository
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
@@ -13,7 +15,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
 sealed interface AppStartupState {
@@ -37,24 +41,24 @@ enum class AppSplashMode {
     CUSTOM,
 }
 
-@Immutable
-internal data class AppStartupPreferences(
-    val themeMode: ThemeMode,
-    val language: Language,
-)
-
-internal fun interface AppStartupLoader {
-    suspend fun load(preload: AppPreload): AppStartupPreferences
-}
-
 /**
- * Owns the single startup gate shared by every platform.
+ * Owns the single startup gate shared by every platform — and IS the startup pipeline.
  *
- * A failure renders a retry screen instead of leaving the application blank.
+ * What the splash waits for is exactly [runStartupPipeline], in guaranteed order:
+ *
+ * 1. [awaitStoresReady] — the KSafe cache-hydration barrier.
+ * 2. The [AppPreload] lambda the app passed to `App(preload = …)` — the ONE seam an app
+ *    customizes; it reaches this class through [initialize].
+ * 3. The theme/language reads whose values [AppStartupState.Ready] publishes.
+ *
+ * A failure anywhere renders a retry screen instead of leaving the application blank.
  */
 @Stable
 class AppStartupCoordinator internal constructor(
-    private val loader: AppStartupLoader,
+    private val themePreferenceRepository: ThemePreferenceRepository,
+    private val appLanguageStore: AppLanguageStore,
+    private val preloadScope: AppPreloadScope,
+    private val awaitStoresReady: suspend () -> Unit,
     private val timeoutMillis: Long = APP_STARTUP_TIMEOUT_MILLIS,
 ) {
     private val _state = MutableStateFlow<AppStartupState>(AppStartupState.Loading)
@@ -71,18 +75,18 @@ class AppStartupCoordinator internal constructor(
 
         _state.value = AppStartupState.Loading
         try {
-            val preferences = coroutineScope {
+            val (themeMode, language) = coroutineScope {
                 val minimumSplashDuration = async {
-                    delay(minimumSplashDurationMillis)
+                    delay(minimumSplashDurationMillis.milliseconds)
                 }
-                val loadedPreferences = withTimeout(timeoutMillis) {
-                    loader.load(preload)
+                val loaded = withTimeout(timeoutMillis.milliseconds) {
+                    runStartupPipeline(preload)
                 }
                 minimumSplashDuration.await()
-                loadedPreferences
+                loaded
             }
-            LocalizationManager.setLanguage(preferences.language)
-            _state.value = AppStartupState.Ready(preferences.themeMode)
+            LocalizationManager.setLanguage(language)
+            _state.value = AppStartupState.Ready(themeMode)
         } catch (error: TimeoutCancellationException) {
             failStartup(error)
         } catch (error: CancellationException) {
@@ -90,6 +94,13 @@ class AppStartupCoordinator internal constructor(
         } catch (error: Exception) {
             failStartup(error)
         }
+    }
+
+    private suspend fun runStartupPipeline(preload: AppPreload): Pair<ThemeMode, Language> {
+        awaitStoresReady()
+        preloadScope.preload()
+        return themePreferenceRepository.themeMode.first() to
+            LocalizationManager.resolveStartup(appLanguageStore.languageCode)
     }
 
     private fun failStartup(error: Throwable) {

@@ -611,7 +611,7 @@ shared/src/
 │   ├── app/
 │   │   ├── AppContent.kt                   # persisted route + navigation root
 │   │   ├── navigation/                     # Navigation3 routes, navigator and root
-│   │   └── startup/                        # splash host, readiness coordinator and loader
+│   │   └── startup/                        # splash host + the startup-pipeline coordinator
 │   ├── core/
 │   │   ├── data/
 │   │   │   ├── persistence/KSafeStartup.kt # app-wide KSafe cache startup barrier
@@ -702,6 +702,7 @@ inside one suspend `preload` lambda.
 
 ```kotlin
 private val appPreload: AppPreload = {
+    // illustrative names — these stand for your app's own classes
     get<RemoteConfigRepository>().preload()
     get<SessionRepository>().restoreSession()
 }
@@ -713,7 +714,7 @@ App(
 )
 ```
 
-KSafe readiness is **not** the lambda's job: the loader awaits all three app-lifetime stores
+KSafe readiness is **not** the lambda's job: the coordinator's pipeline awaits all three app-lifetime stores
 BEFORE invoking it, so the lambda may freely use KSafe-backed repositories and contains only
 application work. `AppPreloadScope.get<T>()` resolves any dependency from the already-created
 application Koin graph, so no startup-task class or extra DI binding is required.
@@ -724,7 +725,7 @@ until startup reaches `Ready`; it is also dismissed on failure so the localized 
 remains reachable. `minimumSplashDurationMillis` runs concurrently with real loading, so
 it never adds time when loading already takes longer, and its default is `0`.
 
-Startup order is fixed, guaranteed by the loader rather than by caller discipline:
+Startup order is fixed, guaranteed by the coordinator's pipeline rather than by caller discipline:
 
 1. Await all three KSafe stores' caches (asynchronous IndexedDB/WebCrypto hydration on
    JS/WasmJS; immediate after resolution on Android, Apple, and JVM).
