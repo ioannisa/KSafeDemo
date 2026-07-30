@@ -36,8 +36,6 @@ actual val platformModule: Module
 
         // another KSafe instance demo that uses Custom JSON serialization via KSafeConfig(json = ...)
         // which was introduced in KSafe version 1.7.1
-        // another KSafe instance demo that uses Custom JSON serialization via KSafeConfig(json = ...)
-        // which was introduced in KSafe version 1.7.1
         // Separate fileName ensures this instance has its own storage namespace
         single<KSafe>(customJsonKSafe) {
             KSafe(

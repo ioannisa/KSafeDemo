@@ -6,6 +6,7 @@ import eu.anifantakis.ksafe_demo.features.preferences.domain.model.ThemeMode
 import eu.anifantakis.ksafe_demo.features.preferences.domain.repository.ThemePreferenceRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
@@ -24,10 +25,7 @@ class AppPreloadTest {
         }
 
         try {
-            val scope = AppPreloadScope(
-                koin = application.koin,
-                kSafeReady = {},
-            )
+            val scope = AppPreloadScope(koin = application.koin)
 
             assertEquals("ready", scope.get<PreloadDependency>().value)
         } finally {
@@ -35,42 +33,20 @@ class AppPreloadTest {
         }
     }
 
+    /**
+     * The contract the pipeline exists for: readiness is the LOADER's own first step, so an
+     * empty (or barrier-oblivious) preload lambda still gets safe preference reads.
+     */
     @Test
-    fun awaitKSafeReadyRunsTheConfiguredReadinessBarrier() = runTest {
-        val application = koinApplication()
-        var readinessCalls = 0
-        val scope = AppPreloadScope(
-            koin = application.koin,
-            kSafeReady = {
-                readinessCalls++
-            },
-        )
-
-        try {
-            scope.awaitKSafeReady()
-
-            assertEquals(1, readinessCalls)
-        } finally {
-            application.close()
-        }
-    }
-
-    @Test
-    fun loaderRunsTheCallerPreloadBeforeReadingStartupPreferences() = runTest {
+    fun barrierRunsEvenWhenThePreloadLambdaIgnoresIt() = runTest {
         val application = koinApplication()
         var kSafeReady = false
-        val scope = AppPreloadScope(
-            koin = application.koin,
-            kSafeReady = {
-                kSafeReady = true
-            },
-        )
         val loader = DefaultAppStartupLoader(
             themePreferenceRepository =
                 object : ThemePreferenceRepository {
                     override val themeMode =
                         flow {
-                            assertTrue(kSafeReady)
+                            assertTrue(kSafeReady, "theme read before KSafe readiness")
                             emit(ThemeMode.NIGHT)
                         }
 
@@ -80,21 +56,51 @@ class AppPreloadTest {
                 object : AppLanguageStore {
                     override var languageCode: String
                         get() {
-                            assertTrue(kSafeReady)
+                            assertTrue(kSafeReady, "language read before KSafe readiness")
                             return "en"
                         }
                         set(_) = Unit
                 },
-            preloadScope = scope,
+            preloadScope = AppPreloadScope(koin = application.koin),
+            awaitStoresReady = { kSafeReady = true },
         )
 
         try {
-            val preferences = loader.load {
-                awaitKSafeReady()
-            }
+            val preferences = loader.load(preload = { /* no barrier call — and none needed */ })
 
             assertEquals(ThemeMode.NIGHT, preferences.themeMode)
             assertEquals(Language.EN, preferences.language)
+        } finally {
+            application.close()
+        }
+    }
+
+    /** A hung or failing barrier surfaces as a loader failure (→ Failed + retry), not a hang past the reads. */
+    @Test
+    fun barrierFailurePropagatesBeforeAnyPreferenceRead() = runTest {
+        val application = koinApplication()
+        var readsHappened = false
+        val loader = DefaultAppStartupLoader(
+            themePreferenceRepository =
+                object : ThemePreferenceRepository {
+                    override val themeMode = flow {
+                        readsHappened = true
+                        emit(ThemeMode.DAY)
+                    }
+
+                    override fun setThemeMode(themeMode: ThemeMode) = Unit
+                },
+            appLanguageStore =
+                object : AppLanguageStore {
+                    override var languageCode: String = "en"
+                },
+            preloadScope = AppPreloadScope(koin = application.koin),
+            awaitStoresReady = { error("hydration failed") },
+        )
+
+        try {
+            assertFailsWith<IllegalStateException> { loader.load(preload = {}) }
+            assertEquals(false, readsHappened, "no preference read may precede the barrier")
         } finally {
             application.close()
         }

@@ -3,6 +3,8 @@ package eu.anifantakis.ksafe_demo.app.startup
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Language
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.LocalizationManager
 import eu.anifantakis.ksafe_demo.features.preferences.domain.model.ThemeMode
+import eu.anifantakis.ksafe_demo.features.preferences.domain.repository.ThemePreferenceRepository
+import eu.anifantakis.ksafe_demo.core.domain.preferences.AppLanguageStore
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,6 +15,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
+import kotlin.time.Duration.Companion.milliseconds
 
 class AppStartupCoordinatorTest {
     @AfterTest
@@ -55,11 +58,11 @@ class AppStartupCoordinatorTest {
         runCurrent()
         assertEquals(AppStartupState.Loading, coordinator.state.value)
 
-        advanceTimeBy(799L)
+        advanceTimeBy(799.milliseconds)
         runCurrent()
         assertEquals(AppStartupState.Loading, coordinator.state.value)
 
-        advanceTimeBy(1L)
+        advanceTimeBy(1.milliseconds)
         runCurrent()
         initialization.join()
         assertEquals(AppStartupState.Ready(ThemeMode.SYSTEM), coordinator.state.value)
@@ -107,10 +110,7 @@ class AppStartupCoordinatorTest {
     @Test
     fun customPreloadLambdaRunsBeforeReady() = runTest {
         val application = koinApplication()
-        val preloadScope = AppPreloadScope(
-            koin = application.koin,
-            kSafeReady = {},
-        )
+        val preloadScope = AppPreloadScope(koin = application.koin)
         var preloadCompleted = false
         val coordinator = AppStartupCoordinator(
             loader = AppStartupLoader { preload ->
@@ -131,6 +131,47 @@ class AppStartupCoordinatorTest {
             )
 
             assertEquals(AppStartupState.Ready(ThemeMode.SYSTEM), coordinator.state.value)
+        } finally {
+            application.close()
+        }
+    }
+
+    /**
+     * The pipeline's whole point: KSafe readiness is the LOADER's first step, never the
+     * lambda's responsibility — and the preference reads happen only after both.
+     */
+    @Test
+    fun loaderGuaranteesBarrierBeforePreloadBeforePreferenceReads() = runTest {
+        val application = koinApplication()
+        val order = mutableListOf<String>()
+        val loader = DefaultAppStartupLoader(
+            themePreferenceRepository = object : ThemePreferenceRepository {
+                override val themeMode = kotlinx.coroutines.flow.flow {
+                    order += "theme-read"
+                    emit(ThemeMode.DAY)
+                }
+
+                override fun setThemeMode(themeMode: ThemeMode) = Unit
+            },
+            appLanguageStore = object : AppLanguageStore {
+                override var languageCode: String = "en"
+                    get() {
+                        order += "language-read"
+                        return field
+                    }
+            },
+            preloadScope = AppPreloadScope(koin = application.koin),
+            awaitStoresReady = { order += "ksafe-ready" },
+        )
+
+        try {
+            loader.load(preload = { order += "preload" })
+
+            assertEquals(
+                listOf("ksafe-ready", "preload", "theme-read", "language-read"),
+                order,
+                "the barrier must precede the lambda, and both must precede the reads",
+            )
         } finally {
             application.close()
         }

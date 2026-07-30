@@ -702,8 +702,6 @@ inside one suspend `preload` lambda.
 
 ```kotlin
 private val appPreload: AppPreload = {
-    awaitKSafeReady()
-
     get<RemoteConfigRepository>().preload()
     get<SessionRepository>().restoreSession()
 }
@@ -715,9 +713,10 @@ App(
 )
 ```
 
-`AppPreloadScope.awaitKSafeReady()` resolves all three app-lifetime KSafe stores and waits for
-their caches. `AppPreloadScope.get<T>()` resolves any additional dependencies from the
-already-created application Koin graph, so no startup-task class or extra DI binding is required.
+KSafe readiness is **not** the lambda's job: the loader awaits all three app-lifetime stores
+BEFORE invoking it, so the lambda may freely use KSafe-backed repositories and contains only
+application work. `AppPreloadScope.get<T>()` resolves any dependency from the already-created
+application Koin graph, so no startup-task class or extra DI binding is required.
 
 `CUSTOM` dismisses the platform or HTML launch surface after Compose's first frame and
 reveals the shared `AppStartupScreen`. `NATIVE_UNTIL_READY` keeps the platform surface
@@ -725,15 +724,13 @@ until startup reaches `Ready`; it is also dismissed on failure so the localized 
 remains reachable. `minimumSplashDurationMillis` runs concurrently with real loading, so
 it never adds time when loading already takes longer, and its default is `0`.
 
-Startup order is fixed and predictable:
+Startup order is fixed, guaranteed by the loader rather than by caller discipline:
 
-1. Execute the caller's suspend `preload` lambda.
-2. Its explicit `awaitKSafeReady()` call resolves all three KSafe stores. This performs
-   asynchronous IndexedDB/WebCrypto hydration on JS/WasmJS and returns immediately after
-   resolution on Android, Apple, and JVM.
-3. Execute any additional preload calls declared after that barrier.
-4. Resolve the persisted theme and language for the first usable frame.
-5. Publish `Ready` and continue observing theme changes reactively.
+1. Await all three KSafe stores' caches (asynchronous IndexedDB/WebCrypto hydration on
+   JS/WasmJS; immediate after resolution on Android, Apple, and JVM).
+2. Execute the caller's suspend `preload` lambda.
+3. Resolve the persisted theme and language for the first usable frame.
+4. Publish `Ready` and continue observing theme changes reactively.
 
 Calls inside the lambda execute sequentially by default. Independent work can still use ordinary
 structured concurrency (`coroutineScope`, `async`) when parallel loading is useful.

@@ -7,17 +7,16 @@ import eu.anifantakis.ksafe_demo.app.startup.AppSplashMode
 import eu.anifantakis.ksafe_demo.app.startup.AppStartupHost
 
 private val appPreload: AppPreload = {
-    awaitKSafeReady()
-
-    // Call application work required before the first usable frame here.
+    // Application work required before the first usable frame goes here. KSafe readiness is
+    // already guaranteed by the pipeline before this lambda runs — no barrier call needed.
     // get<RemoteConfigRepository>().preload()
 }
 
 /**
  * Application entry point.
  *
- * Add first-frame work directly to [preload]. The lambda owns KSafe readiness and any additional
- * application preload, and runs before persisted theme and language are resolved.
+ * Add first-frame work directly to [preload]. KSafe readiness is guaranteed BEFORE the lambda
+ * runs (the loader owns that barrier), and persisted theme/language are resolved after it.
  */
 @Composable
 fun App(

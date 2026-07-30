@@ -39,18 +39,17 @@ val sharedModule = module {
         ThemePreferenceRepositoryImpl(get(preferencesKSafe))
     }
     single<AppStartupLoader> {
-        val preloadScope = AppPreloadScope(koin = getKoin()) {
-            awaitKSafeCachesReady(
-                defaultStore = get(),
-                customJsonStore = get(customJsonKSafe),
-                preferencesStore = get(preferencesKSafe),
-            )
-        }
-
         DefaultAppStartupLoader(
             themePreferenceRepository = get(),
             appLanguageStore = get(),
-            preloadScope = preloadScope,
+            preloadScope = AppPreloadScope(koin = getKoin()),
+            awaitStoresReady = {
+                awaitKSafeCachesReady(
+                    defaultStore = get(),
+                    customJsonStore = get(customJsonKSafe),
+                    preferencesStore = get(preferencesKSafe),
+                )
+            },
         )
     }
     single { AppStartupCoordinator(get()) }
