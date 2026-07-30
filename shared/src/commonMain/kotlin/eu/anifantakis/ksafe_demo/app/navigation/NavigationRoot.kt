@@ -1,8 +1,14 @@
 package eu.anifantakis.ksafe_demo.app.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -57,27 +63,57 @@ fun NavigationRoot(
             backStack = navigator.backStack,
             onBack = navigator::goBack,
             modifier = Modifier.padding(padding),
+            transitionSpec = {
+                EnterTransition.None togetherWith ExitTransition.None
+            },
+            popTransitionSpec = {
+                EnterTransition.None togetherWith ExitTransition.None
+            },
+            predictivePopTransitionSpec = {
+                EnterTransition.None togetherWith ExitTransition.None
+            },
             entryDecorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator(),
             ),
             entryProvider = entryProvider<NavKey> {
                 entry<AppRoute.Counters> {
-                    CountersScreenRoot()
+                    TabDestinationSurface {
+                        CountersScreenRoot()
+                    }
                 }
                 entry<AppRoute.Flows> {
-                    FlowDelegatesScreenRoot()
+                    TabDestinationSurface {
+                        FlowDelegatesScreenRoot()
+                    }
                 }
                 entry<AppRoute.CustomJson> {
-                    CustomJsonScreenRoot()
+                    TabDestinationSurface {
+                        CustomJsonScreenRoot()
+                    }
                 }
                 entry<AppRoute.Security> {
-                    SecurityScreenRoot()
+                    TabDestinationSurface {
+                        SecurityScreenRoot()
+                    }
                 }
                 entry<AppRoute.Preferences> {
-                    PreferencesScreenRoot()
+                    TabDestinationSurface {
+                        PreferencesScreenRoot()
+                    }
                 }
             },
         )
     }
+}
+
+@Composable
+private fun TabDestinationSurface(
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+        content = content,
+    )
 }
