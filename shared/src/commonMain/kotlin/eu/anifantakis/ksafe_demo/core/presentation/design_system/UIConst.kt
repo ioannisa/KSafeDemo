@@ -16,4 +16,5 @@ object UIConst {
     val borderWidth = 1.dp
     val colorSwatchSize = 14.dp
     val themePreferenceIconSize = 28.dp
+    val startupLogoSize = 112.dp
 }

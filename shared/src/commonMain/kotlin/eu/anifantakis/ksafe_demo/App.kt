@@ -2,21 +2,23 @@ package eu.anifantakis.ksafe_demo
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import eu.anifantakis.ksafe_demo.app.navigation.AppRoute
 import eu.anifantakis.ksafe_demo.app.navigation.NavigationRoot
-import eu.anifantakis.ksafe_demo.core.data.persistence.awaitKSafeCachesReady
-import eu.anifantakis.ksafe_demo.core.domain.preferences.AppLanguageStore
+import eu.anifantakis.ksafe_demo.app.startup.AppStartupCoordinator
+import eu.anifantakis.ksafe_demo.app.startup.AppStartupState
+import eu.anifantakis.ksafe_demo.app.startup.AppSplashMode
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.KSafeDemoTheme
-import eu.anifantakis.ksafe_demo.core.presentation.string_resources.LocalizationManager
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppStartupScreen
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.LocalizationProvider
 import eu.anifantakis.ksafe_demo.di.createKoinConfiguration
-import eu.anifantakis.ksafe_demo.di.customJsonKSafe
-import eu.anifantakis.ksafe_demo.di.preferencesKSafe
 import eu.anifantakis.ksafe_demo.features.preferences.domain.model.ThemeMode
 import eu.anifantakis.ksafe_demo.features.preferences.domain.repository.ThemePreferenceRepository
 import eu.anifantakis.lib.ksafe.KSafe
@@ -28,66 +30,109 @@ import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.logger.Level
 
+/**
+ * Starts the application after its KSafe stores and persisted UI preferences are ready.
+ *
+ * @param splashMode chooses whether loading is owned by the platform launch surface or the
+ * shared Compose splash.
+ * @param minimumSplashDurationMillis optional minimum visibility time. It runs concurrently
+ * with real loading and defaults to no artificial delay.
+ * @param onPlatformSplashReadyToDismiss platform bridge invoked at the selected hand-off point.
+ */
 @OptIn(KoinExperimentalAPI::class)
 @Composable
-fun App() {
+fun App(
+    splashMode: AppSplashMode = AppSplashMode.CUSTOM,
+    minimumSplashDurationMillis: Long = 0L,
+    onPlatformSplashReadyToDismiss: () -> Unit = {},
+) {
+    require(minimumSplashDurationMillis >= 0L) {
+        "minimumSplashDurationMillis must be non-negative"
+    }
+
     KoinApplication(
         configuration = createKoinConfiguration(),
         logLevel = Level.INFO,
     ) {
-        KSafeReadyAppContent()
+        AppStartupHost(
+            splashMode = splashMode,
+            minimumSplashDurationMillis = minimumSplashDurationMillis,
+            onPlatformSplashReadyToDismiss = onPlatformSplashReadyToDismiss,
+        )
+    }
+}
+
+@Composable
+private fun AppStartupHost(
+    splashMode: AppSplashMode,
+    minimumSplashDurationMillis: Long,
+    onPlatformSplashReadyToDismiss: () -> Unit,
+    coordinator: AppStartupCoordinator = koinInject(),
+) {
+    val startupState by coordinator.state.collectAsState()
+    val currentOnPlatformSplashReadyToDismiss by rememberUpdatedState(
+        onPlatformSplashReadyToDismiss,
+    )
+    var startupAttempt by remember(coordinator) { mutableIntStateOf(0) }
+    var platformSplashDismissed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(coordinator, startupAttempt, minimumSplashDurationMillis) {
+        coordinator.initialize(minimumSplashDurationMillis)
+    }
+    LaunchedEffect(splashMode, startupState) {
+        val shouldDismissPlatformSplash =
+            when (splashMode) {
+                AppSplashMode.CUSTOM -> true
+                AppSplashMode.NATIVE_UNTIL_READY -> startupState !is AppStartupState.Loading
+            }
+
+        if (shouldDismissPlatformSplash && !platformSplashDismissed) {
+            withFrameNanos { }
+            currentOnPlatformSplashReadyToDismiss()
+            platformSplashDismissed = true
+        }
+    }
+
+    LocalizationProvider {
+        when (val state = startupState) {
+            AppStartupState.Loading ->
+                KSafeDemoTheme(themeMode = ThemeMode.SYSTEM) {
+                    AppStartupScreen(
+                        failed = false,
+                        onRetry = {},
+                    )
+                }
+
+            AppStartupState.Failed ->
+                KSafeDemoTheme(themeMode = ThemeMode.SYSTEM) {
+                    AppStartupScreen(
+                        failed = true,
+                        onRetry = { startupAttempt++ },
+                    )
+                }
+
+            is AppStartupState.Ready -> {
+                ThemeAwareAppContent(initialThemeMode = state.themeMode)
+            }
+        }
     }
 }
 
 /**
- * Waits for every app-lifetime KSafe store before the first synchronous read. The operation is
- * required on JS/WasmJS and a no-op on Android, Apple, and JVM.
+ * Uses the startup snapshot for the first ready frame, then keeps the root theme synchronized
+ * with preference changes made while the application is running.
  */
 @Composable
-private fun KSafeReadyAppContent() {
-    val defaultStore: KSafe = koinInject()
-    val customJsonStore: KSafe = koinInject(qualifier = customJsonKSafe)
-    val preferencesStore: KSafe = koinInject(qualifier = preferencesKSafe)
-    var cacheReady by remember { mutableStateOf(false) }
-
-    LaunchedEffect(defaultStore, customJsonStore, preferencesStore) {
-        awaitKSafeCachesReady(defaultStore, customJsonStore, preferencesStore)
-        cacheReady = true
-    }
-
-    if (cacheReady) {
-        ThemeAwareAppContent()
-    }
-}
-
-@Composable
 private fun ThemeAwareAppContent(
+    initialThemeMode: ThemeMode,
     themePreferenceRepository: ThemePreferenceRepository = koinInject(),
-    appLanguageStore: AppLanguageStore = koinInject(),
 ) {
-    val themeMode: ThemeMode? by produceState<ThemeMode?>(
-        initialValue = null,
-        key1 = themePreferenceRepository,
-    ) {
-        themePreferenceRepository.themeMode.collect { value = it }
-    }
-    var localizationReady by remember(appLanguageStore) { mutableStateOf(false) }
+    val themeMode by themePreferenceRepository.themeMode.collectAsState(
+        initial = initialThemeMode,
+    )
 
-    LaunchedEffect(appLanguageStore) {
-        LocalizationManager.setLanguage(
-            LocalizationManager.resolveStartup(appLanguageStore.languageCode),
-        )
-        localizationReady = true
-    }
-
-    if (localizationReady) {
-        themeMode?.let { resolvedThemeMode ->
-            LocalizationProvider {
-                KSafeDemoTheme(themeMode = resolvedThemeMode) {
-                    AppContent()
-                }
-            }
-        }
+    KSafeDemoTheme(themeMode = themeMode) {
+        AppContent()
     }
 }
 

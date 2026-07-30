@@ -8,6 +8,12 @@ import kotlinx.browser.document
 fun main() {
     val body = document.body ?: return
     ComposeViewport(body) {
-        App()
+        App(
+            onPlatformSplashReadyToDismiss = {
+                document
+                    .getElementById("app-startup-placeholder")
+                    ?.let { placeholder -> placeholder.parentNode?.removeChild(placeholder) }
+            },
+        )
     }
 }

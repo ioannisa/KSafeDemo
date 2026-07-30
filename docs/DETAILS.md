@@ -610,7 +610,8 @@ KSafeDemo/
 ```
 shared/src/
 ├── commonMain/kotlin/eu/anifantakis/ksafe_demo/
-│   ├── App.kt                              # Koin/theme/startup gate + persisted route
+│   ├── App.kt                              # startup host + persisted route
+│   ├── app/startup/                        # shared readiness coordinator and KSafe loader
 │   ├── app/navigation/                     # Navigation3 routes, navigator and root
 │   ├── core/
 │   │   ├── data/
@@ -687,12 +688,80 @@ Each launcher module holds only its `main()` (or `MainActivity`):
 ```
 androidApp/src/main/                         # MainActivity.kt, AndroidManifest.xml, res/ (icons, theme)
 desktopApp/src/main/kotlin/.../main.kt       # Compose Desktop application { Window { App() } }
-webApp/src/wasmJsMain/kotlin/.../main.kt     # ComposeViewport + awaitCacheReady
-jsApp/src/jsMain/kotlin/.../main.kt          # ComposeViewport
+webApp/src/wasmJsMain/kotlin/.../main.kt     # ComposeViewport + HTML splash hand-off
+jsApp/src/jsMain/kotlin/.../main.kt          # ComposeViewport + HTML splash hand-off
 macosApp/src/macosMain/kotlin/.../main.macos.kt   # NSApplication + Window(...) { App() } + run loop
 ```
 
 **Note on Apple source-set sharing:** the demo mirrors the lib's appleMain split — the platform-agnostic Koin module (which just builds a `KSafe` with the demo's security policy) and KSafe startup barrier live in `appleMain/`, while the UIKit-specific entry point (`MainViewController` using `UIViewController`) and the counters feature's `LockTestExecutionWindow` (using `UIApplication.beginBackgroundTask`) stay in `iosMain/`. The iOS framework is still exported from `shared/` — Xcode links it as `ComposeApp` — whereas the AppKit `NSApplication` bootstrap is an executable entry point and so lives in its own `macosApp/` module.
+
+### Cross-platform startup policy
+
+`AppStartupCoordinator` is the single application-level readiness gate. It delegates real
+startup work to `AppStartupPipeline`, then publishes `Ready` only after every blocking preload
+task has completed. `App` exposes the startup presentation as configuration:
+
+```kotlin
+App(
+    splashMode = AppSplashMode.CUSTOM, // or NATIVE_UNTIL_READY
+    minimumSplashDurationMillis = 0L,
+)
+```
+
+`CUSTOM` dismisses the platform or HTML launch surface after Compose's first frame and
+reveals the shared `AppStartupScreen`. `NATIVE_UNTIL_READY` keeps the platform surface
+until startup reaches `Ready`; it is also dismissed on failure so the localized retry UI
+remains reachable. `minimumSplashDurationMillis` runs concurrently with real loading, so
+it never adds time when loading already takes longer, and its default is `0`.
+
+The preload pipeline has two ordered phases:
+
+1. `PREREQUISITE` — dependencies that must be ready before later tasks can read them. The
+   built-in `KSafeCachesStartupTask` awaits all three KSafe stores; this performs asynchronous
+   IndexedDB/WebCrypto hydration on JS/WasmJS and returns immediately on Android, Apple, and JVM.
+2. `CRITICAL` — data required by the first usable application frame. The built-in
+   `StartupPreferencesTask` resolves the persisted theme and language after KSafe is safe to read.
+
+Tasks inside the same phase execute concurrently under structured concurrency. A failure cancels
+the phase, identifies the failed task, and moves the coordinator to its localized retry state.
+Retry executes the pipeline again, so every task must be idempotent and should suspend instead of
+blocking the UI thread.
+
+Additional first-frame work is registered through Koin without changing the coordinator or
+pipeline:
+
+```kotlin
+internal class RemoteConfigStartupTask(
+    private val repository: RemoteConfigRepository,
+) : AppStartupTask {
+    override val id = "remote_config"
+    override val phase = AppStartupPhase.CRITICAL
+
+    override suspend fun preload() {
+        repository.preload()
+    }
+}
+
+val sharedModule = module {
+    singleOf(::RemoteConfigStartupTask).bind<AppStartupTask>()
+    single { AppStartupPipeline(tasks = getAll()) }
+}
+```
+
+Only work required before the app becomes usable belongs in this pipeline. Analytics, optional
+content, cache refreshes, and speculative network requests should start after `Ready` so they do
+not extend the splash.
+
+| Target | Launch surface and configurable hand-off |
+|---|---|
+| Android | The AndroidX system splash can hand off on Compose's first frame or remain until the startup gate finishes |
+| iOS | The static `UILaunchScreen` is continued by a matching native SwiftUI overlay, because iOS does not allow an app to retain the real launch screen; the overlay follows the selected hand-off mode |
+| JVM Desktop and native macOS | The shared Compose startup screen is the first application frame |
+| Kotlin/Wasm and Kotlin/JS | A light/dark HTML placeholder can hand off on Compose's first frame or remain until the startup gate finishes |
+
+The coordinator applies a 15-second timeout to the complete pipeline and can be retried. With the
+default `CUSTOM` mode and zero minimum duration, fast startup is not artificially delayed;
+callers that want the custom splash to remain perceptible can opt into a duration such as `800L`.
 
 ---
 

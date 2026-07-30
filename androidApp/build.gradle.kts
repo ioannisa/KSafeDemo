@@ -51,6 +51,7 @@ dependencies {
 
     // setContent / enableEdgeToEdge in MainActivity.
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.core.splashscreen)
     // Supplies the Theme.Material3.* parent used by res/values/themes.xml, and pulls
     // in AppCompat, whose AppCompatActivity MainActivity extends for biometric support.
     implementation(libs.google.material)

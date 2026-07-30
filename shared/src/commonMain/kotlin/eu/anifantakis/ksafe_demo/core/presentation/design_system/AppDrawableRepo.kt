@@ -9,9 +9,16 @@ import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import ksafedemo.shared.generated.resources.Res
+import ksafedemo.shared.generated.resources.compose_multiplatform
+import org.jetbrains.compose.resources.painterResource
 
 object AppDrawableRepo {
+    val startupLogo: Painter
+        @Composable get() = painterResource(Res.drawable.compose_multiplatform)
+
     val themeSystem: ImageVector
         @Composable get() = Icons.Outlined.Computer
 

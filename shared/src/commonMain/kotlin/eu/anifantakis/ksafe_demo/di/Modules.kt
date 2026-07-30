@@ -1,5 +1,12 @@
 package eu.anifantakis.ksafe_demo.di
 
+import eu.anifantakis.ksafe_demo.app.startup.AppStartupCoordinator
+import eu.anifantakis.ksafe_demo.app.startup.AppStartupLoader
+import eu.anifantakis.ksafe_demo.app.startup.AppStartupPipeline
+import eu.anifantakis.ksafe_demo.app.startup.AppStartupTask
+import eu.anifantakis.ksafe_demo.app.startup.KSafeCachesStartupTask
+import eu.anifantakis.ksafe_demo.app.startup.PipelineAppStartupLoader
+import eu.anifantakis.ksafe_demo.app.startup.StartupPreferencesTask
 import eu.anifantakis.ksafe_demo.core.data.preferences.KSafeAppLanguageStore
 import eu.anifantakis.ksafe_demo.core.domain.preferences.AppLanguageStore
 import eu.anifantakis.ksafe_demo.core.presentation.global_state.GlobalStateContainer
@@ -15,6 +22,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 expect val platformModule: Module
@@ -33,6 +41,29 @@ val sharedModule = module {
     single<ThemePreferenceRepository> {
         ThemePreferenceRepositoryImpl(get(preferencesKSafe))
     }
+    single {
+        KSafeCachesStartupTask(
+            defaultStore = get(),
+            customJsonStore = get(customJsonKSafe),
+            preferencesStore = get(preferencesKSafe),
+        )
+    } bind AppStartupTask::class
+    single {
+        StartupPreferencesTask(
+            themePreferenceRepository = get(),
+            appLanguageStore = get(),
+        )
+    } bind AppStartupTask::class
+    single {
+        AppStartupPipeline(tasks = getAll())
+    }
+    single<AppStartupLoader> {
+        PipelineAppStartupLoader(
+            pipeline = get(),
+            startupPreferencesTask = get(),
+        )
+    }
+    single { AppStartupCoordinator(get()) }
 
     viewModelOf(::CountersViewModel)
     viewModelOf(::FlowDelegatesViewModel)

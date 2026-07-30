@@ -12,7 +12,8 @@
         android:theme="@style/Theme.KSafeDemo">
         <activity
             android:exported="true"
-            android:name="eu.anifantakis.ksafe_demo.MainActivity">
+            android:name="eu.anifantakis.ksafe_demo.MainActivity"
+            android:theme="@style/Theme.KSafeDemo.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
