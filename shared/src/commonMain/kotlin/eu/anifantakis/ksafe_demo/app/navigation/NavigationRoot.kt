@@ -4,6 +4,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.Composable
@@ -14,12 +15,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.metadata
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppDrawableRepo
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppModalBottomSheet
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppSurface
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
@@ -74,8 +77,9 @@ fun NavigationRoot(
             if (!isAboutScreen) {
                 NavigationBar {
                     AppRoute.bottomNavigationEntries.forEach { route ->
+                        val selected = selectedRoute == route
                         NavigationBarItem(
-                            selected = selectedRoute == route,
+                            selected = selected,
                             onClick = {
                                 onRouteSelected(route)
                                 navigator.resetTo(route)
@@ -86,7 +90,13 @@ fun NavigationRoot(
                                     style = AppTextStyle.NAVIGATION_LABEL,
                                 )
                             },
-                            icon = { },
+                            icon = {
+                                Icon(
+                                    imageVector = route.navIcon(selected = selected),
+                                    // The visible label right below carries the name.
+                                    contentDescription = null,
+                                )
+                            },
                         )
                     }
                 }
@@ -151,4 +161,15 @@ private val TabTransitionMetadata = metadata {
     put(NavDisplay.PredictivePopTransitionKey) { _: Int ->
         EnterTransition.None togetherWith ExitTransition.None
     }
+}
+
+@Composable
+private fun AppRoute.navIcon(selected: Boolean): ImageVector = when (this) {
+    AppRoute.Counters -> if (selected) AppDrawableRepo.navCountersSelected else AppDrawableRepo.navCounters
+    AppRoute.Flows -> if (selected) AppDrawableRepo.navFlowsSelected else AppDrawableRepo.navFlows
+    AppRoute.CustomJson -> if (selected) AppDrawableRepo.navCustomJsonSelected else AppDrawableRepo.navCustomJson
+    AppRoute.Security -> if (selected) AppDrawableRepo.navSecuritySelected else AppDrawableRepo.navSecurity
+    // Not bottom-bar entries; mapped anyway so the when stays exhaustive.
+    AppRoute.Preferences -> AppDrawableRepo.preferences
+    AppRoute.About -> AppDrawableRepo.about
 }
