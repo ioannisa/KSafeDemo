@@ -108,14 +108,24 @@ instead of a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETA
   of storing primitives key by key.
 - `asFlow(defaultValue)` gives a cold, scope-free read-only Flow that picks up *external*
   writes, then `.map { }.stateIn(…)` derives a label from it.
-- **`asWritableFlow` — one property that both reads and writes**, shown *with* and *without*
-  it on the same key so the gain is visible: the delegate is a single declaration you observe
-  to read and `.set(v)` to write, versus `getFlow(key, default)` **plus** `putDirect(key, v)` —
-  two APIs with the key repeated in both. Both paths drive the screen at once, so the two
-  cards always agree. It is cold and needs **no scope**, which is why a plain repository can
-  own one (see [`ThemePreferenceRepositoryImpl`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/preferences/data/repository/ThemePreferenceRepositoryImpl.kt));
-  it has no synchronous getter by design, because a sync read against a cold web cache would
-  hand back the default instead of the stored value.
+- **`asWritableFlow` — one property that both reads and writes**, written *with* and *without*
+  it on the same key so you can count the difference:
+
+  ```kotlin
+  // WITH — 1 property, key once
+  val favourite by ksafe.asWritableFlow("", key = KEY)   // read: it IS a Flow
+  favourite.set(movie)                                   // write
+
+  // WITHOUT — 2 members, key twice
+  val favouriteRead = ksafe.getFlow(KEY, "")             // read
+  fun write(v: String) = ksafe.putDirect(KEY, v)         // write
+  ```
+
+  Both paths drive the screen at once, so the two cards always agree — same stored value,
+  different spelling. It is cold and needs **no scope**, which is why a plain repository can
+  own one ([`ThemePreferenceRepositoryImpl`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/preferences/data/repository/ThemePreferenceRepositoryImpl.kt)),
+  and it has no synchronous getter by design: a sync read against a cold web cache would hand
+  back the default instead of the stored value.
 - Two delegates over **one** key, declared next to each other: `mutableStateOf(key = "count2")`
   with and without `scope = viewModelScope` — only the scoped one follows the Counters tab live.
 

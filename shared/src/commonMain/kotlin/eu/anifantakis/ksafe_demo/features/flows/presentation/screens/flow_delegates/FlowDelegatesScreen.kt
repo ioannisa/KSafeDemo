@@ -196,12 +196,12 @@ private fun FlowDelegatesScreen(
         AppSectionDivider()
         AppSectionHeader(Strings[StringKey.FLOWS_WRITABLE_FLOW_SECTION])
         AppCodeBlock(
-            "// WITH — one property is both sides\n" +
+            "// WITH — 1 property, key once\n" +
                 "val favourite by kSafe.asWritableFlow(\"\", key = KEY)\n" +
-                "favourite.set(movie)                       // write\n\n" +
-                "// WITHOUT — two APIs, key repeated\n" +
-                "val favourite = kSafe.getFlow(KEY, \"\")     // read\n" +
-                "kSafe.putDirect(KEY, movie)                // write",
+                "//   read: favourite (it IS a Flow)   write: favourite.set(v)\n\n" +
+                "// WITHOUT — 2 members, key twice\n" +
+                "val favouriteRead = kSafe.getFlow(KEY, \"\")\n" +
+                "fun write(v: String) = kSafe.putDirect(KEY, v)",
             style = AppCodeBlockStyle.WARM,
         )
         AppText(

@@ -167,50 +167,47 @@ class FlowDelegatesViewModel(
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // 3. asWritableFlow — ONE object that both READS and WRITES
+    // 3. asWritableFlow — ONE property that both reads and writes
     //
-    //    The win is that a single declaration owns both directions. Below, the
-    //    SAME key is driven two ways so you can compare them live: the two
-    //    cards on screen always agree, because they are the same stored value.
+    //    Compare the two blocks below. They drive the SAME stored key, so the
+    //    two cards on screen always agree — only the declaration differs:
     //
-    //    WITH    one property: observe it to read, .set(v) to write.
-    //    WITHOUT a read source (getFlow) AND a separate writer (putDirect) —
-    //            two calls, and the key string repeated in both. Mistype one
-    //            and the read silently stops following the write.
+    //      WITH     1 property.  Read it (it IS a Flow), write it (.set).
+    //                            The key appears ONCE.
+    //      WITHOUT  2 members.   A read source AND a writer, with the key
+    //                            repeated. Mistype one and the read silently
+    //                            stops following the write.
     //
-    //    asWritableFlow is also COLD and needs no CoroutineScope, which is why
-    //    a plain repository can own one (see ThemePreferenceRepositoryImpl).
-    //    It deliberately exposes no synchronous getter: a sync read against a
-    //    cold web cache would return the default instead of the stored value.
+    //    It is also COLD and needs no CoroutineScope — that is why a plain
+    //    repository with no scope can own one (ThemePreferenceRepositoryImpl).
     // ═══════════════════════════════════════════════════════════════════════
 
-    // ── WITH asWritableFlow: read side and write side in one declaration ──
+    // ── WITH ──────────────────────────────────────────────────────────────
     private val favouriteMovie: WritableKSafeFlow<String> by ksafe.asWritableFlow(
         defaultValue = "",
         key = FAVOURITE_MOVIE_KEY,
     )
 
-    /** No `.value` on a cold flow — observe it to read it. */
-    private val favouriteMovieState: StateFlow<String> = favouriteMovie
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
-
-    /** Tapping the current favourite again clears it, so the empty state stays reachable. */
     private fun selectFavouriteMovie(movie: String) {
-        favouriteMovie.set(if (favouriteMovieState.value == movie) "" else movie)
+        favouriteMovie.set(movie)
     }
 
-    // ── WITHOUT it: the same value needs two separate APIs ──
-    private val favouriteMovieManual: StateFlow<String> = ksafe
-        .getFlow(FAVOURITE_MOVIE_KEY, "")
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    // ── WITHOUT ───────────────────────────────────────────────────────────
+    private val favouriteMovieRead: Flow<String> = ksafe.getFlow(FAVOURITE_MOVIE_KEY, "")
 
-    /** The write half the delegate would have covered — note the repeated key. */
     private fun clearFavouriteMovie() {
         ksafe.putDirect(FAVOURITE_MOVIE_KEY, "")
     }
 
+    // Showing a COLD flow in Compose needs stateIn either way, so this part is
+    // identical for both and is deliberately kept out of the comparison above.
+    private val favouriteMovieState: StateFlow<String> = favouriteMovie
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    private val favouriteMovieManual: StateFlow<String> = favouriteMovieRead
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
     // ═══════════════════════════════════════════════════════════════════════
-    // 3. CROSS-SCREEN SYNC — real demo with the Counters screen
+    // 4. CROSS-SCREEN SYNC — real demo with the Counters screen
     //
     //    The Counters screen (CountersViewModel) has:
     //      var count2 by ksafe.mutableStateOf(2000)  // key = "count2", NO scope
