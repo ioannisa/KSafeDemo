@@ -10,7 +10,7 @@ internal class El : LanguageStrings {
         StringKey.COMMON_OPEN_APPLICATION_MENU -> "Άνοιγμα μενού εφαρμογής"
         StringKey.COMMON_PREFERENCES -> "Προτιμήσεις"
         StringKey.COMMON_ABOUT -> "Σχετικά"
-        StringKey.COMMON_CLEAR -> "Εκκαθάριση"
+        StringKey.COMMON_CLEAR -> "Καθ/σμος"
         StringKey.COMMON_CANCEL -> "Ακύρωση"
         StringKey.COMMON_OK -> "OK"
         StringKey.COMMON_SAVE -> "Αποθήκευση"
@@ -73,7 +73,7 @@ internal class El : LanguageStrings {
                 "εγγραφές — γι’ αυτό δε χρειάζεται το παραπάνω κουμπί."
         StringKey.COUNTERS_DATA_CLASS_PERSISTED ->
             "ksafe.mutableStateOf — data class (αποθηκευμένο, κρυπτογραφημένο)"
-        StringKey.COUNTERS_BIOMETRIC_COUNT -> "Βιομετρικά: {0}"
+        StringKey.COUNTERS_BIOMETRIC_COUNT -> "BIO: {0}"
         StringKey.COUNTERS_HARDWARE_SECURED_VAULT ->
             "Θυρίδα με ασφάλεια υλικού (StrongBox / Secure Enclave)"
         StringKey.COUNTERS_VAULT_TOKEN -> "Token θυρίδας"
@@ -97,8 +97,8 @@ internal class El : LanguageStrings {
             "Κλειδώστε τώρα τη συσκευή σας! Ανάγνωση σε {0} δ..."
         StringKey.COUNTERS_ATTEMPTING_ENCRYPTED_READ ->
             "Δοκιμή κρυπτογραφημένης ανάγνωσης..."
-        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Δοκιμή κλειδώματος (Προεπιλογή)"
-        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Δοκιμή κλειδώματος (Υλικό)"
+        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Απλό"
+        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Isolated"
         StringKey.COUNTERS_LOCK_TEST_RESULT -> "Αποτέλεσμα δοκιμής κλειδώματος"
         StringKey.COUNTERS_CLEAR_ALL_TITLE -> "Εκκαθάριση όλων των τιμών;"
         StringKey.COUNTERS_CLEAR_ALL_DESCRIPTION ->

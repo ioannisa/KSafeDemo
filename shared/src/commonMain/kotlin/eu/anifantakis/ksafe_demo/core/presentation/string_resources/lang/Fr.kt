@@ -97,8 +97,8 @@ internal class Fr : LanguageStrings {
             "Verrouillez votre appareil maintenant ! Lecture dans {0} s..."
         StringKey.COUNTERS_ATTEMPTING_ENCRYPTED_READ ->
             "Tentative de lecture chiffrée..."
-        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Tester le verrouillage (par défaut)"
-        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Tester le verrouillage (matériel)"
+        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Standard"
+        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Isolated"
         StringKey.COUNTERS_LOCK_TEST_RESULT -> "Résultat du test de verrouillage"
         StringKey.COUNTERS_CLEAR_ALL_TITLE -> "Effacer toutes les valeurs ?"
         StringKey.COUNTERS_CLEAR_ALL_DESCRIPTION ->

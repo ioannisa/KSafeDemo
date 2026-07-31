@@ -709,7 +709,7 @@ private val appPreload: AppPreload = {
 
 App(
     splashMode = AppSplashMode.CUSTOM, // or NATIVE_UNTIL_READY
-    minimumSplashDurationMillis = 0L,
+    minimumSplashDuration = 0.milliseconds,
     preload = appPreload,
 )
 ```
@@ -722,7 +722,7 @@ application Koin graph, so no startup-task class or extra DI binding is required
 `CUSTOM` dismisses the platform or HTML launch surface after Compose's first frame and
 reveals the shared `AppStartupScreen`. `NATIVE_UNTIL_READY` keeps the platform surface
 until startup reaches `Ready`; it is also dismissed on failure so the localized retry UI
-remains reachable. `minimumSplashDurationMillis` runs concurrently with real loading, so
+remains reachable. `minimumSplashDuration` (a `kotlin.time.Duration`) runs concurrently with real loading, so
 it never adds time when loading already takes longer, and its default is `0`.
 
 Startup order is fixed, guaranteed by the coordinator's pipeline rather than by caller discipline:

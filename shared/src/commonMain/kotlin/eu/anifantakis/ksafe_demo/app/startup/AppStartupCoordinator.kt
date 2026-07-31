@@ -17,7 +17,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Immutable
 sealed interface AppStartupState {
@@ -59,30 +61,33 @@ class AppStartupCoordinator internal constructor(
     private val appLanguageStore: AppLanguageStore,
     private val preloadScope: AppPreloadScope,
     private val awaitStoresReady: suspend () -> Unit,
-    private val timeoutMillis: Long = APP_STARTUP_TIMEOUT_MILLIS,
+    private val timeout: Duration = 15.seconds,
 ) {
     private val _state = MutableStateFlow<AppStartupState>(AppStartupState.Loading)
     val state: StateFlow<AppStartupState> = _state.asStateFlow()
 
     suspend fun initialize(
-        minimumSplashDurationMillis: Long = 0L,
+        minimumSplashDuration: Duration = 0.milliseconds,
         preload: AppPreload = {},
     ) {
-        require(minimumSplashDurationMillis >= 0L) {
-            "minimumSplashDurationMillis must be non-negative"
+        require(minimumSplashDuration.inWholeMilliseconds >= 0L) {
+            "minimumSplashDuration must be non-negative"
         }
         if (_state.value is AppStartupState.Ready) return
 
         _state.value = AppStartupState.Loading
         try {
             val (themeMode, language) = coroutineScope {
-                val minimumSplashDuration = async {
-                    delay(minimumSplashDurationMillis.milliseconds)
+                // Named apart from the parameter on purpose: `val minimumSplashDuration =
+                // async { delay(minimumSplashDuration) }` reads as self-reference even
+                // though Kotlin resolves it to the parameter.
+                val splashFloor = async {
+                    delay(minimumSplashDuration)
                 }
-                val loaded = withTimeout(timeoutMillis.milliseconds) {
+                val loaded = withTimeout(timeout) {
                     runStartupPipeline(preload)
                 }
-                minimumSplashDuration.await()
+                splashFloor.await()
                 loaded
             }
             LocalizationManager.setLanguage(language)
@@ -106,9 +111,5 @@ class AppStartupCoordinator internal constructor(
     private fun failStartup(error: Throwable) {
         println("KSafeDemo startup failed: ${error.message ?: "unknown error"}")
         _state.value = AppStartupState.Failed
-    }
-
-    private companion object {
-        const val APP_STARTUP_TIMEOUT_MILLIS = 15_000L
     }
 }

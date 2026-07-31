@@ -93,8 +93,8 @@ internal class It : LanguageStrings {
             "Blocca ora il dispositivo! Lettura tra {0} s..."
         StringKey.COUNTERS_ATTEMPTING_ENCRYPTED_READ ->
             "Tentativo di lettura crittografata..."
-        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Test blocco (Predefinito)"
-        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Test blocco (Hardware)"
+        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Standard"
+        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Isolated"
         StringKey.COUNTERS_LOCK_TEST_RESULT -> "Risultato test blocco"
         StringKey.COUNTERS_CLEAR_ALL_TITLE -> "Cancellare tutti i valori?"
         StringKey.COUNTERS_CLEAR_ALL_DESCRIPTION ->

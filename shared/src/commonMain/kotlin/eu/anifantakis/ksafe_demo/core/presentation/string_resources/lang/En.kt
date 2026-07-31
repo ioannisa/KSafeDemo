@@ -92,8 +92,8 @@ internal class En : LanguageStrings {
             "Lock your device now! Reading in {0}s..."
         StringKey.COUNTERS_ATTEMPTING_ENCRYPTED_READ ->
             "Attempting encrypted read..."
-        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Test Lock (Default)"
-        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Test Lock (Hardware)"
+        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Default"
+        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Isolated"
         StringKey.COUNTERS_LOCK_TEST_RESULT -> "Lock Test Result"
         StringKey.COUNTERS_CLEAR_ALL_TITLE -> "Clear all values?"
         StringKey.COUNTERS_CLEAR_ALL_DESCRIPTION ->

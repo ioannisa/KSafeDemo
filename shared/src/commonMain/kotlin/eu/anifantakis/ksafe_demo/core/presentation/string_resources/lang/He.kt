@@ -96,8 +96,8 @@ internal class He : LanguageStrings {
             "נעלו את המכשיר עכשיו! הקריאה תתבצע בעוד {0} שניות..."
         StringKey.COUNTERS_ATTEMPTING_ENCRYPTED_READ ->
             "מנסה לבצע קריאה מוצפנת..."
-        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "בדיקת נעילה (ברירת מחדל)"
-        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "בדיקת נעילה (חומרה)"
+        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "רגיל"
+        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Isolated"
         StringKey.COUNTERS_LOCK_TEST_RESULT -> "תוצאת בדיקת הנעילה"
         StringKey.COUNTERS_CLEAR_ALL_TITLE -> "לנקות את כל הערכים?"
         StringKey.COUNTERS_CLEAR_ALL_DESCRIPTION ->

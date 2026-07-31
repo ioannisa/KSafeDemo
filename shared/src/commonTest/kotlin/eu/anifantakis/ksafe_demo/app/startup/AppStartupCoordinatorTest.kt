@@ -19,7 +19,9 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class AppStartupCoordinatorTest {
     private val application = koinApplication()
@@ -34,7 +36,7 @@ class AppStartupCoordinatorTest {
         themeFlow: Flow<ThemeMode> = flowOf(ThemeMode.SYSTEM),
         initialLanguageCode: String = "en",
         awaitStoresReady: suspend () -> Unit = {},
-        timeoutMillis: Long = 15_000L,
+        timeout: Duration = 15.seconds,
     ) = AppStartupCoordinator(
         themePreferenceRepository = object : ThemePreferenceRepository {
             override val themeMode = themeFlow
@@ -46,7 +48,7 @@ class AppStartupCoordinatorTest {
         },
         preloadScope = AppPreloadScope(koin = application.koin),
         awaitStoresReady = awaitStoresReady,
-        timeoutMillis = timeoutMillis,
+        timeout = timeout,
     )
 
     @Test
@@ -66,7 +68,7 @@ class AppStartupCoordinatorTest {
     fun aBarrierThatNeverAnswersBecomesFailedAtTheTimeout() = runTest {
         val coordinator = coordinatorOf(
             awaitStoresReady = { CompletableDeferred<Unit>().await() },
-            timeoutMillis = 5_000L,
+            timeout = 5.seconds,
         )
 
         coordinator.initialize()
@@ -82,7 +84,7 @@ class AppStartupCoordinatorTest {
         val coordinator = coordinatorOf()
 
         val initialization = launch {
-            coordinator.initialize(minimumSplashDurationMillis = 800L)
+            coordinator.initialize(minimumSplashDuration = 800.milliseconds)
         }
         runCurrent()
         assertEquals(AppStartupState.Loading, coordinator.state.value)

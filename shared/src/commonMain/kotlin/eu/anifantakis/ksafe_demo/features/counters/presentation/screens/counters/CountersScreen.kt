@@ -166,7 +166,11 @@ private fun CountersScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
+            ) {
+                // "+" keeps its intrinsic width; the two text buttons split the rest equally.
                 AppButton(
                     label = "+",
                     onClick = { onIntent(CountersIntent.Increment) },
@@ -175,12 +179,14 @@ private fun CountersScreen(
                 AppButton(
                     label = Strings[StringKey.COMMON_CLEAR],
                     onClick = { showClearDialog = true },
+                    modifier = Modifier.weight(1f),
                     textStyle = AppTextStyle.ACTION_LARGE,
                 )
                 AppButton(
                     label = Strings[StringKey.COUNTERS_BIOMETRIC_COUNT]
                         .withArgs(listOf(state.bioCount)),
                     onClick = { onIntent(CountersIntent.BiometricIncrement) },
+                    modifier = Modifier.weight(1f),
                     textStyle = AppTextStyle.ACTION_LARGE,
                 )
             }
@@ -199,14 +205,19 @@ private fun CountersScreen(
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
+            ) {
                 AppButton(
                     label = Strings[StringKey.COUNTERS_GENERATE_TOKEN],
                     onClick = { onIntent(CountersIntent.GenerateToken) },
+                    modifier = Modifier.weight(1f),
                 )
                 AppButton(
                     label = Strings[StringKey.COUNTERS_CLEAR_VAULT],
                     onClick = { onIntent(CountersIntent.ClearVault) },
+                    modifier = Modifier.weight(1f),
                 )
             }
 
@@ -267,14 +278,19 @@ private fun CountersScreen(
                     color = if (state.lockTestCountdown > 0) AppColor.Error else AppColor.Muted,
                 )
             } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
+                ) {
                     AppButton(
                         label = Strings[StringKey.COUNTERS_TEST_LOCK_DEFAULT],
                         onClick = { onIntent(CountersIntent.StartLockTest(false)) },
+                        modifier = Modifier.weight(1f),
                     )
                     AppButton(
                         label = Strings[StringKey.COUNTERS_TEST_LOCK_HARDWARE],
                         onClick = { onIntent(CountersIntent.StartLockTest(true)) },
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }

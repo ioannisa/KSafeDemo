@@ -94,8 +94,8 @@ internal class De : LanguageStrings {
             "Sperren Sie jetzt Ihr Gerät! Lesen in {0} s..."
         StringKey.COUNTERS_ATTEMPTING_ENCRYPTED_READ ->
             "Verschlüsselter Lesevorgang wird versucht..."
-        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Sperre testen (Standard)"
-        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Sperre testen (Hardware)"
+        StringKey.COUNTERS_TEST_LOCK_DEFAULT -> "Standard"
+        StringKey.COUNTERS_TEST_LOCK_HARDWARE -> "Isolated"
         StringKey.COUNTERS_LOCK_TEST_RESULT -> "Ergebnis des Sperrtests"
         StringKey.COUNTERS_CLEAR_ALL_TITLE -> "Alle Werte löschen?"
         StringKey.COUNTERS_CLEAR_ALL_DESCRIPTION ->

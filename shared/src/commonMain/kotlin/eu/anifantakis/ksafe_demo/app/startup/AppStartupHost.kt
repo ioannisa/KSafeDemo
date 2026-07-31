@@ -20,18 +20,20 @@ import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.logger.Level
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(KoinExperimentalAPI::class)
 @Composable
 internal fun AppStartupHost(
     splashMode: AppSplashMode,
-    minimumSplashDurationMillis: Long,
+    minimumSplashDuration: Duration,
     onPlatformSplashReadyToDismiss: () -> Unit,
     preload: AppPreload,
     content: @Composable () -> Unit,
 ) {
-    require(minimumSplashDurationMillis >= 0L) {
-        "minimumSplashDurationMillis must be non-negative"
+    require(minimumSplashDuration.inWholeMilliseconds >= 0L) {
+        "minimumSplashDuration must be non-negative"
     }
 
     KoinApplication(
@@ -40,7 +42,7 @@ internal fun AppStartupHost(
     ) {
         AppStartupGate(
             splashMode = splashMode,
-            minimumSplashDurationMillis = minimumSplashDurationMillis,
+            minimumSplashDuration = minimumSplashDuration,
             onPlatformSplashReadyToDismiss = onPlatformSplashReadyToDismiss,
             preload = preload,
             content = content,
@@ -51,7 +53,7 @@ internal fun AppStartupHost(
 @Composable
 private fun AppStartupGate(
     splashMode: AppSplashMode,
-    minimumSplashDurationMillis: Long,
+    minimumSplashDuration: Duration,
     onPlatformSplashReadyToDismiss: () -> Unit,
     preload: AppPreload,
     content: @Composable () -> Unit,
@@ -65,9 +67,9 @@ private fun AppStartupGate(
     var startupAttempt by remember(coordinator) { mutableIntStateOf(0) }
     var platformSplashDismissed by remember { mutableStateOf(false) }
 
-    LaunchedEffect(coordinator, startupAttempt, minimumSplashDurationMillis) {
+    LaunchedEffect(coordinator, startupAttempt, minimumSplashDuration) {
         coordinator.initialize(
-            minimumSplashDurationMillis = minimumSplashDurationMillis,
+            minimumSplashDuration = minimumSplashDuration,
             preload = currentPreload,
         )
     }

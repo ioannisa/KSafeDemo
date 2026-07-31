@@ -135,17 +135,22 @@ private fun CustomJsonScreen(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
+        ) {
             AppButton(
                 label = Strings[StringKey.COMMON_SAVE],
                 onClick = {
                     keyboardController?.hide()
                     onIntent(CustomJsonIntent.Save)
                 },
+                modifier = Modifier.weight(1f),
             )
             AppButton(
                 label = Strings[StringKey.COMMON_CLEAR],
                 onClick = { onIntent(CustomJsonIntent.Clear) },
+                modifier = Modifier.weight(1f),
             )
         }
         if (state.saveCount > 0) {

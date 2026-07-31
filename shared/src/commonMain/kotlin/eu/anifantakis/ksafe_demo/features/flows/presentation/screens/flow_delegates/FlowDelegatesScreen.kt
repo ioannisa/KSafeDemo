@@ -126,14 +126,19 @@ private fun FlowDelegatesScreen(
                 }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
+        ) {
             AppButton(
                 label = Strings[StringKey.FLOWS_LOAD_MOVIES],
                 onClick = { onIntent(FlowDelegatesIntent.LoadMovies) },
+                modifier = Modifier.weight(1f),
             )
             AppButton(
                 label = Strings[StringKey.COMMON_CLEAR],
                 onClick = { onIntent(FlowDelegatesIntent.ClearMovies) },
+                modifier = Modifier.weight(1f),
             )
         }
 
@@ -198,14 +203,19 @@ private fun FlowDelegatesScreen(
                 modifier = Modifier.weight(1f),
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
+        ) {
             AppButton(
                 label = Strings[StringKey.FLOWS_INCREMENT_FROM_SCREEN],
                 onClick = { onIntent(FlowDelegatesIntent.IncrementStorageCounter) },
+                modifier = Modifier.weight(1f),
             )
             AppButton(
                 label = Strings[StringKey.FLOWS_REFRESH_ISOLATED],
                 onClick = { onIntent(FlowDelegatesIntent.RefreshIsolated) },
+                modifier = Modifier.weight(1f),
             )
         }
         AppText(

@@ -5,6 +5,8 @@ import eu.anifantakis.ksafe_demo.app.AppContent
 import eu.anifantakis.ksafe_demo.app.startup.AppPreload
 import eu.anifantakis.ksafe_demo.app.startup.AppSplashMode
 import eu.anifantakis.ksafe_demo.app.startup.AppStartupHost
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private val appPreload: AppPreload = {
     // Application work required before the first usable frame goes here. KSafe readiness is
@@ -23,13 +25,13 @@ private val appPreload: AppPreload = {
 @Composable
 fun App(
     splashMode: AppSplashMode = AppSplashMode.CUSTOM,
-    minimumSplashDurationMillis: Long = 0L,
+    minimumSplashDuration: Duration = 0.milliseconds,
     onPlatformSplashReadyToDismiss: () -> Unit = {},
     preload: AppPreload = appPreload,
 ) {
     AppStartupHost(
         splashMode = splashMode,
-        minimumSplashDurationMillis = minimumSplashDurationMillis,
+        minimumSplashDuration = minimumSplashDuration,
         onPlatformSplashReadyToDismiss = onPlatformSplashReadyToDismiss,
         preload = preload,
     ) {
