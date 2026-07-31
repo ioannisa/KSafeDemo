@@ -12,6 +12,9 @@ object UIConst {
     val paddingAverage = 24.dp
     val paddingDouble = 32.dp
 
+    /** Drop shadow that lifts the top/bottom bars off the content they scroll over. */
+    val barElevation = 6.dp
+
     val cornerRadius = 8.dp
     val borderWidth = 1.dp
     val colorSwatchSize = 14.dp

@@ -1,15 +1,12 @@
 package eu.anifantakis.ksafe_demo.app.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -24,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -33,6 +31,7 @@ import androidx.navigation3.runtime.metadata
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppDrawableRepo
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppModalBottomSheet
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppSurface
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.components.AppText
@@ -75,12 +74,9 @@ fun NavigationRoot(
                 title = Strings[StringKey.APP_PRESENTING_KSAFE]
                     .withArgs(listOf(kSafeInfo.kSafeVersion)),
                 onPreferencesClick = { showPreferences = true },
-                onAboutClick = {
-                    if (navigator.current() != AppRoute.About) {
-                        navigator.navigate(AppRoute.About)
-                    }
-                },
+                onAboutClick = { navigator.navigate(AppRoute.About) },
                 onBackClick = if (isAboutScreen) navigator::goBack else null,
+                isAboutEnabled = !isAboutScreen,
             )
         },
         bottomBar = {
@@ -89,6 +85,8 @@ fun NavigationRoot(
                 // reclaimed, by trimming the home-indicator inset. Zero-inset targets
                 // (desktop/web) are unaffected — exclude() never goes below zero.
                 NavigationBar(
+                    modifier = Modifier.shadow(elevation = UIConst.barElevation),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     windowInsets = NavigationBarDefaults.windowInsets
                         .exclude(WindowInsets(bottom = BottomBarInsetTrim)),
                 ) {
@@ -153,7 +151,7 @@ fun NavigationRoot(
                         SecurityScreenRoot()
                     }
                 }
-                entry<AppRoute.About> {
+                entry<AppRoute.About>(metadata = AboutTransitionMetadata) {
                     AppSurface {
                         AboutScreenRoot()
                     }
@@ -174,6 +172,26 @@ fun NavigationRoot(
 
 /** How much of the home-indicator inset the bottom bar reclaims. */
 private val BottomBarInsetTrim = 16.dp
+
+/**
+ * About pushes in from the end edge and slides back out on the way home. The move is SPATIAL,
+ * so every entry it slides over must paint its own opaque background — they all do, via
+ * [AppSurface]. Start/End (not Left/Right) keep the direction correct in RTL languages.
+ */
+private val AboutTransitionMetadata = metadata {
+    put(NavDisplay.TransitionKey) {
+        slideIntoContainer(SlideDirection.Start) togetherWith
+            slideOutOfContainer(SlideDirection.Start)
+    }
+    put(NavDisplay.PopTransitionKey) {
+        slideIntoContainer(SlideDirection.End) togetherWith
+            slideOutOfContainer(SlideDirection.End)
+    }
+    put(NavDisplay.PredictivePopTransitionKey) { _: Int ->
+        slideIntoContainer(SlideDirection.End) togetherWith
+            slideOutOfContainer(SlideDirection.End)
+    }
+}
 
 private val TabTransitionMetadata = metadata {
     put(NavDisplay.TransitionKey) {
