@@ -37,6 +37,13 @@ private val _state by ksafe.asMutableStateFlow(State(), viewModelScope)   // Mut
 var theme by ksafe(ThemeMode.SYSTEM, mode = KSafeWriteMode.Plain)   // opt OUT per entry
 ```
 
+The four reactive shapes, so you can pick one at a glance:
+
+| | read-only | read **and** write |
+|---|---|---|
+| **cold** (no scope) | `asFlow` | `asWritableFlow` — `.set(v)` |
+| **hot** `StateFlow` (needs a scope) | `asStateFlow` | `asMutableStateFlow` — `.value` / `.update { }` |
+
 Add to your own app (this demo runs against `3.0.0`):
 
 ```kotlin
@@ -88,8 +95,9 @@ instead of a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETA
 ## Flows
 
 > **On screen —** a movie list loaded into a persisted `MutableStateFlow`, a username bound
-> straight to a persisted flow, a toggle driving a *derived* label, and two cards watching the
-> Counters tab's `count2` — one frozen, one live.
+> straight to a persisted flow, a toggle driving a *derived* label, a favourite movie stored
+> **two ways at once** to compare them, and two cards watching the Counters tab's `count2` —
+> one frozen, one live.
 
 **[`FlowDelegatesViewModel.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/flows/presentation/screens/flow_delegates/FlowDelegatesViewModel.kt)**
 
@@ -100,10 +108,18 @@ instead of a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETA
   of storing primitives key by key.
 - `asFlow(defaultValue)` gives a cold, scope-free read-only Flow that picks up *external*
   writes, then `.map { }.stateIn(…)` derives a label from it.
+- **`asWritableFlow` — one property that both reads and writes**, shown *with* and *without*
+  it on the same key so the gain is visible: the delegate is a single declaration you observe
+  to read and `.set(v)` to write, versus `getFlow(key, default)` **plus** `putDirect(key, v)` —
+  two APIs with the key repeated in both. Both paths drive the screen at once, so the two
+  cards always agree. It is cold and needs **no scope**, which is why a plain repository can
+  own one (see [`ThemePreferenceRepositoryImpl`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/preferences/data/repository/ThemePreferenceRepositoryImpl.kt));
+  it has no synchronous getter by design, because a sync read against a cold web cache would
+  hand back the default instead of the stored value.
 - Two delegates over **one** key, declared next to each other: `mutableStateOf(key = "count2")`
   with and without `scope = viewModelScope` — only the scoped one follows the Counters tab live.
 
-**[`FlowDelegatesScreen.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/flows/presentation/screens/flow_delegates/FlowDelegatesScreen.kt)** — shows the isolated and synced values as two cards, so the scope difference is visible proof rather than prose.
+**[`FlowDelegatesScreen.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/flows/presentation/screens/flow_delegates/FlowDelegatesScreen.kt)** — tap a movie to star it, and watch the *with* and *without* cards move together; the isolated and synced `count2` cards do the same job for scope. Differences are shown as visible proof rather than prose.
 
 ---
 

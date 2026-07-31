@@ -1,5 +1,6 @@
 package eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppColor
@@ -115,7 +117,18 @@ private fun FlowDelegatesScreen(
 
                     state.movies.movies.isNotEmpty() -> {
                         state.movies.movies.forEach { movie ->
-                            AppText("• $movie", AppTextStyle.BODY)
+                            val isFavourite = movie == state.favouriteMovie
+                            AppText(
+                                text = if (isFavourite) "★ $movie" else "• $movie",
+                                style = AppTextStyle.BODY,
+                                color = if (isFavourite) AppColor.Primary else Color.Unspecified,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onIntent(FlowDelegatesIntent.FavouriteMovieSelected(movie))
+                                    }
+                                    .padding(vertical = UIConst.paddingExtraSmall),
+                            )
                         }
                     }
 
@@ -181,6 +194,46 @@ private fun FlowDelegatesScreen(
         }
 
         AppSectionDivider()
+        AppSectionHeader(Strings[StringKey.FLOWS_WRITABLE_FLOW_SECTION])
+        AppCodeBlock(
+            "// WITH — one property is both sides\n" +
+                "val favourite by kSafe.asWritableFlow(\"\", key = KEY)\n" +
+                "favourite.set(movie)                       // write\n\n" +
+                "// WITHOUT — two APIs, key repeated\n" +
+                "val favourite = kSafe.getFlow(KEY, \"\")     // read\n" +
+                "kSafe.putDirect(KEY, movie)                // write",
+            style = AppCodeBlockStyle.WARM,
+        )
+        AppText(
+            text = Strings[StringKey.FLOWS_FAVOURITE_HINT],
+            style = AppTextStyle.SMALL,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(UIConst.paddingSmall),
+        ) {
+            AppValueCard(
+                label = Strings[StringKey.FLOWS_FAVOURITE_WITH_DELEGATE],
+                value = state.favouriteMovie.ifEmpty {
+                    Strings[StringKey.FLOWS_NO_FAVOURITE_MOVIE]
+                },
+                modifier = Modifier.weight(1f),
+            )
+            AppValueCard(
+                label = Strings[StringKey.FLOWS_FAVOURITE_WITHOUT_DELEGATE],
+                value = state.favouriteMovieManual.ifEmpty {
+                    Strings[StringKey.FLOWS_NO_FAVOURITE_MOVIE]
+                },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        AppButton(
+            label = Strings[StringKey.FLOWS_CLEAR_FAVOURITE],
+            onClick = { onIntent(FlowDelegatesIntent.ClearFavouriteMovie) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        AppSectionDivider()
         AppSectionHeader(Strings[StringKey.FLOWS_SCOPE_SYNC_SECTION])
         AppCodeBlock(
             "// CountersViewModel owns key \"count2\"\n" +
@@ -241,6 +294,8 @@ private fun PreviewFlowDelegatesScreen() {
             state = FlowDelegatesState(
                 movies = MoviesListState(movies = listOf("Inception", "Interstellar")),
                 username = "Ada",
+                favouriteMovie = "Interstellar",
+                favouriteMovieManual = "Interstellar",
                 storageCountSynced = 2001,
             ),
             onIntent = {},

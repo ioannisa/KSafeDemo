@@ -158,6 +158,9 @@ internal class He : LanguageStrings {
         StringKey.FLOWS_FAVOURITE_MOVIE -> "סרט מועדף"
         StringKey.FLOWS_NO_FAVOURITE_MOVIE -> "עדיין לא נבחר"
         StringKey.FLOWS_FAVOURITE_HINT -> "הקש על סרט למעלה כדי לשמור אותו עם ‎.set()‎ — ללא scope וללא getter ‎.value‎."
+        StringKey.FLOWS_FAVOURITE_WITH_DELEGATE -> "עם asWritableFlow"
+        StringKey.FLOWS_FAVOURITE_WITHOUT_DELEGATE -> "בלי (getFlow + putDirect)"
+        StringKey.FLOWS_CLEAR_FAVOURITE -> "נקה מועדף"
         StringKey.FLOWS_SCOPE_SYNC_SECTION ->
             "mutableStateOf(scope) — סנכרון בין מסכים"
         StringKey.FLOWS_ISOLATED_NO_SCOPE -> "מבודד (ללא scope)"

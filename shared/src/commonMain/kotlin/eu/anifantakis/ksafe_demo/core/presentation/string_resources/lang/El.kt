@@ -171,6 +171,9 @@ internal class El : LanguageStrings {
         StringKey.FLOWS_FAVOURITE_MOVIE -> "Αγαπημένη ταινία"
         StringKey.FLOWS_NO_FAVOURITE_MOVIE -> "Δεν έχει επιλεγεί ακόμα"
         StringKey.FLOWS_FAVOURITE_HINT -> "Πάτησε μια ταινία παραπάνω για αποθήκευση με .set() — χωρίς scope, χωρίς getter .value."
+        StringKey.FLOWS_FAVOURITE_WITH_DELEGATE -> "με asWritableFlow"
+        StringKey.FLOWS_FAVOURITE_WITHOUT_DELEGATE -> "χωρίς (getFlow + putDirect)"
+        StringKey.FLOWS_CLEAR_FAVOURITE -> "Καθαρισμός αγαπημένου"
         StringKey.FLOWS_SCOPE_SYNC_SECTION ->
             "mutableStateOf(scope) — συγχρονισμός μεταξύ οθονών"
         StringKey.FLOWS_ISOLATED_NO_SCOPE -> "απομονωμένο (χωρίς scope)"

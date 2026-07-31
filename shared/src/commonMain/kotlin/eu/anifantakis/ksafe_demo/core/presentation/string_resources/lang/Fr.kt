@@ -169,6 +169,9 @@ internal class Fr : LanguageStrings {
         StringKey.FLOWS_FAVOURITE_MOVIE -> "Film favori"
         StringKey.FLOWS_NO_FAVOURITE_MOVIE -> "Aucun pour l'instant"
         StringKey.FLOWS_FAVOURITE_HINT -> "Touchez un film ci-dessus pour l'enregistrer avec .set() — sans scope, sans getter .value."
+        StringKey.FLOWS_FAVOURITE_WITH_DELEGATE -> "avec asWritableFlow"
+        StringKey.FLOWS_FAVOURITE_WITHOUT_DELEGATE -> "sans (getFlow + putDirect)"
+        StringKey.FLOWS_CLEAR_FAVOURITE -> "Effacer le favori"
         StringKey.FLOWS_SCOPE_SYNC_SECTION ->
             "mutableStateOf(scope) — synchronisation entre écrans"
         StringKey.FLOWS_ISOLATED_NO_SCOPE -> "isolé (sans scope)"
