@@ -153,6 +153,10 @@ internal class It : LanguageStrings {
         StringKey.FLOWS_ON_MODE -> "Modalità attiva"
         StringKey.FLOWS_OFF_MODE -> "Modalità disattiva"
         StringKey.FLOWS_DEFAULT_USERNAME -> "Ospite"
+        StringKey.FLOWS_WRITABLE_FLOW_SECTION -> "asWritableFlow — freddo, scrivibile, senza scope"
+        StringKey.FLOWS_FAVOURITE_MOVIE -> "Film preferito"
+        StringKey.FLOWS_NO_FAVOURITE_MOVIE -> "Nessuno ancora"
+        StringKey.FLOWS_FAVOURITE_HINT -> "Tocca un film sopra per salvarlo con .set() — senza scope, senza getter .value."
         StringKey.FLOWS_SCOPE_SYNC_SECTION ->
             "mutableStateOf(scope) — sincronizzazione tra schermate"
         StringKey.FLOWS_ISOLATED_NO_SCOPE -> "isolato (senza scope)"

@@ -167,6 +167,10 @@ internal class El : LanguageStrings {
         StringKey.FLOWS_ON_MODE -> "Ενεργή λειτουργία"
         StringKey.FLOWS_OFF_MODE -> "Ανενεργή λειτουργία"
         StringKey.FLOWS_DEFAULT_USERNAME -> "Επισκέπτης"
+        StringKey.FLOWS_WRITABLE_FLOW_SECTION -> "asWritableFlow — ψυχρή, εγγράψιμη, χωρίς scope"
+        StringKey.FLOWS_FAVOURITE_MOVIE -> "Αγαπημένη ταινία"
+        StringKey.FLOWS_NO_FAVOURITE_MOVIE -> "Δεν έχει επιλεγεί ακόμα"
+        StringKey.FLOWS_FAVOURITE_HINT -> "Πάτησε μια ταινία παραπάνω για αποθήκευση με .set() — χωρίς scope, χωρίς getter .value."
         StringKey.FLOWS_SCOPE_SYNC_SECTION ->
             "mutableStateOf(scope) — συγχρονισμός μεταξύ οθονών"
         StringKey.FLOWS_ISOLATED_NO_SCOPE -> "απομονωμένο (χωρίς scope)"

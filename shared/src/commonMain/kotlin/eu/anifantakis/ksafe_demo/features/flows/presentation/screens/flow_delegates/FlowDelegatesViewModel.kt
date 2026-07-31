@@ -11,7 +11,9 @@ import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.localized
 import eu.anifantakis.lib.ksafe.KSafe
 import eu.anifantakis.lib.ksafe.asFlow
+import eu.anifantakis.lib.ksafe.WritableKSafeFlow
 import eu.anifantakis.lib.ksafe.asMutableStateFlow
+import eu.anifantakis.lib.ksafe.asWritableFlow
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +43,8 @@ data class FlowDelegatesState(
     val username: String = "",
     val toggleMode: Boolean = false,
     val toggleLabelKey: StringKey = StringKey.FLOWS_OFF_MODE,
+    val favouriteMovie: String = "",
+    val favouriteMovieManual: String = "",
     val storageCountIsolated: Int = 2000,
     val storageCountSynced: Int = 2000,
 )
@@ -50,6 +54,8 @@ sealed interface FlowDelegatesIntent {
     data object ClearMovies : FlowDelegatesIntent
     data class NameChanged(val name: String) : FlowDelegatesIntent
     data object ToggleMode : FlowDelegatesIntent
+    data class FavouriteMovieSelected(val movie: String) : FlowDelegatesIntent
+    data object ClearFavouriteMovie : FlowDelegatesIntent
     data object IncrementStorageCounter : FlowDelegatesIntent
     data object RefreshIsolated : FlowDelegatesIntent
     data object ClearAll : FlowDelegatesIntent
@@ -161,6 +167,49 @@ class FlowDelegatesViewModel(
     }
 
     // ═══════════════════════════════════════════════════════════════════════
+    // 3. asWritableFlow — ONE object that both READS and WRITES
+    //
+    //    The win is that a single declaration owns both directions. Below, the
+    //    SAME key is driven two ways so you can compare them live: the two
+    //    cards on screen always agree, because they are the same stored value.
+    //
+    //    WITH    one property: observe it to read, .set(v) to write.
+    //    WITHOUT a read source (getFlow) AND a separate writer (putDirect) —
+    //            two calls, and the key string repeated in both. Mistype one
+    //            and the read silently stops following the write.
+    //
+    //    asWritableFlow is also COLD and needs no CoroutineScope, which is why
+    //    a plain repository can own one (see ThemePreferenceRepositoryImpl).
+    //    It deliberately exposes no synchronous getter: a sync read against a
+    //    cold web cache would return the default instead of the stored value.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // ── WITH asWritableFlow: read side and write side in one declaration ──
+    private val favouriteMovie: WritableKSafeFlow<String> by ksafe.asWritableFlow(
+        defaultValue = "",
+        key = FAVOURITE_MOVIE_KEY,
+    )
+
+    /** No `.value` on a cold flow — observe it to read it. */
+    private val favouriteMovieState: StateFlow<String> = favouriteMovie
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    /** Tapping the current favourite again clears it, so the empty state stays reachable. */
+    private fun selectFavouriteMovie(movie: String) {
+        favouriteMovie.set(if (favouriteMovieState.value == movie) "" else movie)
+    }
+
+    // ── WITHOUT it: the same value needs two separate APIs ──
+    private val favouriteMovieManual: StateFlow<String> = ksafe
+        .getFlow(FAVOURITE_MOVIE_KEY, "")
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    /** The write half the delegate would have covered — note the repeated key. */
+    private fun clearFavouriteMovie() {
+        ksafe.putDirect(FAVOURITE_MOVIE_KEY, "")
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
     // 3. CROSS-SCREEN SYNC — real demo with the Counters screen
     //
     //    The Counters screen (CountersViewModel) has:
@@ -212,6 +261,7 @@ class FlowDelegatesViewModel(
             ksafe.delete("moviesState")
             ksafe.delete("username")
             ksafe.delete("toggleMode")
+            ksafe.delete(FAVOURITE_MOVIE_KEY)
             // Note: we don't delete "count2" here — that belongs to the Counters screen.
             // The cross-screen demo reads it, not owns it.
         }
@@ -226,6 +276,8 @@ class FlowDelegatesViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
         .toComposeState(viewModelScope)
     private val toggleLabelComposeState = toggleLabel.toComposeState(viewModelScope)
+    private val favouriteMovieComposeState = favouriteMovieState.toComposeState(viewModelScope)
+    private val favouriteMovieManualComposeState = favouriteMovieManual.toComposeState(viewModelScope)
 
     val state: State<FlowDelegatesState> = derivedStateOf {
         FlowDelegatesState(
@@ -233,6 +285,8 @@ class FlowDelegatesViewModel(
             username = usernameComposeState.value,
             toggleMode = toggleModeState.value,
             toggleLabelKey = toggleLabelComposeState.value,
+            favouriteMovie = favouriteMovieComposeState.value,
+            favouriteMovieManual = favouriteMovieManualComposeState.value,
             storageCountIsolated = storageCountIsolated,
             storageCountSynced = storageCountSynced,
         )
@@ -240,6 +294,9 @@ class FlowDelegatesViewModel(
 
     private companion object {
         const val MOVIES_PER_LOAD = 4
+
+        /** One constant, because the manual path repeats it in two places. */
+        const val FAVOURITE_MOVIE_KEY = "favouriteMovie"
 
         /** Stands in for a server response — big enough that a reshuffle is obvious. */
         val moviesPool = listOf(
@@ -272,6 +329,8 @@ class FlowDelegatesViewModel(
             FlowDelegatesIntent.ClearMovies -> clearMovies()
             is FlowDelegatesIntent.NameChanged -> onNameChanged(intent.name)
             FlowDelegatesIntent.ToggleMode -> toggleMode()
+            is FlowDelegatesIntent.FavouriteMovieSelected -> selectFavouriteMovie(intent.movie)
+            FlowDelegatesIntent.ClearFavouriteMovie -> clearFavouriteMovie()
             FlowDelegatesIntent.IncrementStorageCounter -> incrementFromFlowsScreen()
             FlowDelegatesIntent.RefreshIsolated -> refreshIsolated()
             FlowDelegatesIntent.ClearAll -> clearAll()

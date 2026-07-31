@@ -154,6 +154,10 @@ internal class He : LanguageStrings {
         StringKey.FLOWS_ON_MODE -> "מצב פעיל"
         StringKey.FLOWS_OFF_MODE -> "מצב כבוי"
         StringKey.FLOWS_DEFAULT_USERNAME -> "אורח"
+        StringKey.FLOWS_WRITABLE_FLOW_SECTION -> "asWritableFlow — קר, ניתן לכתיבה, ללא scope"
+        StringKey.FLOWS_FAVOURITE_MOVIE -> "סרט מועדף"
+        StringKey.FLOWS_NO_FAVOURITE_MOVIE -> "עדיין לא נבחר"
+        StringKey.FLOWS_FAVOURITE_HINT -> "הקש על סרט למעלה כדי לשמור אותו עם ‎.set()‎ — ללא scope וללא getter ‎.value‎."
         StringKey.FLOWS_SCOPE_SYNC_SECTION ->
             "mutableStateOf(scope) — סנכרון בין מסכים"
         StringKey.FLOWS_ISOLATED_NO_SCOPE -> "מבודד (ללא scope)"

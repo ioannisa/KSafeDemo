@@ -165,6 +165,10 @@ internal class Fr : LanguageStrings {
         StringKey.FLOWS_ON_MODE -> "Mode activé"
         StringKey.FLOWS_OFF_MODE -> "Mode désactivé"
         StringKey.FLOWS_DEFAULT_USERNAME -> "Invité"
+        StringKey.FLOWS_WRITABLE_FLOW_SECTION -> "asWritableFlow — froid, inscriptible, sans scope"
+        StringKey.FLOWS_FAVOURITE_MOVIE -> "Film favori"
+        StringKey.FLOWS_NO_FAVOURITE_MOVIE -> "Aucun pour l'instant"
+        StringKey.FLOWS_FAVOURITE_HINT -> "Touchez un film ci-dessus pour l'enregistrer avec .set() — sans scope, sans getter .value."
         StringKey.FLOWS_SCOPE_SYNC_SECTION ->
             "mutableStateOf(scope) — synchronisation entre écrans"
         StringKey.FLOWS_ISOLATED_NO_SCOPE -> "isolé (sans scope)"

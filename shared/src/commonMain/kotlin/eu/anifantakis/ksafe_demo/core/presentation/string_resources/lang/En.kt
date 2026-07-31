@@ -154,6 +154,10 @@ internal class En : LanguageStrings {
         StringKey.FLOWS_ON_MODE -> "On Mode"
         StringKey.FLOWS_OFF_MODE -> "Off Mode"
         StringKey.FLOWS_DEFAULT_USERNAME -> "Guest"
+        StringKey.FLOWS_WRITABLE_FLOW_SECTION -> "asWritableFlow — cold, writable, no scope"
+        StringKey.FLOWS_FAVOURITE_MOVIE -> "Favourite movie"
+        StringKey.FLOWS_NO_FAVOURITE_MOVIE -> "No favourite yet"
+        StringKey.FLOWS_FAVOURITE_HINT -> "Tap a movie above to store it with .set() — no scope, no .value getter."
         StringKey.FLOWS_SCOPE_SYNC_SECTION ->
             "mutableStateOf(scope) — cross-screen sync"
         StringKey.FLOWS_ISOLATED_NO_SCOPE -> "isolated (no scope)"
