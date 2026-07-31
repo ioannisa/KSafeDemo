@@ -20,7 +20,7 @@ Every screen is a feature — tap a title to read what it demonstrates and which
 
 | [Counters](#counters) | [Flows](#flows) | [Custom JSON](#custom-json) | [Security](#security) | [Preferences](#preferences) |
 |:---:|:---:|:---:|:---:|:---:|
-| <img width="270" alt="KSafe counters demo" src="https://github.com/user-attachments/assets/fbf461b5-b2c6-4b2a-9de4-1443a2aa3a84" /> | <img width="270" alt="KSafe flow delegates demo" src="https://github.com/user-attachments/assets/f05fed91-1df4-4810-a684-6b2258535700" /> | <img width="270" alt="KSafe custom JSON demo" src="https://github.com/user-attachments/assets/d7b3abcd-6f6e-4bad-9f2e-ef78f70aea6e" /> | <img width="270" alt="KSafe security diagnostics" src="https://github.com/user-attachments/assets/af169904-64cb-4cc9-aeef-71668a269825" /> | <img width="270" alt="KSafe Demo preferences" src="https://github.com/user-attachments/assets/1ba21590-9522-4dfc-a19a-136c535967cb" /> |
+| <img src="https://github.com/user-attachments/assets/5ec6c512-27f0-4119-8de3-45a72c33a652" /> | <img src="https://github.com/user-attachments/assets/fff61ca3-10cb-4fe4-81ab-83be9066b761" /> | <img src="https://github.com/user-attachments/assets/5b545a2d-0fe0-4538-a22c-e1167ba6f027" /> | <img src="https://github.com/user-attachments/assets/4efe7e94-fa5a-45c2-abee-8cdb84b51748" /> | <img src="https://github.com/user-attachments/assets/9b73af2e-7fa7-433f-982f-8fed10df73ed" /> |
 
 ---
 
