@@ -14,6 +14,16 @@ biometrics and runtime security diagnostics.
 
 ---
 
+## Screenshots
+
+Every screen is a feature — tap a title to read what it demonstrates and which file implements it.
+
+| [Counters](#counters) | [Flows](#flows) | [Custom JSON](#custom-json) | [Security](#security) | [Preferences](#preferences) |
+|:---:|:---:|:---:|:---:|:---:|
+| <img width="270" alt="KSafe counters demo" src="https://github.com/user-attachments/assets/fbf461b5-b2c6-4b2a-9de4-1443a2aa3a84" /> | <img width="270" alt="KSafe flow delegates demo" src="https://github.com/user-attachments/assets/f05fed91-1df4-4810-a684-6b2258535700" /> | <img width="270" alt="KSafe custom JSON demo" src="https://github.com/user-attachments/assets/d7b3abcd-6f6e-4bad-9f2e-ef78f70aea6e" /> | <img width="270" alt="KSafe security diagnostics" src="https://github.com/user-attachments/assets/af169904-64cb-4cc9-aeef-71668a269825" /> | <img width="270" alt="KSafe Demo preferences" src="https://github.com/user-attachments/assets/1ba21590-9522-4dfc-a19a-136c535967cb" /> |
+
+---
+
 ## KSafe in one minute
 
 ```kotlin
@@ -37,14 +47,16 @@ implementation("eu.anifantakis:ksafe-biometrics:3.0.0")
 
 `kotlinx-serialization-json` arrives transitively with `:ksafe`.
 
+Each section below points at the file that implements it, so you can read the real code
+instead of a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETAILS.md).
+
 ---
 
-## Feature map
+## Counters
 
-Each section points at the file that implements it, so you can read the real code instead of
-a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETAILS.md).
-
-### Counters — every persistence flavour, side by side
+> **On screen —** four counters persisted four different ways, an encrypted `AuthInfo` object,
+> a hardware-isolated vault token, a biometric-gated counter with its authorization countdown,
+> whole-store key rotation, and an interactive device-lock test.
 
 **[`CountersViewModel.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/counters/presentation/screens/counters/CountersViewModel.kt)** — the API sampler
 
@@ -71,7 +83,13 @@ a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETAILS.md).
 
 **[`LockTestExecutionWindow.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/counters/presentation/platform/LockTestExecutionWindow.kt)** — a generic, suspending, higher-order `expect fun` (six actuals); the iOS one wraps the test in `beginBackgroundTaskWithName` so a locked screen doesn't kill it.
 
-### Flows — reactive persistence
+---
+
+## Flows
+
+> **On screen —** a movie list loaded into a persisted `MutableStateFlow`, a username bound
+> straight to a persisted flow, a toggle driving a *derived* label, and two cards watching the
+> Counters tab's `count2` — one frozen, one live.
 
 **[`FlowDelegatesViewModel.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/flows/presentation/screens/flow_delegates/FlowDelegatesViewModel.kt)**
 
@@ -87,7 +105,12 @@ a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETAILS.md).
 
 **[`FlowDelegatesScreen.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/flows/presentation/screens/flow_delegates/FlowDelegatesScreen.kt)** — shows the isolated and synced values as two cards, so the scope difference is visible proof rather than prose.
 
-### Custom JSON — serialization you control
+---
+
+## Custom JSON
+
+> **On screen —** the four-step setup printed as live code, then the same `UserProfile` saved
+> in encrypted and plain form, with `@Contextual` fields for two types the model does not own.
 
 **[`CustomJsonSerialization.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/custom_json/data/serialization/CustomJsonSerialization.kt)**
 
@@ -100,7 +123,13 @@ a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETAILS.md).
 
 **[`UserProfile.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/custom_json/domain/model/UserProfile.kt)** — its wrapper types carry **no** `@Serializable`: the pattern for third-party or legacy types you cannot annotate.
 
-### Security — what the device actually gave you
+---
+
+## Security
+
+> **On screen —** the key-protection tier this device actually delivered (with a banner when it
+> is weaker than requested), the custody description and degradation notes, and a live checklist
+> of root/jailbreak, debugger, debug-build and emulator detection.
 
 **[`SecurityViewModel.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/security/presentation/screens/security/SecurityViewModel.kt)** / **[`SecurityScreen.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/security/presentation/screens/security/SecurityScreen.kt)**
 
@@ -113,7 +142,14 @@ a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETAILS.md).
 
 **[`SecurityViolationsHolder.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/di/SecurityViolationsHolder.kt)** — solves an ordering problem worth knowing: `KSafeSecurityPolicy(onViolation = …)` fires **while KSafe is being constructed**, before any ViewModel exists, so the callbacks are buffered for the UI.
 
-### Preferences, theme & language — non-secret persistence
+---
+
+## Preferences
+
+> **On screen —** a modal bottom sheet (opened from the top menu, not the bottom bar) with
+> Day / Night / System appearance and six languages including RTL Hebrew. Both apply instantly
+> and survive a cold launch — the plainest demonstration that KSafe is also a perfectly good
+> home for *non-secret* settings.
 
 **[`ThemePreferenceRepositoryImpl.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/preferences/data/repository/ThemePreferenceRepositoryImpl.kt)**
 
@@ -121,13 +157,22 @@ a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETAILS.md).
   *entire* persistence layer — read side and write side in one delegate.
 - Persists the `ThemeMode` enum directly through the reified type parameter — no manual
   `toString()` / `valueOf()`.
+- `KSafeWriteMode.Plain` opts *out* of the encrypted default: a UI theme is not a secret, so
+  skip the crypto rather than pay for it.
 - An explicit `key` (not the property name) so renaming the property can never orphan stored data.
 
 **[`KSafeAppLanguageStore.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/core/data/preferences/KSafeAppLanguageStore.kt)** — a KSafe delegate satisfying a plain domain interface, with non-suspend get/set so startup code can read the saved language synchronously.
 
-**[`LocalizationManager.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/core/presentation/string_resources/LocalizationManager.kt)** / **[`StringKey.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/core/presentation/string_resources/StringKey.kt)** — six languages incl. RTL Hebrew; `resolveStartup` turns *saved code → device locale → fallback* into three lines, and the closed `StringKey` enum makes a missing translation a **compile error**.
+**[`PreferencesViewModel.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/features/preferences/presentation/screens/preferences/PreferencesViewModel.kt)** — screen state is *derived from storage*, not mirrored into a second source of truth: the repository flow is `.map(…).stateIn(…)`, so the persisted value is the only state there is.
 
-### App shell — Compose state that outlives the process
+**[`LocalizationManager.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/core/presentation/string_resources/LocalizationManager.kt)** / **[`StringKey.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/core/presentation/string_resources/StringKey.kt)** — `resolveStartup` turns *saved code → device locale → fallback* into three lines, and the closed `StringKey` enum makes a missing translation a **compile error**.
+
+---
+
+## App shell
+
+> Not a screen of its own — the frame every screen lives in, and where the most reusable
+> Compose patterns are.
 
 **[`AppContent.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/app/AppContent.kt)**
 
@@ -147,26 +192,20 @@ a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETAILS.md).
 
 **[`NavigationRoot.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/app/navigation/NavigationRoot.kt)** — Navigation3 in common code, and a deliberate counter-example: transient sheet visibility stays `rememberSaveable`, only the durable tab selection goes to KSafe.
 
-### DI & the browser readiness barrier
+---
+
+## Dependency injection and the browser barrier
 
 **[`Modules.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/di/Modules.kt)** (+ [android](shared/src/androidMain/kotlin/eu/anifantakis/ksafe_demo/di/Modules.android.kt) / [jvm](shared/src/jvmMain/kotlin/eu/anifantakis/ksafe_demo/di/Modules.jvm.kt) actuals)
 
-- Three independently configured stores told apart by Koin qualifiers — a plain-ish
-  preferences store, a custom-`Json` store, and the default one.
+- Three independently configured stores told apart by Koin qualifiers — a preferences store,
+  a custom-`Json` store, and the default one.
 - KSafe is always injected, never a global: repositories take the store as a constructor
   parameter, so tests can swap it.
 - Android is the only target whose constructor needs a `Context`; every other platform builds
   from a file name alone.
 
 **[`KSafeStartup.kt`](shared/src/commonMain/kotlin/eu/anifantakis/ksafe_demo/core/data/persistence/KSafeStartup.kt)** — the `expect/actual` barrier: [web](shared/src/wasmJsMain/kotlin/eu/anifantakis/ksafe_demo/core/data/persistence/KSafeStartup.wasmJs.kt) awaits each store's `awaitCacheReady()` (IndexedDB + WebCrypto hydrate asynchronously), while [Android](shared/src/androidMain/kotlin/eu/anifantakis/ksafe_demo/core/data/persistence/KSafeStartup.android.kt), Apple and JVM are `= Unit`. Common startup code calls it unconditionally — no `if (platform == WEB)` anywhere.
-
----
-
-## Screenshots
-
-| Counters | Flows | Custom JSON | Security | Preferences |
-|:---:|:---:|:---:|:---:|:---:|
-| <img width="270" alt="KSafe counters demo" src="https://github.com/user-attachments/assets/fbf461b5-b2c6-4b2a-9de4-1443a2aa3a84" /> | <img width="270" alt="KSafe flow delegates demo" src="https://github.com/user-attachments/assets/f05fed91-1df4-4810-a684-6b2258535700" /> | <img width="270" alt="KSafe custom JSON demo" src="https://github.com/user-attachments/assets/d7b3abcd-6f6e-4bad-9f2e-ef78f70aea6e" /> | <img width="270" alt="KSafe security diagnostics" src="https://github.com/user-attachments/assets/af169904-64cb-4cc9-aeef-71668a269825" /> | <img width="270" alt="KSafe Demo preferences" src="https://github.com/user-attachments/assets/1ba21590-9522-4dfc-a19a-136c535967cb" /> |
 
 ---
 
@@ -183,7 +222,7 @@ a snippet. Long-form walkthroughs live in [docs/DETAILS.md](docs/DETAILS.md).
 
 The same shared API picks the right key custody per target — Android Keystore/StrongBox, Apple
 Keychain/Secure Enclave, DPAPI / macOS Keychain / Secret Service on desktop, and a
-non-extractable WebCrypto key in the browser. The Security screen reads
+non-extractable WebCrypto key in the browser. The [Security](#security) screen reads
 `ksafe.protectionInfo`, so simulator, hardware and fallback differences stay **visible**
 instead of being hidden.
 
