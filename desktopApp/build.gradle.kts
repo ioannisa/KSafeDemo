@@ -25,6 +25,10 @@ compose.desktop {
             packageName = "eu.anifantakis.ksafe_demo"
             packageVersion = "1.0.0"
 
+            macOS { iconFile.set(project.file("icons/KSafeDemo.icns")) }
+            // Windows wants an .ico; generate one from the icon pack when packaging Msi.
+            linux { iconFile.set(project.file("icons/KSafeDemo.png")) }
+
             // STRONGLY RECOMMENDED for Compose Desktop release distributables —
             // restores OS-backed key custody. Both DataStore's protobuf and JNA
             // (the OS keyvault) need sun.misc.Unsafe (module jdk.unsupported),
