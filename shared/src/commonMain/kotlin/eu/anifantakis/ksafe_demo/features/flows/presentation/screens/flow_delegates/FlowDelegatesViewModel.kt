@@ -100,7 +100,9 @@ class FlowDelegatesViewModel(
             try {
                 // Simulate API call
                 kotlinx.coroutines.delay(800.milliseconds)
-                val movies = listOf("Inception", "Interstellar", "The Matrix", "Blade Runner 2049")
+                // A fresh draw each time, so a reload visibly changes the persisted list —
+                // otherwise "loaded" and "restored from KSafe" look identical.
+                val movies = moviesPool.shuffled().take(MOVIES_PER_LOAD)
                 _moviesState.update { it.copy(loading = false, movies = movies) }
             } catch (error: CancellationException) {
                 throw error
@@ -233,6 +235,34 @@ class FlowDelegatesViewModel(
             toggleLabelKey = toggleLabelComposeState.value,
             storageCountIsolated = storageCountIsolated,
             storageCountSynced = storageCountSynced,
+        )
+    }
+
+    private companion object {
+        const val MOVIES_PER_LOAD = 4
+
+        /** Stands in for a server response — big enough that a reshuffle is obvious. */
+        val moviesPool = listOf(
+            "Inception",
+            "Interstellar",
+            "The Matrix",
+            "Blade Runner 2049",
+            "Arrival",
+            "Dune",
+            "The Prestige",
+            "Ex Machina",
+            "Tenet",
+            "Gattaca",
+            "Minority Report",
+            "Looper",
+            "The Godfather",
+            "Casino",
+            "Good Fellas",
+            "American History X",
+            "The Shawshank Redemption",
+            "The Green Mile",
+            "The Dark Knight",
+            "Lord of the Rings"
         )
     }
 
