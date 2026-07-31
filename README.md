@@ -20,7 +20,7 @@ Every screen is a feature — tap a title to read what it demonstrates and which
 
 | [Counters](#counters) | [Flows](#flows) | [Custom JSON](#custom-json) | [Security](#security) | [Preferences](#preferences) |
 |:---:|:---:|:---:|:---:|:---:|
-| <img src="https://github.com/user-attachments/assets/5ec6c512-27f0-4119-8de3-45a72c33a652" /> | <img src="https://github.com/user-attachments/assets/fff61ca3-10cb-4fe4-81ab-83be9066b761" /> | <img src="https://github.com/user-attachments/assets/5b545a2d-0fe0-4538-a22c-e1167ba6f027" /> | <img src="https://github.com/user-attachments/assets/4efe7e94-fa5a-45c2-abee-8cdb84b51748" /> | <img src="https://github.com/user-attachments/assets/9b73af2e-7fa7-433f-982f-8fed10df73ed" /> |
+| <img height="320" alt="" src="https://github.com/user-attachments/assets/5ec6c512-27f0-4119-8de3-45a72c33a652" /> | <img height="320" alt="" src="https://github.com/user-attachments/assets/fff61ca3-10cb-4fe4-81ab-83be9066b761" /> | <img height="320" alt="" src="https://github.com/user-attachments/assets/5b545a2d-0fe0-4538-a22c-e1167ba6f027" /> | <img height="320" alt="" src="https://github.com/user-attachments/assets/4efe7e94-fa5a-45c2-abee-8cdb84b51748" /> | <img height="320" alt="" src="https://github.com/user-attachments/assets/9b73af2e-7fa7-433f-982f-8fed10df73ed" /> |
 
 ---
 
