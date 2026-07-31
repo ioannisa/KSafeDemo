@@ -21,7 +21,7 @@ internal class Fr : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "Réessayer"
         StringKey.NAV_COUNTERS -> "Compteurs"
         StringKey.NAV_FLOWS -> "Flux"
-        StringKey.NAV_CUSTOM_JSON -> "JSON personnalisé"
+        StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "Sécurité"
 
         StringKey.PREFERENCES_APPEARANCE -> "Apparence"

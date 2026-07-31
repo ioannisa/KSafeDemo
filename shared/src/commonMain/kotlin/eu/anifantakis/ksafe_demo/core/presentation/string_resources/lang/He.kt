@@ -21,7 +21,7 @@ internal class He : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "ניסיון חוזר"
         StringKey.NAV_COUNTERS -> "מונים"
         StringKey.NAV_FLOWS -> "זרימות"
-        StringKey.NAV_CUSTOM_JSON -> "JSON מותאם אישית"
+        StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "אבטחה"
 
         StringKey.PREFERENCES_APPEARANCE -> "מראה"

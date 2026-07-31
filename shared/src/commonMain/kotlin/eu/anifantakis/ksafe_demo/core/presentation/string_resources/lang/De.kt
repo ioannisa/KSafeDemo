@@ -21,7 +21,7 @@ internal class De : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "Erneut versuchen"
         StringKey.NAV_COUNTERS -> "Zähler"
         StringKey.NAV_FLOWS -> "Flows"
-        StringKey.NAV_CUSTOM_JSON -> "Eigenes JSON"
+        StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "Sicherheit"
 
         StringKey.PREFERENCES_APPEARANCE -> "Darstellung"

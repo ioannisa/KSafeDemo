@@ -21,7 +21,7 @@ internal class El : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "Δοκιμή ξανά"
         StringKey.NAV_COUNTERS -> "Μετρητές"
         StringKey.NAV_FLOWS -> "Ροές"
-        StringKey.NAV_CUSTOM_JSON -> "Προσαρμοσμένο JSON"
+        StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "Ασφάλεια"
 
         StringKey.PREFERENCES_APPEARANCE -> "Εμφάνιση"

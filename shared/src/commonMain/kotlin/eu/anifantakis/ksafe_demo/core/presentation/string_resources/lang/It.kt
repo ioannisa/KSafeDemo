@@ -21,7 +21,7 @@ internal class It : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "Riprova"
         StringKey.NAV_COUNTERS -> "Contatori"
         StringKey.NAV_FLOWS -> "Flussi"
-        StringKey.NAV_CUSTOM_JSON -> "JSON personalizzato"
+        StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "Sicurezza"
 
         StringKey.PREFERENCES_APPEARANCE -> "Aspetto"

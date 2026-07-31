@@ -21,7 +21,7 @@ internal class En : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "Retry"
         StringKey.NAV_COUNTERS -> "Counters"
         StringKey.NAV_FLOWS -> "Flows"
-        StringKey.NAV_CUSTOM_JSON -> "Custom JSON"
+        StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "Security"
 
         StringKey.PREFERENCES_APPEARANCE -> "Appearance"
