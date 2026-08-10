@@ -23,6 +23,7 @@ import eu.anifantakis.lib.ksafe.KSafeEncryptedProtection
 import eu.anifantakis.lib.ksafe.KSafeKeyInfo
 import eu.anifantakis.lib.ksafe.KSafeWriteMode
 import eu.anifantakis.lib.ksafe.SecurityViolation
+import eu.anifantakis.lib.ksafe.asStateFlow
 import eu.anifantakis.lib.ksafe.biometrics.BiometricAuthorizationDuration
 import eu.anifantakis.lib.ksafe.biometrics.KSafeBiometrics
 import kotlin.coroutines.cancellation.CancellationException
@@ -72,23 +73,30 @@ class CountersViewModel(
     private val ksafe: KSafe,
 ) : BaseGlobalViewModel() {
 
+    // BEFORE YOU COMMENT THIS IS NOT GOOD FOR MVI.....
+    // These should all be private totally and expose just universal state via mvi
+
+    // I made them like that for demo purposes as your "eye" would normally track variables with private set
+
     // just a normal mutableStateOf - no persistence
-    private var count1 by mutableStateOf(1000)
+    var count1 by mutableStateOf(1000)
+        private set
 
     // mutableStateOf via KSafe - with persistence (NO scope — won't see external writes)
     // if key is unspecified, property name becomes the key
     // if encrypted is unspecified, it defaults to protection = KSafeProtection.DEFAULT
     // Note: The Flows tab also writes to "count2". Without scope, we need manual refresh.
-    private var count2 by ksafe.mutableStateOf(2000)
+    var count2 by ksafe.mutableStateOf(2000)
+        private set
 
     // MutableStateOf? Of course!  Also look at my own helper function "toComposeState()"
     // so you turn it to compose state as if it was a mutableStateOf ;)
     private val _count2b by ksafe.asMutableStateFlow(2300, viewModelScope)
-    private val count2bState = _count2b.toComposeState(viewModelScope)
+    val count2bState = _count2b.toComposeState(viewModelScope)
 
     // also for you who are the traditional guy and want "asStateFlow()" so you collectAsState in your composable
     private val _count2c by ksafe.asMutableStateFlow(2600, viewModelScope)
-    private val count2c = _count2c.asStateFlow()
+    val count2c = _count2c.asStateFlow()
 
 
     val state: State<CountersState> = derivedStateOf {
