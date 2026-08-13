@@ -1,44 +1,42 @@
-package eu.anifantakis.ksafe_demo.features.counters.presentation.screens.counters
+package eu.anifantakis.ksafe_demo.features.counters.presentation
 
-import androidx.compose.runtime.State
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import eu.anifantakis.ksafe_demo.core.presentation.global_state.BaseGlobalViewModel
-import eu.anifantakis.ksafe_demo.core.presentation.helper.toComposeState
 import eu.anifantakis.ksafe_demo.core.presentation.helper.UiText
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.localized
-import eu.anifantakis.lib.ksafe.KSafe
-import eu.anifantakis.lib.ksafe.asMutableStateFlow
-import eu.anifantakis.lib.ksafe.invoke
-import eu.anifantakis.lib.ksafe.compose.mutableStateOf
 import eu.anifantakis.ksafe_demo.di.SecurityViolationsHolder
-import eu.anifantakis.ksafe_demo.features.counters.presentation.platform.withLockTestExecutionWindow
 import eu.anifantakis.ksafe_demo.features.counters.domain.model.AuthInfo
+import eu.anifantakis.ksafe_demo.features.counters.presentation.platform.withLockTestExecutionWindow
+import eu.anifantakis.lib.ksafe.KSafe
 import eu.anifantakis.lib.ksafe.KSafeEncryptedProtection
 import eu.anifantakis.lib.ksafe.KSafeKeyInfo
 import eu.anifantakis.lib.ksafe.KSafeWriteMode
 import eu.anifantakis.lib.ksafe.SecurityViolation
-import eu.anifantakis.lib.ksafe.asStateFlow
+import eu.anifantakis.lib.ksafe.asMutableStateFlow
 import eu.anifantakis.lib.ksafe.biometrics.BiometricAuthorizationDuration
 import eu.anifantakis.lib.ksafe.biometrics.KSafeBiometrics
-import kotlin.coroutines.cancellation.CancellationException
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
+import eu.anifantakis.lib.ksafe.compose.mutableStateOf
+import eu.anifantakis.lib.ksafe.invoke
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 data class CountersState(
     val count1: Int = 1000,
     val count2: Int = 2000,
-    val count2b: Int = 2300,
     val count2c: Int = 2600,
     val count3: Int = 3000,
     val bioCount: Int = 0,
@@ -65,36 +63,20 @@ sealed interface CountersIntent {
     data object DismissRotationResult : CountersIntent
 }
 
-/** Screen-local effects are intentionally absent; snackbars use the app-wide effect channel. */
-sealed interface CountersEffect
-
 @Stable
 class CountersViewModel(
     private val ksafe: KSafe,
 ) : BaseGlobalViewModel() {
 
-    // BEFORE YOU COMMENT THIS IS NOT GOOD FOR MVI.....
-    // These should all be private totally and expose just universal state via mvi
-
-    // I made them like that for demo purposes as your "eye" would normally track variables with private set
-
     // just a normal mutableStateOf - no persistence
     var count1 by mutableStateOf(1000)
         private set
 
-    // mutableStateOf via KSafe - with persistence (NO scope — won't see external writes)
-    // if key is unspecified, property name becomes the key
-    // if encrypted is unspecified, it defaults to protection = KSafeProtection.DEFAULT
-    // Note: The Flows tab also writes to "count2". Without scope, we need manual refresh.
+    // mutableStateOf via KSafe
     var count2 by ksafe.mutableStateOf(2000)
         private set
 
-    // MutableStateOf? Of course!  Also look at my own helper function "toComposeState()"
-    // so you turn it to compose state as if it was a mutableStateOf ;)
-    private val _count2b by ksafe.asMutableStateFlow(2300, viewModelScope)
-    val count2bState = _count2b.toComposeState(viewModelScope)
-
-    // also for you who are the traditional guy and want "asStateFlow()" so you collectAsState in your composable
+    // asMutableStateFlow via KSafe
     private val _count2c by ksafe.asMutableStateFlow(2600, viewModelScope)
     val count2c = _count2c.asStateFlow()
 
@@ -103,7 +85,6 @@ class CountersViewModel(
         CountersState(
             count1 = count1,
             count2 = count2,
-            count2b = count2bState.value,
             count2c = count2c.value,
             count3 = count3,
             bioCount = bioCount,
@@ -194,7 +175,7 @@ class CountersViewModel(
 
     private var bioAuthRemaining by mutableStateOf(0)
 
-    private var bioTimerJob: kotlinx.coroutines.Job? = null
+    private var bioTimerJob: Job? = null
 
     private fun startBioAuthTimer() {
         bioTimerJob?.cancel()
@@ -336,7 +317,6 @@ class CountersViewModel(
         count2++
         // The MutableStateFlow way — .update{} rather than an assignment; the persist and the
         // emission both happen inside the delegate.
-        _count2b.update { it + 1 }
         _count2c.update { it + 1 }
         count3++
         count4++
@@ -386,7 +366,6 @@ class CountersViewModel(
         // Reset in-memory state to defaults so the UI updates immediately
         count1 = 1000
         count2 = 2000
-        _count2b.update { 2300 }
         _count2c.update { 2600 }
         count3 = 3000
         count4 = 10

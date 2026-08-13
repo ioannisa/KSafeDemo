@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates
+package eu.anifantakis.ksafe_demo.features.flows.presentation
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

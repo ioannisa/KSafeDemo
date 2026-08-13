@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.security.presentation.screens.security
+package eu.anifantakis.ksafe_demo.features.security.presentation
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.State
@@ -21,9 +21,6 @@ data class SecurityState(
 sealed interface SecurityIntent {
     data object Refresh : SecurityIntent
 }
-
-/** This screen has no one-time local effects. */
-sealed interface SecurityEffect
 
 @Stable
 class SecurityViewModel(

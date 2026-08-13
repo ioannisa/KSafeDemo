@@ -41,13 +41,13 @@ import eu.anifantakis.ksafe_demo.core.presentation.scaffold.ApplicationScaffold
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.StringKey
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.Strings
 import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
-import eu.anifantakis.ksafe_demo.features.about.presentation.screens.about.AboutScreenRoot
-import eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custom_json.CustomJsonScreenRoot
-import eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates.FlowDelegatesScreenRoot
-import eu.anifantakis.ksafe_demo.features.helpers.presentation.screens.helpers.HelpersScreenRoot
-import eu.anifantakis.ksafe_demo.features.preferences.presentation.screens.preferences.PreferencesScreenRoot
-import eu.anifantakis.ksafe_demo.features.security.presentation.screens.security.SecurityScreenRoot
-import eu.anifantakis.ksafe_demo.features.counters.presentation.screens.counters.CountersScreenRoot
+import eu.anifantakis.ksafe_demo.features.about.presentation.AboutScreenRoot
+import eu.anifantakis.ksafe_demo.features.custom_json.presentation.CustomJsonScreenRoot
+import eu.anifantakis.ksafe_demo.features.flows.presentation.FlowDelegatesScreenRoot
+import eu.anifantakis.ksafe_demo.features.helpers.presentation.HelpersScreenRoot
+import eu.anifantakis.ksafe_demo.features.preferences.presentation.PreferencesScreenRoot
+import eu.anifantakis.ksafe_demo.features.security.presentation.SecurityScreenRoot
+import eu.anifantakis.ksafe_demo.features.counters.presentation.CountersScreenRoot
 import eu.anifantakis.lib.ksafe.KSafe
 import org.koin.compose.koinInject
 

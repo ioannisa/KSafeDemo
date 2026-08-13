@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.preferences.presentation.screens.preferences
+package eu.anifantakis.ksafe_demo.features.preferences.presentation
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.Stable
@@ -22,9 +22,6 @@ sealed interface PreferencesIntent {
     data class ThemeSelected(val themeMode: ThemeMode) : PreferencesIntent
     data class LanguageSelected(val language: Language) : PreferencesIntent
 }
-
-/** This screen has no one-time local effects. */
-sealed interface PreferencesEffect
 
 @Stable
 class PreferencesViewModel(

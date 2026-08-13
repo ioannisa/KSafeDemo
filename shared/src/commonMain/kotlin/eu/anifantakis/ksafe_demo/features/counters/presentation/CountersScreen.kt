@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.counters.presentation.screens.counters
+package eu.anifantakis.ksafe_demo.features.counters.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -133,12 +133,6 @@ private fun CountersScreen(
                     .height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(UIConst.paddingCompact),
             ) {
-                AppValueCard(
-                    label = Strings[StringKey.COUNTERS_COUNTER_2B],
-                    sublabel = Strings[StringKey.COUNTERS_FLOW_NO_REFRESH],
-                    value = state.count2b.toString(),
-                    modifier = Modifier.weight(0.5f),
-                )
                 AppValueCard(
                     label = Strings[StringKey.COUNTERS_COUNTER_2C],
                     sublabel = Strings[StringKey.COUNTERS_FLOW_NO_REFRESH],

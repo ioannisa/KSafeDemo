@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.helpers.presentation.screens.helpers
+package eu.anifantakis.ksafe_demo.features.helpers.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

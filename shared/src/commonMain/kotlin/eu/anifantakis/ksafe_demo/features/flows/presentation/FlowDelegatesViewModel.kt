@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates
+package eu.anifantakis.ksafe_demo.features.flows.presentation
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.State
@@ -15,6 +15,7 @@ import eu.anifantakis.lib.ksafe.WritableKSafeFlow
 import eu.anifantakis.lib.ksafe.asMutableStateFlow
 import eu.anifantakis.lib.ksafe.asWritableFlow
 import eu.anifantakis.lib.ksafe.compose.mutableStateOf
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -61,9 +62,6 @@ sealed interface FlowDelegatesIntent {
     data object ClearAll : FlowDelegatesIntent
 }
 
-/** This screen has no one-time local effects. */
-sealed interface FlowDelegatesEffect
-
 // ─── ViewModel ───────────────────────────────────────────────────────────────
 
 /**
@@ -105,7 +103,7 @@ class FlowDelegatesViewModel(
         viewModelScope.launch {
             try {
                 // Simulate API call
-                kotlinx.coroutines.delay(800.milliseconds)
+                delay(800.milliseconds)
                 // A fresh draw each time, so a reload visibly changes the persisted list —
                 // otherwise "loaded" and "restored from KSafe" look identical.
                 val movies = moviesPool.shuffled().take(MOVIES_PER_LOAD)
@@ -220,17 +218,11 @@ class FlowDelegatesViewModel(
     //    Only the synced value updates. The isolated one is frozen.
     // ═══════════════════════════════════════════════════════════════════════
 
-
-    // BEFORE ANY NEGATIVE COMMENTS - private set is not necessary as the var is scoped private
-    // but I keep it for educational reasons incase you were not following my MVI approach
-
     // NO scope — reads "count2" from cache at init, won't see Counters screen's writes
     private var storageCountIsolated by ksafe.mutableStateOf(2000, key = "count2")
-        private set
 
     // WITH scope — observes "count2" via flow, updates when Counters screen increments it
     private var storageCountSynced by ksafe.mutableStateOf(2000, key = "count2", scope = viewModelScope)
-        private set
 
     /** Write to "count2" from THIS screen — proves cross-screen sync works both ways.
      *  Uses kSafe.put() to simulate an external write (like the Counters screen does).

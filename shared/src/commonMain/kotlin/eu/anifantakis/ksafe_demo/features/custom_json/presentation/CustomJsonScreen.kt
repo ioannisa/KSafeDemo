@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custom_json
+package eu.anifantakis.ksafe_demo.features.custom_json.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

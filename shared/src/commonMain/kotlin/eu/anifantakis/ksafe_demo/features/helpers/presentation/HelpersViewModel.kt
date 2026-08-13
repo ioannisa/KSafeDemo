@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.helpers.presentation.screens.helpers
+package eu.anifantakis.ksafe_demo.features.helpers.presentation
 
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
- * Demonstrates the 3.1.0 mode-typed helper views: [KSafePlain], [KSafeEncrypted] and
- * [KSafeHardwareIsolated]. Each handle freezes its write mode at the type level, so no
+ * Demonstrates the 3.1.0 mode-typed helper views: [eu.anifantakis.lib.ksafe.KSafePlain], [eu.anifantakis.lib.ksafe.KSafeEncrypted] and
+ * [eu.anifantakis.lib.ksafe.KSafeHardwareIsolated]. Each handle freezes its write mode at the type level, so no
  * call below ever passes a `mode` argument — writing through `ksafePlain` is always
  * plain, through `ksafeHardwareIsolated` always requests StrongBox / Secure Enclave.
  *
@@ -23,9 +23,9 @@ import kotlinx.coroutines.flow.update
  * so each declaration style stays readable on its own:
  *
  *  1. `mutableStateOf`      — Compose state; the screen reads the property directly.
- *  2. `asMutableStateFlow`  — exposed as read-only [StateFlow]; the screen collects it.
+ *  2. `asMutableStateFlow`  — exposed as read-only [kotlinx.coroutines.flow.StateFlow]; the screen collects it.
  *  3. `asMutableStateFlow` + [toComposeState] — pre-collected in the ViewModel, so the
- *     screen reads a [State] with no `collectAsState()` at the call site.
+ *     screen reads a [androidx.compose.runtime.State] with no `collectAsState()` at the call site.
  */
 @Stable
 class HelpersViewModel(

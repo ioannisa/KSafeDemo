@@ -1,4 +1,4 @@
-package eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custom_json
+package eu.anifantakis.ksafe_demo.features.custom_json.presentation
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.State
@@ -29,9 +29,6 @@ sealed interface CustomJsonIntent {
     data object Save : CustomJsonIntent
     data object Clear : CustomJsonIntent
 }
-
-/** This screen has no one-time local effects. */
-sealed interface CustomJsonEffect
 
 val defaultUserProfile = UserProfile(
     name = "guest",
