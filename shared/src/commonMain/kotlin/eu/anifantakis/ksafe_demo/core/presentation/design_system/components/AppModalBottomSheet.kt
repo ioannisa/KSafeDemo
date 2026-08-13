@@ -9,6 +9,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.AppTheme
+import eu.anifantakis.ksafe_demo.core.presentation.design_system.SyncSystemBarsWithTheme
 import eu.anifantakis.ksafe_demo.core.presentation.design_system.UIConst
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,6 +24,10 @@ fun AppModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
+        // The sheet lives in its own (focused) window, which material3 styles only once at
+        // creation — re-sync it here so a theme switched WHILE the sheet is open still flips
+        // the status-bar icons. LocalView inside this lambda belongs to the sheet's window.
+        SyncSystemBarsWithTheme(AppTheme.isDark)
         Column(modifier = Modifier.fillMaxWidth()) {
             AppText(
                 text = title,

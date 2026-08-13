@@ -66,12 +66,18 @@ private val LocalAppColors = compositionLocalOf<AppColors> {
     error("No AppColors provided. Wrap the content in KSafeDemoTheme.")
 }
 
+private val LocalAppIsDark = compositionLocalOf { false }
+
 object AppTheme {
     val typography: AppTypography
         @Composable get() = LocalAppTypography.current
 
     val colors: AppColors
         @Composable get() = LocalAppColors.current
+
+    /** The resolved dark flag of the active theme (themeMode + system setting combined). */
+    val isDark: Boolean
+        @Composable get() = LocalAppIsDark.current
 }
 
 /**
@@ -189,6 +195,7 @@ fun KSafeDemoTheme(
     androidx.compose.runtime.CompositionLocalProvider(
         LocalAppTypography provides appTypography,
         LocalAppColors provides if (isDark) darkAppColors else lightAppColors,
+        LocalAppIsDark provides isDark,
     ) {
         MaterialTheme(
             colorScheme = if (isDark) darkColorScheme() else lightColorScheme(),
