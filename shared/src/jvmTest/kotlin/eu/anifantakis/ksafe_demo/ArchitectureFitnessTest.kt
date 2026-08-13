@@ -81,7 +81,7 @@ class ArchitectureFitnessTest {
     @Test
     fun countersRetainsItsOriginalCenteredScrollableLayout() {
         val screenSource = Files.readString(
-            featureRoot.resolve("counters/presentation/screens/counters/CountersScreen.kt"),
+            featureRoot.resolve("counters/presentation/CountersScreen.kt"),
         )
         val componentSource = Files.readString(
             coreComponentsRoot.resolve("content/AppValueCard.kt"),
