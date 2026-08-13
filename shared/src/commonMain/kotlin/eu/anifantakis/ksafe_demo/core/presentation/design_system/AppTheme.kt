@@ -159,6 +159,7 @@ fun KSafeDemoTheme(
     content: @Composable () -> Unit,
 ) {
     val isDark = themeMode.resolveDarkTheme(systemIsDark = isSystemInDarkTheme())
+    SyncSystemBarsWithTheme(isDark)
     val materialTypography = Typography()
     val appTypography = AppTypography(
         material = materialTypography,
