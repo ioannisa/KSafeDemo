@@ -23,6 +23,11 @@ sealed interface AppRoute : NavKey {
     }
 
     @Serializable
+    data object Helpers : AppRoute {
+        override val titleKey get() = StringKey.NAV_HELPERS
+    }
+
+    @Serializable
     data object CustomJson : AppRoute {
         override val titleKey get() = StringKey.NAV_CUSTOM_JSON
     }
@@ -44,6 +49,6 @@ sealed interface AppRoute : NavKey {
 
     companion object {
         val bottomNavigationEntries: List<AppRoute> =
-            listOf(Counters, Flows, CustomJson, Security)
+            listOf(Counters, Flows, Helpers, CustomJson, Security)
     }
 }

@@ -21,8 +21,21 @@ internal class El : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "Δοκιμή ξανά"
         StringKey.NAV_COUNTERS -> "Μετρητές"
         StringKey.NAV_FLOWS -> "Ροές"
+        StringKey.NAV_HELPERS -> "Βοηθοί"
         StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "Ασφάλεια"
+
+        StringKey.HELPERS_TITLE -> "Mode-Typed Helpers (3.1.0+)"
+        StringKey.HELPERS_SUBTITLE ->
+            "KSafePlain \u00b7 KSafeEncrypted \u00b7 KSafeHardwareIsolated \u2014 το handle κλειδώνει " +
+                "το write mode, καμία εγγραφή δεν παίρνει όρισμα mode"
+        StringKey.HELPERS_SECTION_PLAIN -> "Helper Counter Plain \u2014 εγγραφές μέσω KSafePlain"
+        StringKey.HELPERS_SECTION_ENCRYPTED -> "Helper Counter Encrypted \u2014 εγγραφές μέσω KSafeEncrypted"
+        StringKey.HELPERS_SECTION_HARDWARE_ISOLATED ->
+            "Helper Counter Hardware Isolated \u2014 εγγραφές μέσω KSafeHardwareIsolated"
+        StringKey.HELPERS_VARIANT_DIRECT_STATE -> "Compose state \u2014 απευθείας ανάγνωση"
+        StringKey.HELPERS_VARIANT_COLLECT_AS_STATE -> "StateFlow \u2014 collectAsState() στην οθόνη"
+        StringKey.HELPERS_VARIANT_TO_COMPOSE_STATE -> "toComposeState(scope) \u2014 χωρίς collect στην οθόνη"
 
         StringKey.PREFERENCES_APPEARANCE -> "Εμφάνιση"
         StringKey.PREFERENCES_APPEARANCE_DESCRIPTION ->

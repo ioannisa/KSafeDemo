@@ -21,8 +21,21 @@ internal class He : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "ניסיון חוזר"
         StringKey.NAV_COUNTERS -> "מונים"
         StringKey.NAV_FLOWS -> "זרימות"
+        StringKey.NAV_HELPERS -> "עוזרים"
         StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "אבטחה"
+
+        StringKey.HELPERS_TITLE -> "Mode-Typed Helpers (3.1.0+)"
+        StringKey.HELPERS_SUBTITLE ->
+            "KSafePlain \u00b7 KSafeEncrypted \u00b7 KSafeHardwareIsolated \u2014 ה-handle קובע את " +
+                "מצב הכתיבה, אף כתיבה אינה מקבלת ארגומנט mode"
+        StringKey.HELPERS_SECTION_PLAIN -> "Helper Counter Plain \u2014 כתיבה דרך KSafePlain"
+        StringKey.HELPERS_SECTION_ENCRYPTED -> "Helper Counter Encrypted \u2014 כתיבה דרך KSafeEncrypted"
+        StringKey.HELPERS_SECTION_HARDWARE_ISOLATED ->
+            "Helper Counter Hardware Isolated \u2014 כתיבה דרך KSafeHardwareIsolated"
+        StringKey.HELPERS_VARIANT_DIRECT_STATE -> "Compose state \u2014 קריאה ישירה"
+        StringKey.HELPERS_VARIANT_COLLECT_AS_STATE -> "StateFlow \u2014 collectAsState() במסך"
+        StringKey.HELPERS_VARIANT_TO_COMPOSE_STATE -> "toComposeState(scope) \u2014 ללא collect במסך"
 
         StringKey.PREFERENCES_APPEARANCE -> "מראה"
         StringKey.PREFERENCES_APPEARANCE_DESCRIPTION ->

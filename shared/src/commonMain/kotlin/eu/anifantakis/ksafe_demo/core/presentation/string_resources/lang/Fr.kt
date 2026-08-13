@@ -21,8 +21,21 @@ internal class Fr : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "Réessayer"
         StringKey.NAV_COUNTERS -> "Compteurs"
         StringKey.NAV_FLOWS -> "Flux"
+        StringKey.NAV_HELPERS -> "Assistants"
         StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "Sécurité"
+
+        StringKey.HELPERS_TITLE -> "Mode-Typed Helpers (3.1.0+)"
+        StringKey.HELPERS_SUBTITLE ->
+            "KSafePlain \u00b7 KSafeEncrypted \u00b7 KSafeHardwareIsolated \u2014 le handle fige le " +
+                "mode d'écriture, aucune écriture ne prend d'argument mode"
+        StringKey.HELPERS_SECTION_PLAIN -> "Helper Counter Plain \u2014 écritures via KSafePlain"
+        StringKey.HELPERS_SECTION_ENCRYPTED -> "Helper Counter Encrypted \u2014 écritures via KSafeEncrypted"
+        StringKey.HELPERS_SECTION_HARDWARE_ISOLATED ->
+            "Helper Counter Hardware Isolated \u2014 écritures via KSafeHardwareIsolated"
+        StringKey.HELPERS_VARIANT_DIRECT_STATE -> "Compose state \u2014 lecture directe"
+        StringKey.HELPERS_VARIANT_COLLECT_AS_STATE -> "StateFlow \u2014 collectAsState() dans l'écran"
+        StringKey.HELPERS_VARIANT_TO_COMPOSE_STATE -> "toComposeState(scope) \u2014 sans collect dans l'écran"
 
         StringKey.PREFERENCES_APPEARANCE -> "Apparence"
         StringKey.PREFERENCES_APPEARANCE_DESCRIPTION ->

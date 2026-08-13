@@ -9,11 +9,15 @@ import eu.anifantakis.ksafe_demo.core.presentation.global_state.GlobalStateConta
 import eu.anifantakis.ksafe_demo.features.about.presentation.screens.about.AboutViewModel
 import eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custom_json.CustomJsonViewModel
 import eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates.FlowDelegatesViewModel
+import eu.anifantakis.ksafe_demo.features.helpers.presentation.screens.helpers.HelpersViewModel
 import eu.anifantakis.ksafe_demo.features.preferences.data.repository.ThemePreferenceRepositoryImpl
 import eu.anifantakis.ksafe_demo.features.preferences.domain.repository.ThemePreferenceRepository
 import eu.anifantakis.ksafe_demo.features.preferences.presentation.screens.preferences.PreferencesViewModel
 import eu.anifantakis.ksafe_demo.features.security.presentation.screens.security.SecurityViewModel
 import eu.anifantakis.ksafe_demo.features.counters.presentation.screens.counters.CountersViewModel
+import eu.anifantakis.lib.ksafe.KSafeEncrypted
+import eu.anifantakis.lib.ksafe.KSafeHardwareIsolated
+import eu.anifantakis.lib.ksafe.KSafePlain
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -53,8 +57,14 @@ val sharedModule = module {
         )
     }
 
+    // 3.1.0 mode-typed views over the default KSafe store: the handle IS the write mode.
+    single { KSafePlain(get()) }
+    single { KSafeEncrypted(get()) }
+    single { KSafeHardwareIsolated(get()) }
+
     viewModelOf(::CountersViewModel)
     viewModelOf(::FlowDelegatesViewModel)
+    viewModelOf(::HelpersViewModel)
     viewModelOf(::PreferencesViewModel)
     viewModelOf(::AboutViewModel)
 

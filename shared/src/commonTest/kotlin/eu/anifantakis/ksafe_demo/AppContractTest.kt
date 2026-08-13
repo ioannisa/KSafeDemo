@@ -19,6 +19,7 @@ class AppContractTest {
             expected = listOf(
                 StringKey.NAV_COUNTERS,
                 StringKey.NAV_FLOWS,
+                StringKey.NAV_HELPERS,
                 StringKey.NAV_CUSTOM_JSON,
                 StringKey.NAV_SECURITY,
             ),

@@ -21,8 +21,21 @@ internal class En : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "Retry"
         StringKey.NAV_COUNTERS -> "Counters"
         StringKey.NAV_FLOWS -> "Flows"
+        StringKey.NAV_HELPERS -> "Helpers"
         StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "Security"
+
+        StringKey.HELPERS_TITLE -> "Mode-Typed Helpers (3.1.0+)"
+        StringKey.HELPERS_SUBTITLE ->
+            "KSafePlain \u00b7 KSafeEncrypted \u00b7 KSafeHardwareIsolated \u2014 the handle fixes " +
+                "the write mode, so no write ever takes a mode argument"
+        StringKey.HELPERS_SECTION_PLAIN -> "Helper Counter Plain \u2014 writes via KSafePlain"
+        StringKey.HELPERS_SECTION_ENCRYPTED -> "Helper Counter Encrypted \u2014 writes via KSafeEncrypted"
+        StringKey.HELPERS_SECTION_HARDWARE_ISOLATED ->
+            "Helper Counter Hardware Isolated \u2014 writes via KSafeHardwareIsolated"
+        StringKey.HELPERS_VARIANT_DIRECT_STATE -> "Compose state \u2014 read directly"
+        StringKey.HELPERS_VARIANT_COLLECT_AS_STATE -> "StateFlow \u2014 collectAsState() in the screen"
+        StringKey.HELPERS_VARIANT_TO_COMPOSE_STATE -> "toComposeState(scope) \u2014 no collect in the screen"
 
         StringKey.PREFERENCES_APPEARANCE -> "Appearance"
         StringKey.PREFERENCES_APPEARANCE_DESCRIPTION ->

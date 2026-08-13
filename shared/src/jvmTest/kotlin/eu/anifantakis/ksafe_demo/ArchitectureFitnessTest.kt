@@ -28,7 +28,7 @@ class ArchitectureFitnessTest {
     }
 
     private val featureNames =
-        listOf("counters", "flows", "custom_json", "security", "preferences", "about")
+        listOf("counters", "flows", "helpers", "custom_json", "security", "preferences", "about")
 
     @Test
     fun everyAppFeatureLivesUnderTheFeaturesPackage() {
@@ -209,12 +209,22 @@ class ArchitectureFitnessTest {
                 source.contains(": BaseGlobalViewModel()"),
                 "$viewModelFile must extend BaseGlobalViewModel",
             )
+            val feature = viewModelFile.toString().replace('\\', '/')
+                .substringAfter("/features/").substringBefore('/')
+            if (feature in intentExemptFeatures) return@forEach
             assertTrue(
                 source.contains("fun onAction("),
                 "$viewModelFile must expose onAction(intent)",
             )
         }
     }
+
+    /**
+     * Features deliberately outside the one-intent MVI convention. `helpers` presents the
+     * 3.1.0 mode-typed views as nine plainly-declared states with direct increments — an
+     * intent funnel would obscure the very API shapes the screen exists to show.
+     */
+    private val intentExemptFeatures = setOf("helpers")
 
     private fun featureFiles(suffix: String): List<Path> = featureNames.flatMap { feature ->
         val root = featureRoot.resolve(feature)

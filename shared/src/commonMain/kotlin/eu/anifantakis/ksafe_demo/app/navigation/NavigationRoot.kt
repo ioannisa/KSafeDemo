@@ -44,6 +44,7 @@ import eu.anifantakis.ksafe_demo.core.presentation.string_resources.withArgs
 import eu.anifantakis.ksafe_demo.features.about.presentation.screens.about.AboutScreenRoot
 import eu.anifantakis.ksafe_demo.features.custom_json.presentation.screens.custom_json.CustomJsonScreenRoot
 import eu.anifantakis.ksafe_demo.features.flows.presentation.screens.flow_delegates.FlowDelegatesScreenRoot
+import eu.anifantakis.ksafe_demo.features.helpers.presentation.screens.helpers.HelpersScreenRoot
 import eu.anifantakis.ksafe_demo.features.preferences.presentation.screens.preferences.PreferencesScreenRoot
 import eu.anifantakis.ksafe_demo.features.security.presentation.screens.security.SecurityScreenRoot
 import eu.anifantakis.ksafe_demo.features.counters.presentation.screens.counters.CountersScreenRoot
@@ -141,6 +142,11 @@ fun NavigationRoot(
                         FlowDelegatesScreenRoot()
                     }
                 }
+                entry<AppRoute.Helpers>(metadata = TabTransitionMetadata) {
+                    AppSurface {
+                        HelpersScreenRoot()
+                    }
+                }
                 entry<AppRoute.CustomJson>(metadata = TabTransitionMetadata) {
                     AppSurface {
                         CustomJsonScreenRoot()
@@ -209,6 +215,7 @@ private val TabTransitionMetadata = metadata {
 private fun AppRoute.navIcon(selected: Boolean): ImageVector = when (this) {
     AppRoute.Counters -> if (selected) AppDrawableRepo.navCountersSelected else AppDrawableRepo.navCounters
     AppRoute.Flows -> if (selected) AppDrawableRepo.navFlowsSelected else AppDrawableRepo.navFlows
+    AppRoute.Helpers -> if (selected) AppDrawableRepo.navHelpersSelected else AppDrawableRepo.navHelpers
     AppRoute.CustomJson -> if (selected) AppDrawableRepo.navCustomJsonSelected else AppDrawableRepo.navCustomJson
     AppRoute.Security -> if (selected) AppDrawableRepo.navSecuritySelected else AppDrawableRepo.navSecurity
     // Not bottom-bar entries; mapped anyway so the when stays exhaustive.

@@ -3,6 +3,7 @@ package eu.anifantakis.ksafe_demo.core.presentation.design_system
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pin
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DataObject
+import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Pin
 import androidx.compose.material.icons.outlined.Security
@@ -60,6 +62,12 @@ object AppDrawableRepo {
 
     val navFlowsSelected: ImageVector
         @Composable get() = Icons.Filled.Waves
+
+    val navHelpers: ImageVector
+        @Composable get() = Icons.Outlined.Extension
+
+    val navHelpersSelected: ImageVector
+        @Composable get() = Icons.Filled.Extension
 
     val navCustomJson: ImageVector
         @Composable get() = Icons.Outlined.DataObject

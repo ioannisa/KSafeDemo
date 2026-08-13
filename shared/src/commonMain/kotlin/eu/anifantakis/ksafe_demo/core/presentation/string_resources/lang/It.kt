@@ -21,8 +21,21 @@ internal class It : LanguageStrings {
         StringKey.APP_STARTUP_RETRY -> "Riprova"
         StringKey.NAV_COUNTERS -> "Contatori"
         StringKey.NAV_FLOWS -> "Flussi"
+        StringKey.NAV_HELPERS -> "Helper"
         StringKey.NAV_CUSTOM_JSON -> "Cust. JSON"
         StringKey.NAV_SECURITY -> "Sicurezza"
+
+        StringKey.HELPERS_TITLE -> "Mode-Typed Helpers (3.1.0+)"
+        StringKey.HELPERS_SUBTITLE ->
+            "KSafePlain \u00b7 KSafeEncrypted \u00b7 KSafeHardwareIsolated \u2014 l'handle fissa la " +
+                "modalità di scrittura, nessuna scrittura richiede un argomento mode"
+        StringKey.HELPERS_SECTION_PLAIN -> "Helper Counter Plain \u2014 scritture tramite KSafePlain"
+        StringKey.HELPERS_SECTION_ENCRYPTED -> "Helper Counter Encrypted \u2014 scritture tramite KSafeEncrypted"
+        StringKey.HELPERS_SECTION_HARDWARE_ISOLATED ->
+            "Helper Counter Hardware Isolated \u2014 scritture tramite KSafeHardwareIsolated"
+        StringKey.HELPERS_VARIANT_DIRECT_STATE -> "Compose state \u2014 lettura diretta"
+        StringKey.HELPERS_VARIANT_COLLECT_AS_STATE -> "StateFlow \u2014 collectAsState() nella schermata"
+        StringKey.HELPERS_VARIANT_TO_COMPOSE_STATE -> "toComposeState(scope) \u2014 senza collect nella schermata"
 
         StringKey.PREFERENCES_APPEARANCE -> "Aspetto"
         StringKey.PREFERENCES_APPEARANCE_DESCRIPTION ->
