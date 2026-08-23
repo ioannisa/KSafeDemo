@@ -110,8 +110,8 @@ kotlin {
             // and its types surface in the entry-point modules — :webApp gates its
             // first frame on ksafe.awaitCacheReady() before mounting the app.
             api("eu.anifantakis:ksafe:3.1.0-SNAPSHOT")
-            implementation("eu.anifantakis:ksafe-compose:3.1.0-SNAPSHOT")
-            implementation("eu.anifantakis:ksafe-biometrics:3.1.0-SNAPSHOT")
+            implementation("eu.anifantakis:ksafe-compose:3.1.0")
+            implementation("eu.anifantakis:ksafe-biometrics:3.1.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
