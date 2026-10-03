@@ -42,3 +42,17 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink>().configureEa
         if (rc != 0) error("codesign failed with exit code $rc for ${outputFile.absolutePath}")
     }
 }
+
+// A bare .kexe looks up Compose resources in compose-resources/ next to itself, and nothing puts
+// them there: without this, the first painterResource() throws MissingResourceException at startup.
+kotlin.macosArm64().binaries.withType<org.jetbrains.kotlin.gradle.plugin.mpp.Executable>().configureEach {
+    val executable = this
+    val copyResources = tasks.register<Copy>(
+        "copyComposeResourcesFor${executable.name.replaceFirstChar(Char::titlecase)}"
+    ) {
+        from(tasks.named("macosArm64AggregateResources"))
+        into(executable.outputDirectory.resolve("compose-resources"))
+    }
+    executable.linkTaskProvider.configure { finalizedBy(copyResources) }
+    executable.runTaskProvider?.configure { dependsOn(copyResources) }
+}

@@ -109,9 +109,9 @@ kotlin {
             // `api` rather than `implementation`: KSafe is the subject of this demo
             // and its types surface in the entry-point modules — :webApp gates its
             // first frame on ksafe.awaitCacheReady() before mounting the app.
-            api("eu.anifantakis:ksafe:3.2.0")
-            implementation("eu.anifantakis:ksafe-compose:3.2.0")
-            implementation("eu.anifantakis:ksafe-biometrics:3.2.0")
+            api("eu.anifantakis:ksafe:3.3.0")
+            implementation("eu.anifantakis:ksafe-compose:3.3.0")
+            implementation("eu.anifantakis:ksafe-biometrics:3.3.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

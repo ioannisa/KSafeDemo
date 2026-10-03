@@ -257,6 +257,24 @@ class CountersViewModel(
 
         checkFlows()
         refreshKeyInfo()
+
+        ksafe.protectionInfo.also {
+            println(
+                "KSafe protection: " +
+                        "intended=${it.intendedLevel} " +
+                        "effective=${it.effectiveLevel} " +
+                        "custody=\"${it.custody}\" " +
+                        "notes=${it.notes}"
+            )
+        }
+
+        ksafe.getKeyInfo("count2")?.also {
+            println(
+                "KSafe per-key: key=count2 " +
+                        "achieved=${it.level} " +
+                        "legacy.storage=${it.storage}"
+            )
+        }
     }
 
     private fun bioCounterIncrement() {
